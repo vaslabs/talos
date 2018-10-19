@@ -5,6 +5,7 @@ object Dependencies {
     val akka = "2.5.17"
     val circe = "0.10.0"
     val kamon = "1.1.0"
+    val scalatest = "3.0.5"
   }
 
   object libraries {
@@ -25,6 +26,9 @@ object Dependencies {
         "io.circe" %% "circe-generic",
         "io.circe" %% "circe-parser"
       ).map(_ % versions.circe)
+    }
+    object ScalaTest {
+      val all = Seq("org.scalatest" %% "scalatest" % versions.scalatest % Test)
     }
   }
 

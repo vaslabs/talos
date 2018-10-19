@@ -5,8 +5,9 @@ version := "0.1"
 
 scalaVersion := "2.12.7"
 
+
 lazy val events = (project in file("talos-events")).settings(
-  libraryDependencies ++= libraries.Akka.all
+  libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all
 )
 
 lazy val kamon =
