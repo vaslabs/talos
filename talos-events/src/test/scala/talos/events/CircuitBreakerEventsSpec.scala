@@ -1,14 +1,20 @@
 package talos.events
 
 import akka.actor.ActorSystem
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import akka.pattern.CircuitBreaker
 import akka.testkit.{TestKit, TestProbe}
 import talos.events.TalosEvents.model._
 
 import scala.concurrent.duration._
 import scala.util.Try
-class CircuitBreakerEventsSpec extends TestKit(ActorSystem("CircuitBreakerEvents")) with WordSpecLike with Matchers {
+class CircuitBreakerEventsSpec extends
+      TestKit(ActorSystem("CircuitBreakerEvents"))
+      with WordSpecLike
+      with Matchers
+      with BeforeAndAfterAll{
+
+  override def afterAll(): Unit = system.terminate()
 
   "a circuit breaker" can {
     val circuitBreakerName = "testCircuitBreaker"

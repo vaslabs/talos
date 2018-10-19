@@ -10,9 +10,10 @@ object Dependencies {
 
   object libraries {
     object Akka {
-      val actor = "com.typesafe.akka" %% "akka-actor" % versions.akka
-      val actorTest = "com.typesafe.akka" %% "akka-testkit" % versions.akka % Test
-      val all = Seq(actor, actorTest)
+      val actorTyped = "com.typesafe.akka" %% "akka-actor-typed" % versions.akka
+      val actorTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % versions.akka % Test
+
+      val all = Seq(actorTyped, actorTestkitTyped)
     }
 
     object Kamon {

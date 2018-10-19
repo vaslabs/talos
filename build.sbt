@@ -14,8 +14,8 @@ lazy val events =
 
 lazy val kamon =
   (project in file("talos-kamon")).settings(
-    libraryDependencies ++= libraries.Kamon.all
-  )
+    libraryDependencies ++= libraries.Kamon.all ++ libraries.ScalaTest.all ++ libraries.Akka.all
+  ).dependsOn(events)
 
 lazy val hystrixReporter =
   (project in file("hystrix-reporter")).settings(
