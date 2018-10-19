@@ -11,9 +11,12 @@ import scala.util.Try
 class CircuitBreakerEventsSpec extends TestKit(ActorSystem("CircuitBreakerEvents")) with WordSpecLike with Matchers {
 
   "a circuit breaker" can {
+    val circuitBreakerName = "testCircuitBreaker"
+    import syntax._
     import scala.concurrent.ExecutionContext.Implicits.global
-    val circuitBreaker =
-      CircuitBreaker(
+    val circuitBreakerWithEventStreamReporting =
+      CircuitBreaker.withEventReporting(
+        circuitBreakerName,
         system.scheduler,
         maxFailures = 5,
         callTimeout = 1 second,
@@ -21,8 +24,6 @@ class CircuitBreakerEventsSpec extends TestKit(ActorSystem("CircuitBreakerEvents
     )
     val eventListener = TestProbe("talosEventsListener")
     system.eventStream.subscribe(eventListener.ref, classOf[CircuitBreakerEvent])
-    val circuitBreakerName = "testCircuitBreaker"
-    val circuitBreakerWithEventStreamReporting = TalosEvents.wrap(circuitBreaker, circuitBreakerName)
 
     "be attached with talos events reporting" in {
       circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => 1)
