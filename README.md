@@ -1,4 +1,4 @@
-# talos
+# talos [![Build Status](https://travis-ci.com/vaslabs/talos.svg?branch=master)](https://travis-ci.com/vaslabs/talos)
 
 Talos is a WIP reporting tool for Akka circuit breaker
 
