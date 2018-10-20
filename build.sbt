@@ -19,7 +19,8 @@ lazy val talosKamon =
 
 lazy val hystrixReporter =
   (project in file("hystrix-reporter")).settings(
-    libraryDependencies ++= libraries.Akka.all ++ libraries.Kamon.all ++ libraries.Circe.all
+    libraryDependencies ++=
+      libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
   )
 
 lazy val talos =
