@@ -27,4 +27,4 @@ lazy val hystrixReporter =
 
 lazy val talos =
   (project in file("."))
-    .aggregate(talosEvents, talosKamon)
+    .aggregate(talosEvents, talosKamon, hystrixReporter)
