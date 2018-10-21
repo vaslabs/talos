@@ -6,7 +6,7 @@ import akka.stream.scaladsl.Source
 import akka.util.Timeout
 import io.circe.generic.auto._
 import io.circe.syntax._
-import talos.http.HystrixReporter.HystrixDashboardEvent
+import talos.http.CircuitBreakerStatsActor.HystrixDashboardEvent
 
 import scala.concurrent.duration._
 class CircuitBreakerEventsSource
@@ -22,7 +22,7 @@ class CircuitBreakerEventsSource
   private implicit val streamTimeout: Timeout = Timeout(timeout)
 
   def main: Source[ServerSentEvent, _] = Source.tick(
-    1 second, 2 seconds, HystrixReporter.FetchHystrixEvents
+    1 second, 2 seconds, CircuitBreakerStatsActor.FetchHystrixEvents
   ).ask[HystrixDashboardEvent](hystrixReporter)
     .map(_.asJson.noSpaces).map(ServerSentEvent(_))
 

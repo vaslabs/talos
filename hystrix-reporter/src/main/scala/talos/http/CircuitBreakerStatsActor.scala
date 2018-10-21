@@ -4,13 +4,13 @@ import java.time.ZonedDateTime
 import java.util
 
 import akka.actor.{Actor, Props}
-import talos.http.HystrixReporter.{CircuitBreakerStats, FetchHystrixEvents}
+import talos.http.CircuitBreakerStatsActor.{CircuitBreakerStats, FetchHystrixEvents}
 
 import scala.collection.mutable.ListBuffer
 
 
-object HystrixReporter {
-  def props: Props = Props(new HystrixReporter)
+object CircuitBreakerStatsActor {
+  def props: Props = Props(new CircuitBreakerStatsActor)
 
 
   case object FetchHystrixEvents
@@ -39,7 +39,7 @@ object HystrixReporter {
 
 }
 
-class HystrixReporter extends Actor {
+class CircuitBreakerStatsActor extends Actor {
 
   private[this] val deque: util.ArrayDeque[CircuitBreakerStats] = new util.ArrayDeque()
 
