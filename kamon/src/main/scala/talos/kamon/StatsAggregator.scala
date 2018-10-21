@@ -12,9 +12,9 @@ object StatsAggregator {
     val counter = Kamon.counter(s"circuit-breaker-${circuitBreakerEvent.circuitBreakerName}")
     val refinedTag = "eventType" -> {
       circuitBreakerEvent match {
-        case SuccessfulCall(_, elapsedTime) =>
+        case SuccessfulCall(_, _) =>
            "success-call"
-        case CallFailure(_, elapsedTime) =>
+        case CallFailure(_, _) =>
           "failed-call"
         case CircuitOpen(_) =>
          "circuit-open"
@@ -22,6 +22,7 @@ object StatsAggregator {
           "circuit-closed"
         case HalfOpen(_) =>
           "circuit-half-open"
+        case CallTimeout(_, _) => "call-timeout"
       }
     }
     counter.refine(refinedTag)
@@ -31,10 +32,12 @@ object StatsAggregator {
     val histogram = Kamon.histogram(s"circuit-breaker-elapsed-time-${circuitBreakerEvent.circuitBreakerName}")
     val refinedTag = "eventType" -> {
       circuitBreakerEvent match {
-        case SuccessfulCall(circuitBreakerName, elapsedTime) =>
+        case SuccessfulCall(_, elapsedTime) =>
           "success-call"
-        case CallFailure(circuitBreakerName, elapsedTime) =>
+        case CallFailure(_, elapsedTime) =>
           "failure-call"
+        case CallTimeout(_, elapsedTime) =>
+          "call-timeout"
       }
     }
     histogram.refine(refinedTag)
@@ -49,6 +52,9 @@ object StatsAggregator {
         case cf @ CallFailure(identifier, elapsedTime) =>
           kamonCounter(cf).increment()
           kamonHistogram(cf).record(elapsedTime.toNanos)
+        case ct @ CallTimeout(identifier, elapsedTime) =>
+          kamonCounter(ct)
+          kamonHistogram(ct).record(elapsedTime.toNanos)
         case eventsWithoutElapsedTime: CircuitBreakerEvent =>
           kamonCounter(eventsWithoutElapsedTime).increment()
       }

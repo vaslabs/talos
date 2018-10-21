@@ -68,6 +68,10 @@ class CircuitBreakerEventsSpec extends
       }
       eventListener.expectMsg(CircuitOpen(circuitBreakerName))
     }
+    "publish events short circuited calls" in {
+      Try(circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => throw new RuntimeException))
+      eventListener.expectMsgType[ShortCircuitedCall]
+    }
     "publish events on half open" in{
       Thread.sleep(5000)
       eventListener.expectMsg(HalfOpen(circuitBreakerName))
