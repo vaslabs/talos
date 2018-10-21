@@ -6,17 +6,17 @@ import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import cats.data.NonEmptyList
 import org.scalatest.{Matchers, WordSpecLike}
-import talos.http.HystrixReporter.FetchHystrixEvents
+import talos.http.CircuitBreakerStatsActor.FetchHystrixEvents
 
 import scala.concurrent.duration._
-class HystrixReporterSpec
+class CircuitBreakerStatsActorSpec
       extends TestKit(ActorSystem("HystrixReporterSpec"))
       with WordSpecLike
       with Matchers
       with ImplicitSender {
 
   def sample =
-    HystrixReporter.CircuitBreakerStats(
+    CircuitBreakerStatsActor.CircuitBreakerStats(
       "myCircuitBreaker",
       0L,
       ZonedDateTime.now(),
@@ -35,9 +35,9 @@ class HystrixReporterSpec
 
 
   "hystrix reporter" can {
-    val hystrixReporter = TestActorRef(HystrixReporter.props)
+    val hystrixReporter = TestActorRef(CircuitBreakerStatsActor.props)
     "receive stats for circuit breaker" in {
-      val statsSample: HystrixReporter.CircuitBreakerStats = sample
+      val statsSample: CircuitBreakerStatsActor.CircuitBreakerStats = sample
       hystrixReporter ! statsSample
       hystrixReporter ! FetchHystrixEvents
       expectMsg(List(statsSample))

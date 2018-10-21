@@ -5,7 +5,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.testkit.{TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
-import talos.http.HystrixReporter.HystrixDashboardEvent
+import talos.http.CircuitBreakerStatsActor.HystrixDashboardEvent
 
 class CircuitBreakerEventsSourceSpec
       extends TestKit(ActorSystem("CircuitBreakerEventsSourceSpec"))
@@ -27,7 +27,7 @@ class CircuitBreakerEventsSourceSpec
     implicit val actorMaterializer = ActorMaterializer()
     circuitBreakerEventsSource.main.runWith(Sink.ignore)
 
-    metricsReporterActor.expectMsg(HystrixReporter.FetchHystrixEvents)
+    metricsReporterActor.expectMsg(CircuitBreakerStatsActor.FetchHystrixEvents)
     metricsReporterActor.send(metricsReporterActor.sender(), HystrixDashboardEvent())
 
   }
