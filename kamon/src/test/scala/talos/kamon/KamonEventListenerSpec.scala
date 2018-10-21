@@ -25,7 +25,7 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
   Kamon.addReporter(new MetricReporter {
     override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
       def name(metricValue: MetricValue): String =
-        s"${metricValue.tags.get("circuit-breaker").get}-${metricValue.name}"
+        s"${metricValue.name}-${metricValue.tags.get("eventType").get}"
       snapshot.metrics.counters.foreach {
         mv =>
           gatheringValues += (name(mv) -> gatheringValues.get(name(mv)).map(_ + mv.value).getOrElse(mv.value))
@@ -68,7 +68,7 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
     Thread.sleep(2000)
 
     gatheringValues shouldBe Map(
-      "myCircuitBreaker-success-call" -> 10
+      "circuit-breaker-myCircuitBreaker-success-call" -> 10
     )
   }
 

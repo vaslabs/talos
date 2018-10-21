@@ -9,29 +9,35 @@ import talos.events.TalosEvents.model._
 object StatsAggregator {
 
   private def kamonCounter(circuitBreakerEvent: CircuitBreakerEvent): Counter = {
-    val counter = circuitBreakerEvent match {
-      case SuccessfulCall(_, elapsedTime) =>
-        Kamon.counter("success-call")
-      case CallFailure(_, elapsedTime) =>
-        Kamon.counter("failed-call")
-      case CircuitOpen(_) =>
-        Kamon.counter("circuit-open")
-      case CircuitClosed(_) =>
-        Kamon.counter("circuit-closed")
-      case HalfOpen(_) =>
-        Kamon.counter("circuit-half-open")
+    val counter = Kamon.counter(s"circuit-breaker-${circuitBreakerEvent.circuitBreakerName}")
+    val refinedTag = "eventType" -> {
+      circuitBreakerEvent match {
+        case SuccessfulCall(_, elapsedTime) =>
+           "success-call"
+        case CallFailure(_, elapsedTime) =>
+          "failed-call"
+        case CircuitOpen(_) =>
+         "circuit-open"
+        case CircuitClosed(_) =>
+          "circuit-closed"
+        case HalfOpen(_) =>
+          "circuit-half-open"
+      }
     }
-    counter.refine("circuit-breaker" -> circuitBreakerEvent.circuitBreakerName)
+    counter.refine(refinedTag)
   }
 
   private def kamonHistogram(circuitBreakerEvent: CircuitBreakerEvent): Histogram = {
-    val histogram = circuitBreakerEvent match {
-      case SuccessfulCall(circuitBreakerName, elapsedTime) =>
-        Kamon.histogram("success-call-elapsed-time")
-      case CallFailure(circuitBreakerName, elapsedTime) =>
-        Kamon.histogram("failure-call-elapsed-time")
+    val histogram = Kamon.histogram(s"circuit-breaker-elapsed-time-${circuitBreakerEvent.circuitBreakerName}")
+    val refinedTag = "eventType" -> {
+      circuitBreakerEvent match {
+        case SuccessfulCall(circuitBreakerName, elapsedTime) =>
+          "success-call"
+        case CallFailure(circuitBreakerName, elapsedTime) =>
+          "failure-call"
+      }
     }
-    histogram.refine("circuit-breaker" -> circuitBreakerEvent.circuitBreakerName)
+    histogram.refine(refinedTag)
   }
 
   def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.receive {
