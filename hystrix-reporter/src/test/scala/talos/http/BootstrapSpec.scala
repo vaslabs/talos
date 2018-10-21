@@ -2,7 +2,6 @@ package talos.http
 
 import akka.actor.ActorSystem
 import akka.pattern.CircuitBreaker
-import kamon.Kamon
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.duration._
