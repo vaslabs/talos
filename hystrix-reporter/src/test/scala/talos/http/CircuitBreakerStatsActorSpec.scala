@@ -42,6 +42,17 @@ class CircuitBreakerStatsActorSpec
       hystrixReporter ! FetchHystrixEvents
       expectMsg(List(statsSample))
     }
+    "receive the latest stats only" in {
+      val statsSample = List(sample, sample)
+      hystrixReporter ! statsSample(0)
+      hystrixReporter ! statsSample(1)
+      hystrixReporter ! FetchHystrixEvents
+      expectMsg(statsSample)
+    }
+    "support at most once delivery" in {
+      hystrixReporter ! FetchHystrixEvents
+      expectMsg(List.empty)
+    }
 
   }
 
