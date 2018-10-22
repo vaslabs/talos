@@ -7,6 +7,7 @@ import akka.actor.{Actor, Props}
 import talos.http.CircuitBreakerStatsActor.{CircuitBreakerStats, FetchHystrixEvents, HystrixDashboardEvent}
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.FiniteDuration
 
 
 object CircuitBreakerStatsActor {
@@ -31,10 +32,10 @@ object CircuitBreakerStatsActor {
       rollingCountTimeout: Long,
       rollingCountShortCircuited: Long,
       rollingCountSuccess: Long,
-      latencyExecute_mean: Long,
-      latencyExecute: Map[String, Long],
-      latencyTotal_mean: Long,
-      latencyTotal: Map[String, Long],
+      latencyExecute_mean: FiniteDuration,
+      latencyExecute: Map[String, FiniteDuration],
+      latencyTotal_mean: FiniteDuration,
+      latencyTotal: Map[String, FiniteDuration],
       reportingHosts: Int = 1
     )
 

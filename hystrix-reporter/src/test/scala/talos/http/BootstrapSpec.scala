@@ -15,7 +15,7 @@ import talos.kamon.hystrix.HystrixReporter
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Random, Try}
+import scala.util.Random
 
 object BootstrapSpec extends App {
 
@@ -68,9 +68,8 @@ object BootstrapSpec extends App {
     implicit val executionContext = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
     Future {
       while (true) {
-        foo.callWithSyncCircuitBreaker(() => ())
-        bar.callWithSyncCircuitBreaker(() => ())
-        Thread.sleep(10)
+        foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100)))
+        bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50)))
       }
     }
   }

@@ -87,8 +87,8 @@ class HystrixReporterSpec
         ) =>
       }
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
-      statsMessage.latencyExecute_mean should be > 0L
-      statsMessage.latencyTotal_mean should be > 0L
+      statsMessage.latencyExecute_mean should be > (0 nanos)
+      statsMessage.latencyTotal_mean should be > (0 nanos)
       println(statsMessage.latencyExecute)
       statsMessage.latencyExecute.get("100.0").get should be > statsMessage.latencyTotal_mean
     }
@@ -107,8 +107,8 @@ class HystrixReporterSpec
         ) =>
       }
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
-      statsMessage.latencyExecute_mean should be > 0L
-      statsMessage.latencyTotal_mean should be > 0L
+      statsMessage.latencyExecute_mean should be > (0 nanos)
+      statsMessage.latencyTotal_mean should be > (0 nanos)
       println(statsMessage.latencyExecute)
     }
     "count open circuits" in {

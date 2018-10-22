@@ -7,6 +7,7 @@ import akka.pattern.CircuitBreaker
 
 object Utils {
 
+  import scala.concurrent.duration._
   def statsSample =
     CircuitBreakerStatsActor.CircuitBreakerStats(
       "myCircuitBreaker",
@@ -20,9 +21,9 @@ object Utils {
       0,
       0,
       0,
-      0,
+      0 nanos,
       Map.empty,
-      0,
+      0 nanos,
       Map.empty
     )
 

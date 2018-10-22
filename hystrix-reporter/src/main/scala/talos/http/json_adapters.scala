@@ -5,6 +5,8 @@ import java.time.ZonedDateTime
 import io.circe.{Encoder, Json}
 import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
 
+import scala.concurrent.duration.FiniteDuration
+
 
 object json_adapters {
 
@@ -44,7 +46,11 @@ object json_adapters {
     "propertyValue_fallbackIsolationSemaphoreMaxConcurrentRequests" -> 0,
     "propertyValue_requestCacheEnabled" -> false,
     "propertyValue_requestLogEnabled" -> false,
-    "propertyValue_metricsRollingStatisticalWindowInMilliseconds" -> 0
+    "propertyValue_metricsRollingStatisticalWindowInMilliseconds" -> 1000
+  )
+
+  private implicit val finiteDurationEncoder: Encoder[FiniteDuration] = Encoder.encodeLong.contramap(
+    _.toMillis
   )
 
   implicit val circuitBreakerStatsEncoder: Encoder[CircuitBreakerStats] = deriveEncoder[CircuitBreakerStats].mapJson(

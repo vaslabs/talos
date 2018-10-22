@@ -13,6 +13,7 @@ import talos.kamon.StatsAggregator
 
 import scala.collection.immutable
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
 
 class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends MetricReporter{
 
@@ -80,9 +81,9 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       rollingCountTimeout = timeouts,
       shortCircuited,
       successCalls,
-      0,
+      0 millis,
       Map.empty,
-      0L,
+      0 millis,
       Map.empty
     )
   }
@@ -132,21 +133,22 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       } yield (percentile -> hystrixPercentile)
     ).map(seq => Map(seq: _*))
 
-    val latencyExecute: Map[String, Long] =
+    val latencyExecute: Map[String, FiniteDuration] =
       latencyPercentiles.foldLeft(Map.empty[String, Percentile])(_ |+| _)
         .map {
-          case (name, percentile) => name.toString -> percentile.value
+          case (name, percentile) => name.toString -> (percentile.value nanos)
       }
 
+    import scala.concurrent.duration._
 
     CircuitBreakerStats(
       name,
       0L,
       ZonedDateTime.now(clock),
       false, 0, 0,0,0,0,0,0,
-      latencyExecuteMean,
+      latencyExecuteMean nanos,
       latencyExecute,
-      latencyExecuteMean,
+      latencyExecuteMean nanos,
       latencyExecute
     )
   }
