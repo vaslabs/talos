@@ -14,7 +14,7 @@ import talos.kamon.StatsAggregator
 import talos.kamon.hystrix.HystrixReporter
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 object BootstrapSpec extends App {
