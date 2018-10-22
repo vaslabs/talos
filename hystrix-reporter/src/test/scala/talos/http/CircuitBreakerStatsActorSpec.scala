@@ -5,7 +5,7 @@ import java.time.ZonedDateTime
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import cats.data.NonEmptyList
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import talos.http.CircuitBreakerStatsActor.FetchHystrixEvents
 
 import scala.concurrent.duration._
@@ -13,7 +13,10 @@ class CircuitBreakerStatsActorSpec
       extends TestKit(ActorSystem("HystrixReporterSpec"))
       with WordSpecLike
       with Matchers
-      with ImplicitSender {
+      with ImplicitSender
+      with BeforeAndAfterAll{
+
+  override def afterAll(): Unit = system.terminate()
 
   def sample =
     CircuitBreakerStatsActor.CircuitBreakerStats(
