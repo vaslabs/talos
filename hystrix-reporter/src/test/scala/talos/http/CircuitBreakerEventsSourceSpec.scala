@@ -5,7 +5,6 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.testkit.{TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
-import talos.http.CircuitBreakerStatsActor.HystrixDashboardEvent
 
 class CircuitBreakerEventsSourceSpec
       extends TestKit(ActorSystem("CircuitBreakerEventsSourceSpec"))

@@ -24,7 +24,7 @@ object HystrixReporterSpec {
   def createCircuitBreaker(name: String = "testCircuitBreaker")
                           (implicit actorSystem: ActorSystem) =
     CircuitBreaker.withEventReporting(
-      "testCircuitBreaker",
+      name,
       actorSystem.scheduler,
       5,
       2 seconds,
@@ -66,13 +66,14 @@ class HystrixReporterSpec
   }
   system.eventStream.subscribe(statsAggregator, classOf[CircuitBreakerEvent])
 
+  val statsGatherer: TestProbe = TestProbe()
+
+  val hystrixReporter: MetricReporter = new HystrixReporter(statsGatherer.ref)
+  Kamon.addReporter(hystrixReporter)
+
   "Hystrix reporter receiving kamon metric snapshots for a single circuit breaker" can {
 
     val circuitBreaker = createCircuitBreaker()
-    val statsGatherer: TestProbe = TestProbe()
-
-    val hystrixReporter: MetricReporter = new HystrixReporter(statsGatherer.ref)
-    Kamon.addReporter(hystrixReporter)
 
     "group successful metrics into one single snapshot event" in {
       val results: Seq[Int] = fireSuccessful(10, circuitBreaker)
@@ -136,4 +137,36 @@ class HystrixReporterSpec
 
   }
 
+  "Hystrix reporter receiving kamon metric snapshots for a multiple circuit breaker" can {
+    val circuitBreakerFoo = createCircuitBreaker("foo")
+    val circuitBreakerBar = createCircuitBreaker("bar")
+    "gather stats for all" in {
+      fireSuccessful(7, circuitBreakerFoo)
+      fireFailures(3, circuitBreakerFoo)
+      fireSuccessful(4, circuitBreakerBar)
+      fireFailures(1, circuitBreakerBar)
+      val first = statsGatherer.expectMsgType[CircuitBreakerStats]
+      println(first)
+      val second = statsGatherer.expectMsgType[CircuitBreakerStats]
+      val barStats = if (first.name == "bar") first else second
+      val fooStats = if (second.name == "foo") second else first
+
+      barStats should matchPattern {
+        case CircuitBreakerStats(
+        "bar", 5L, time, false,
+        0.2f, 1L, 1L, 1L, 0L, 0L, 4L,
+        latencyExecute_mean, latencyExecute,
+        latencyTotal_mean, latencyTotal, 1
+        ) =>
+      }
+      fooStats should matchPattern {
+        case CircuitBreakerStats(
+        "foo", 10L, time, false,
+        0.3f, 3L, 3L, 3L, 0L, 0L, 7L,
+        latencyExecute_mean, latencyExecute,
+        latencyTotal_mean, latencyTotal, 1
+        ) =>
+      }
+    }
+  }
 }
