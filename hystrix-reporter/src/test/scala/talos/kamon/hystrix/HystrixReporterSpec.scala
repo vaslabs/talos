@@ -109,7 +109,6 @@ class HystrixReporterSpec
       statsMessage.latencyExecute_mean should be > 0L
       statsMessage.latencyTotal_mean should be > 0L
       println(statsMessage.latencyExecute)
-      statsMessage.latencyExecute.get("100.0").get should be > statsMessage.latencyTotal_mean
     }
     "count open circuits" in {
       val failures = fireFailures(3, circuitBreaker)
