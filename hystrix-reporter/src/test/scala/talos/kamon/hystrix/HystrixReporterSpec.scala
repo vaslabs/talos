@@ -88,6 +88,8 @@ class HystrixReporterSpec
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
       statsMessage.latencyExecute_mean should be > 0L
       statsMessage.latencyTotal_mean should be > 0L
+      println(statsMessage.latencyExecute)
+      statsMessage.latencyExecute.get("100.0").get should be > statsMessage.latencyTotal_mean
     }
 
     "group successful and unsuccessful metrics" in {
@@ -106,6 +108,8 @@ class HystrixReporterSpec
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
       statsMessage.latencyExecute_mean should be > 0L
       statsMessage.latencyTotal_mean should be > 0L
+      println(statsMessage.latencyExecute)
+      statsMessage.latencyExecute.get("100.0").get should be > statsMessage.latencyTotal_mean
     }
     "count open circuits" in {
       val failures = fireFailures(3, circuitBreaker)
@@ -130,8 +134,6 @@ class HystrixReporterSpec
         ) =>
       }
     }
-
-
 
   }
 

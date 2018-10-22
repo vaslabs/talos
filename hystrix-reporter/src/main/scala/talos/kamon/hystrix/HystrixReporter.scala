@@ -5,14 +5,14 @@ import java.time.{Clock, ZonedDateTime}
 import akka.actor.ActorRef
 import com.typesafe.config.Config
 import kamon.MetricReporter
-import kamon.metric.{MetricDistribution, MetricValue, PeriodSnapshot}
+import kamon.metric.{MetricDistribution, MetricValue, Percentile, PeriodSnapshot}
 import cats.implicits._
 import cats.kernel.Semigroup
 import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
 import talos.kamon.StatsAggregator
 
 import scala.collection.immutable
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends MetricReporter{
 
@@ -45,6 +45,16 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
         fromHistograms.latencyTotal_mean,
         fromHistograms.latencyTotal
       )
+    }
+
+  private implicit val percentileSemigroup: Semigroup[Percentile] =
+    (x: Percentile, y: Percentile) => {
+      if (x.quantile > y.quantile)
+        y
+      else if (x.countUnderQuantile > y.quantile)
+        x
+      else
+        y
     }
 
   private def asCircuitBreakerStats(circuitBreakerName: String, stats: Map[String, Long]): CircuitBreakerStats = {
@@ -89,7 +99,6 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       mean(distributions.foldLeft((0L, 0L)) {
         (stats, md) => stats |+| (md.distribution.sum, md.distribution.count)
       })
-    val latencyExecute: Map[String, Long] = Map.empty
     def percentile(p: Double)(seq: Seq[Long]): Long = {
       val sorted = seq.sorted
       math.ceil((seq.length - 1) * (p/100.0)).toLong
@@ -99,6 +108,21 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       0.0, 25.0, 50.0, 75.0,
       90.0, 95.0, 99.0, 99.5, 100.0
     )
+
+    val latencyPercentiles: Seq[Map[Double, Percentile]] = distributions.map(
+      md => for {
+        percentile <- allPercentiles
+        hystrixPercentile = md.distribution.percentile(percentile)
+        if hystrixPercentile.quantile == percentile
+      } yield (percentile -> hystrixPercentile)
+    ).map(seq => Map(seq: _*))
+
+    val latencyExecute: Map[String, Long] =
+      latencyPercentiles.foldLeft(Map.empty[Double, Percentile])(_ |+| _)
+        .map {
+          case (name, percentile) => name.toString -> percentile.value
+      }
+
 
     CircuitBreakerStats(
       name,
