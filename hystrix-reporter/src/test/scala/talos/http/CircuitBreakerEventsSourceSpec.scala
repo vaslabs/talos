@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.testkit.{TestKit, TestProbe}
+import kamon.Kamon
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import talos.http.CircuitBreakerStatsActor.HystrixDashboardEvent
 
@@ -15,7 +16,9 @@ class CircuitBreakerEventsSourceSpec
 
   import scala.concurrent.duration._
 
-  override def afterAll(): Unit = system.terminate()
+  override def afterAll(): Unit = {
+    system.terminate()
+  }
 
   "events source" should "periodically send events for streaming data" in {
     val metricsReporterActor = TestProbe("MetricsReporter")

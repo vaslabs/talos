@@ -4,6 +4,7 @@ import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
+import kamon.Kamon
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import talos.http.CircuitBreakerStatsActor.FetchHystrixEvents
 class CircuitBreakerStatsActorSpec
@@ -13,7 +14,9 @@ class CircuitBreakerStatsActorSpec
       with ImplicitSender
       with BeforeAndAfterAll{
 
-  override def afterAll(): Unit = system.terminate()
+  override def afterAll(): Unit = {
+    system.terminate()
+  }
 
   def sample =
     CircuitBreakerStatsActor.CircuitBreakerStats(

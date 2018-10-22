@@ -145,13 +145,19 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
   def merge(countersMetrics: immutable.Iterable[CircuitBreakerStats], histogramMetrics: immutable.Iterable[CircuitBreakerStats]): Unit = ???
 
   override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
-    val countersMetrics = findCountersMetrics(snapshot.metrics.counters)
-    val histogramMetrics = findHistogramMetrics(snapshot.metrics.histograms)
-    val mergedStats = countersMetrics |+| histogramMetrics
-    mergedStats.foreach {
-      case (circuitBreaker, circuitBreakerStats) =>
-        if (circuitBreakerStats.requestCount > 0)
-          statsGatherer ! circuitBreakerStats
+    val outcome = Try {
+      val countersMetrics = findCountersMetrics(snapshot.metrics.counters)
+      val histogramMetrics = findHistogramMetrics(snapshot.metrics.histograms)
+      val mergedStats = countersMetrics |+| histogramMetrics
+      mergedStats.foreach {
+        case (circuitBreaker, circuitBreakerStats) =>
+          if (circuitBreakerStats.requestCount > 0)
+            statsGatherer ! circuitBreakerStats
+      }
+    }
+    outcome match {
+      case Success(_) => ()
+      case Failure(t) => t.printStackTrace()
     }
   }
 
