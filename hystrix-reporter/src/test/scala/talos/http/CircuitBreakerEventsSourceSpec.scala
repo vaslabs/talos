@@ -23,7 +23,7 @@ class CircuitBreakerEventsSourceSpec
 
     val receiverEnd = TestProbe("receiver")
     val circuitBreakerEventsSource =
-      new CircuitBreakerEventsSource(3 seconds, 10, metricsReporterActor.ref)
+      new CircuitBreakerEventsSource(3 seconds, metricsReporterActor.ref)
 
     implicit val actorMaterializer = ActorMaterializer()
     circuitBreakerEventsSource.main.runWith(Sink.ignore)
