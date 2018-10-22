@@ -15,7 +15,7 @@ import talos.kamon.hystrix.HystrixReporter
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{Random, Try}
 
 object BootstrapSpec extends App {
 

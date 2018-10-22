@@ -95,6 +95,19 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       case (name, stats) => name -> asCircuitBreakerStats(name, stats)
     }
 
+  def normalize(quantile: Double, percentile: Percentile): Percentile = {
+    if (quantile != percentile.quantile)
+      new Percentile {
+        override val quantile: Double = quantile
+
+        override val value: Long = percentile.value
+
+        override val countUnderQuantile: Long = percentile.countUnderQuantile
+      }
+    else
+      percentile
+  }
+
   def findHistogramMetricsOfCircuitBreaker(name: String, distributions: Seq[MetricDistribution]): CircuitBreakerStats = {
     def mean(t: (Long, Long)) = if (t._2 == 0) 0L else (t._1 / t._2)
     val latencyExecuteMean: Long =
@@ -106,21 +119,21 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       math.ceil((seq.length - 1) * (p/100.0)).toLong
     }
 
-    val allPercentiles: Seq[Double] = Seq(
-      0.0, 25.0, 50.0, 75.0,
-      90.0, 95.0, 99.0, 99.5, 100.0
+    val allPercentiles: Seq[String] = Seq(
+      "0", "25", "50", "75",
+      "90", "95", "99", "99.5", "100"
     )
 
-    val latencyPercentiles: Seq[Map[Double, Percentile]] = distributions.map(
+    val latencyPercentiles: Seq[Map[String, Percentile]] = distributions.map(
       md => for {
         percentile <- allPercentiles
-        hystrixPercentile = md.distribution.percentile(percentile)
-        if hystrixPercentile.quantile == percentile
+        p = percentile.toDouble
+        hystrixPercentile = normalize(p, md.distribution.percentile(p))
       } yield (percentile -> hystrixPercentile)
     ).map(seq => Map(seq: _*))
 
     val latencyExecute: Map[String, Long] =
-      latencyPercentiles.foldLeft(Map.empty[Double, Percentile])(_ |+| _)
+      latencyPercentiles.foldLeft(Map.empty[String, Percentile])(_ |+| _)
         .map {
           case (name, percentile) => name.toString -> percentile.value
       }

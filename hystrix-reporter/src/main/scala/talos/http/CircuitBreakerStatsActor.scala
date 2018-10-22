@@ -44,6 +44,9 @@ class CircuitBreakerStatsActor extends Actor {
 
   private[this] val deque: util.ArrayDeque[CircuitBreakerStats] = new util.ArrayDeque()
 
+  override def postStop(): Unit = {
+    println("Circtuit breaker stats actor was stopped")
+  }
   override def receive: Receive = {
     case cbs: CircuitBreakerStats =>
       deque.addFirst(cbs)

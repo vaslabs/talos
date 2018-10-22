@@ -20,7 +20,7 @@ object json_adapters {
 
   private final val unsetValues: Json = Json.obj(
     "group" -> "akka",
-    "type" -> "akka",
+    "type" -> "HystrixCommand",
     "rollingCountCollapsedRequests" -> 0,
     "rollingCountFallbackFailure" -> 0,
     "rollingCountFallbackRejection" -> 0,

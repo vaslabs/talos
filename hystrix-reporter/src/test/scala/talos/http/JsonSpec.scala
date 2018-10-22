@@ -22,6 +22,7 @@ class JsonSpec extends FlatSpec with Matchers{
     assertNotNull(data, "name")
     assertNotNull(data, "group")
     // assertNotNull(data,"currentTime");
+    assertNotNull(data, "type")
     assertNotNull(data, "isCircuitBreakerOpen")
     assertNotNull(data, "errorPercentage")
     assertNotNull(data, "errorCount")
