@@ -81,7 +81,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
           "testCircuitBreaker", 10L, time, false,
-          0f, 0L, 0L, 0L, 0L, 10L, latencyExecute_mean, latencyExecute,
+          0f, 0L, 0L, 0L, 0L, 0L, 10L, latencyExecute_mean, latencyExecute,
           latencyTotal_mean, latencyTotal, 1
         ) =>
       }
@@ -101,7 +101,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 10L, time, false,
-        0.2f, 2L, 2L, 2L, 0L, 8L, latencyExecute_mean, latencyExecute,
+        0.2f, 2L, 2L, 2L, 0L, 0L, 8L, latencyExecute_mean, latencyExecute,
         latencyTotal_mean, latencyTotal, 1
         ) =>
       }
@@ -116,7 +116,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 3L, time, true,
-        1f, 3L, 3L, 3L, 0L, 0L, latencyExecute_mean, latencyExecute,
+        1f, 3L, 3L, 3L, 0L, 0L, 0L, latencyExecute_mean, latencyExecute,
         latencyTotal_mean, latencyTotal, 1
         ) =>
       }
@@ -128,7 +128,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 1L, time, true,
-        1f, 1L, 0L, 0L, 1L, 0L, latencyExecute_mean, latencyExecute,
+        1f, 1L, 0L, 0L, 0L, 1L, 0L, latencyExecute_mean, latencyExecute,
         latencyTotal_mean, latencyTotal, 1
         ) =>
       }

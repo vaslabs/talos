@@ -4,7 +4,7 @@ import java.time.ZonedDateTime
 import java.util
 
 import akka.actor.{Actor, Props}
-import talos.http.CircuitBreakerStatsActor.{CircuitBreakerStats, FetchHystrixEvents}
+import talos.http.CircuitBreakerStatsActor.{CircuitBreakerStats, FetchHystrixEvents, HystrixDashboardEvent}
 
 import scala.collection.mutable.ListBuffer
 
@@ -15,7 +15,7 @@ object CircuitBreakerStatsActor {
 
   case object FetchHystrixEvents
 
-  case class HystrixDashboardEvent()
+  case class HystrixDashboardEvent(stats: List[CircuitBreakerStats])
 
 
   case class CircuitBreakerStats
@@ -28,6 +28,7 @@ object CircuitBreakerStatsActor {
       errorCount: Long,
       rollingCountFailure: Long,
       rollingCountExceptionsThrown: Long,
+      rollingCountTimeout: Long,
       rollingCountShortCircuited: Long,
       rollingCountSuccess: Long,
       latencyExecute_mean: Long,
@@ -53,6 +54,6 @@ class CircuitBreakerStatsActor extends Actor {
          listBuffer = cbs +: listBuffer
          cbs = deque.pollLast()
       }
-      sender() ! listBuffer.toList
+      sender() ! HystrixDashboardEvent(listBuffer.toList)
   }
 }

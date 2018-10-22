@@ -4,9 +4,8 @@ import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
-import kamon.Kamon
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import talos.http.CircuitBreakerStatsActor.FetchHystrixEvents
+import talos.http.CircuitBreakerStatsActor.{FetchHystrixEvents, HystrixDashboardEvent}
 class CircuitBreakerStatsActorSpec
       extends TestKit(ActorSystem("HystrixReporterSpec"))
       with WordSpecLike
@@ -18,23 +17,8 @@ class CircuitBreakerStatsActorSpec
     system.terminate()
   }
 
-  def sample =
-    CircuitBreakerStatsActor.CircuitBreakerStats(
-      "myCircuitBreaker",
-      0L,
-      ZonedDateTime.now(),
-      false,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      Map.empty,
-      0,
-      Map.empty
-    )
+
+  import Utils.{statsSample => sample}
 
 
   "hystrix reporter" can {
@@ -43,18 +27,18 @@ class CircuitBreakerStatsActorSpec
       val statsSample: CircuitBreakerStatsActor.CircuitBreakerStats = sample
       hystrixReporter ! statsSample
       hystrixReporter ! FetchHystrixEvents
-      expectMsg(List(statsSample))
+      expectMsg(HystrixDashboardEvent(List(statsSample)))
     }
     "receive the latest stats only" in {
       val statsSample = List(sample, sample)
       hystrixReporter ! statsSample(0)
       hystrixReporter ! statsSample(1)
       hystrixReporter ! FetchHystrixEvents
-      expectMsg(statsSample)
+      expectMsg(HystrixDashboardEvent(statsSample))
     }
     "support at most once delivery" in {
       hystrixReporter ! FetchHystrixEvents
-      expectMsg(List.empty)
+      expectMsg(HystrixDashboardEvent(List.empty))
     }
 
   }

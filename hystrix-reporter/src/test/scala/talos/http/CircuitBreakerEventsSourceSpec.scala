@@ -30,7 +30,6 @@ class CircuitBreakerEventsSourceSpec
     circuitBreakerEventsSource.main.runWith(Sink.ignore)
 
     metricsReporterActor.expectMsg(CircuitBreakerStatsActor.FetchHystrixEvents)
-    metricsReporterActor.send(metricsReporterActor.sender(), HystrixDashboardEvent())
 
   }
 
