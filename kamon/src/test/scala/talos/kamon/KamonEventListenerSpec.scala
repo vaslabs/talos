@@ -20,7 +20,6 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
   override def afterAll() = {
     testKit.shutdownTestKit()
-    Kamon.stopAllReporters()
   }
 
   Kamon.addReporter(new MetricReporter {
