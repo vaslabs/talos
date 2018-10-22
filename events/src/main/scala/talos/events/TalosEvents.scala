@@ -20,7 +20,7 @@ object TalosEvents {
     ).addOnOpenListener(
       () => publish(CircuitOpen(identifier))
     ).addOnHalfOpenListener(
-      () => publish(HalfOpen(identifier))
+      () => publish(CircuitHalfOpen(identifier))
     ).addOnCloseListener(
       () => publish(CircuitClosed(identifier))
     ).addOnCallBreakerOpenListener(
@@ -38,7 +38,7 @@ object TalosEvents {
     case class CallFailure(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
     case class CallTimeout(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
     case class CircuitOpen(circuitBreakerName: String) extends CircuitBreakerEvent
-    case class HalfOpen(circuitBreakerName: String) extends CircuitBreakerEvent
+    case class CircuitHalfOpen(circuitBreakerName: String) extends CircuitBreakerEvent
     case class CircuitClosed(circuitBreakerName: String) extends CircuitBreakerEvent
     case class ShortCircuitedCall(circuitBreakerName: String) extends CircuitBreakerEvent
   }

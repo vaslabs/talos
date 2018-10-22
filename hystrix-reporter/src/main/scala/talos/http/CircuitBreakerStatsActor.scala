@@ -32,7 +32,7 @@ object CircuitBreakerStatsActor {
       rollingCountSuccess: Long,
       latencyExecute_mean: Long,
       latencyExecute: Map[String, Long],
-      latencyTotal_mean: Map[String, Long],
+      latencyTotal_mean: Long,
       latencyTotal: Map[String, Long],
       reportingHosts: Int = 1
     )

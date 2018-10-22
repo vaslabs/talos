@@ -1,9 +1,8 @@
 package talos.kamon.hystrix
 
-import java.time.{Clock, Instant, ZoneOffset}
+import java.time.{Clock, Instant, ZoneOffset, ZonedDateTime}
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
 import akka.pattern.CircuitBreaker
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import akka.util.Timeout
@@ -42,6 +41,7 @@ class HystrixReporterSpec
       with BeforeAndAfterAll
       with ImplicitSender
 {
+
   import HystrixReporterSpec._
 
   override def afterAll(): Unit = {
@@ -71,6 +71,16 @@ class HystrixReporterSpec
     "group successful metrics into one single snapshot event" in {
       val results: Seq[Int] = fireSuccessful(10, circuitBreaker)
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+
+      statsMessage should matchPattern {
+        case CircuitBreakerStats(
+          "testCircuitBreaker", 10L, time, false,
+          0f, 0L, 0L, 0L, 0L, 10L, latencyExecute_mean, latencyExecute,
+          latencyTotal_mean, latencyTotal, 1
+        ) =>
+      }
+      statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
+      statsMessage.latencyExecute_mean should be > 0L
     }
 
   }

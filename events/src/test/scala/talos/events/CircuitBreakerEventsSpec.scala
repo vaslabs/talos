@@ -74,7 +74,7 @@ class CircuitBreakerEventsSpec extends
     }
     "publish events on half open" in{
       Thread.sleep(5000)
-      eventListener.expectMsg(HalfOpen(circuitBreakerName))
+      eventListener.expectMsg(CircuitHalfOpen(circuitBreakerName))
     }
 
     "publish events on closed" in{

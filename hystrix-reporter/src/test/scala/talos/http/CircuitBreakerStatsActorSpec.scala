@@ -29,7 +29,7 @@ class CircuitBreakerStatsActorSpec
       0,
       0,
       Map.empty,
-      Map.empty,
+      0,
       Map.empty
     )
 

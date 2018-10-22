@@ -5,14 +5,18 @@ import java.time.{Clock, ZonedDateTime}
 import akka.actor.ActorRef
 import com.typesafe.config.Config
 import kamon.MetricReporter
-import kamon.metric.{MetricValue, PeriodSnapshot}
+import kamon.metric.{MetricDistribution, MetricValue, PeriodSnapshot}
 import cats.implicits._
+import cats.kernel.Semigroup
 import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
+import talos.kamon.StatsAggregator
+
+import scala.collection.immutable
 
 class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends MetricReporter{
 
 
-  private def findMetricsOfCircuitBreaker(counters: Seq[MetricValue]) =
+  private def findCountersMetricsOfCircuitBreaker(counters: Seq[MetricValue]) =
     counters.foldRight(Map.empty[String, Long])(
       (metricValue, counters) =>
         metricValue.tags.get("eventType").map(
@@ -20,12 +24,34 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
         ).getOrElse(Map.empty)
     )
 
+  private implicit val circuitBreakerStatsSemigroup: Semigroup[CircuitBreakerStats] =
+    (x: CircuitBreakerStats, y: CircuitBreakerStats) => {
+      val fromCounters = if (x.requestCount > 0) x else y
+      val fromHistograms = if (x.requestCount > 0) y else x
+      CircuitBreakerStats(
+        fromCounters.name,
+        fromCounters.requestCount,
+        fromCounters.currentTime,
+        fromCounters.isCircuitBreakerOpen,
+        fromCounters.errorPercentage,
+        fromCounters.errorCount,
+        fromCounters.rollingCountFailure,
+        fromCounters.rollingCountExceptionsThrown,
+        fromCounters.rollingCountShortCircuited,
+        fromCounters.rollingCountSuccess,
+        fromHistograms.latencyExecute_mean,
+        fromHistograms.latencyExecute,
+        fromHistograms.latencyTotal_mean,
+        fromHistograms.latencyTotal
+      )
+    }
 
   private def asCircuitBreakerStats(circuitBreakerName: String, stats: Map[String, Long]): CircuitBreakerStats = {
-    val successCalls = stats.getOrElse("successful-call", 0L)
-    val failedCalls = stats.getOrElse("failed-call", 0L)
-    val shortCircuited = stats.getOrElse("short-circuited", 0L)
-    val timeouts = stats.getOrElse("call-timeout", 0L)
+    import StatsAggregator.Keys
+    val successCalls = stats.getOrElse(Keys.Success, 0L)
+    val failedCalls = stats.getOrElse(Keys.Failure, 0L)
+    val shortCircuited = stats.getOrElse(Keys.ShortCircuit, 0L)
+    val timeouts = stats.getOrElse(Keys.Timeout, 0L)
     val allErrors = failedCalls + shortCircuited
     val totalCalls = successCalls + failedCalls + shortCircuited
     val errorPercentage: Float =
@@ -43,20 +69,64 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       successCalls,
       0,
       Map.empty,
-      Map.empty,
+      0L,
       Map.empty
     )
   }
 
 
-  private def findMetrics(counters: Seq[MetricValue]) =
-    counters.groupBy(_.name).mapValues(findMetricsOfCircuitBreaker(_))
+  private def findCountersMetrics(counters: Seq[MetricValue]): Map[String, CircuitBreakerStats] =
+    counters.groupBy(_.name.substring(StatsAggregator.Keys.CounterPrefix.length()))
+      .mapValues(findCountersMetricsOfCircuitBreaker(_))
     .map {
-      case (name, stats) => asCircuitBreakerStats(name, stats)
+      case (name, stats) => name -> asCircuitBreakerStats(name, stats)
     }
 
+  def findHistogramMetricsOfCircuitBreaker(name: String, distributions: Seq[MetricDistribution]): CircuitBreakerStats = {
+    def mean(t: (Long, Long)) = t._1 / t._2
+    val latencyExecuteMean: Long =
+      mean(distributions.foldLeft((0L, 0L)) {
+        (stats, md) => stats |+| (md.distribution.sum, md.distribution.count)
+      })
+    val latencyExecute: Map[String, Long] = Map.empty
+    def percentile(p: Double)(seq: Seq[Long]): Long = {
+      val sorted = seq.sorted
+      math.ceil((seq.length - 1) * (p/100.0)).toLong
+    }
+
+    val allPercentiles: Seq[Double] = Seq(
+      0.0, 25.0, 50.0, 75.0,
+      90.0, 95.0, 99.0, 99.5, 100.0
+    )
+
+
+    CircuitBreakerStats(
+      name,
+      0L,
+      ZonedDateTime.now(clock),
+      false, 0, 0,0,0,0,0,
+      latencyExecuteMean,
+      latencyExecute,
+      latencyExecuteMean,
+      latencyExecute
+    )
+  }
+
+  private def findHistogramMetrics(histograms: Seq[MetricDistribution]): Map[String, CircuitBreakerStats] = {
+    histograms.groupBy(_.name.substring(StatsAggregator.Keys.HistrogramPrefix.length)).map {
+      case (name, metrics) => name -> findHistogramMetricsOfCircuitBreaker(name, metrics)
+    }
+  }
+
+  def merge(countersMetrics: immutable.Iterable[CircuitBreakerStats], histogramMetrics: immutable.Iterable[CircuitBreakerStats]): Unit = ???
+
   override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
-    findMetrics(snapshot.metrics.counters).map(statsGatherer ! _)
+    val countersMetrics = findCountersMetrics(snapshot.metrics.counters)
+    val histogramMetrics = findHistogramMetrics(snapshot.metrics.histograms)
+    val mergedStats = countersMetrics |+| histogramMetrics
+    mergedStats.foreach {
+      case (circuitBreaker, circuitBreakerStats) => statsGatherer ! circuitBreakerStats
+    }
   }
 
   override def start(): Unit = ()
@@ -65,3 +135,4 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
 
   override def reconfigure(config: Config): Unit = ()
 }
+

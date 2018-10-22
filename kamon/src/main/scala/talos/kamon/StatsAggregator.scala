@@ -8,38 +8,44 @@ import talos.events.TalosEvents.model._
 
 object StatsAggregator {
 
-  private def kamonCounter(circuitBreakerEvent: CircuitBreakerEvent): Counter = {
-    val counter = Kamon.counter(s"circuit-breaker-${circuitBreakerEvent.circuitBreakerName}")
-    val refinedTag = "eventType" -> {
+  object Keys {
+    val CounterPrefix = "circuit-breaker-"
+    val HistrogramPrefix = "circuit-breaker-elapsed-time-"
+
+    val Success = "success-call"
+    val Failure = "failed-call"
+    val Open = "circuit-open"
+    val Closed = "circuit-closed"
+    val HalfOpen = "circuit-half-open"
+    val Timeout = "call-timeout"
+    val ShortCircuit = "short-circuited"
+
+    def extractName(circuitBreakerEvent: CircuitBreakerEvent): String =
       circuitBreakerEvent match {
         case SuccessfulCall(_, _) =>
-           "success-call"
+          Success
+        case ShortCircuitedCall(_) => ShortCircuit
         case CallFailure(_, _) =>
-          "failed-call"
+          Failure
         case CircuitOpen(_) =>
-         "circuit-open"
+          Open
         case CircuitClosed(_) =>
-          "circuit-closed"
-        case HalfOpen(_) =>
-          "circuit-half-open"
-        case CallTimeout(_, _) => "call-timeout"
-      }
+          Closed
+        case CircuitHalfOpen(_) =>
+          HalfOpen
+        case CallTimeout(_, _) => Timeout
     }
+  }
+
+  private def kamonCounter(circuitBreakerEvent: CircuitBreakerEvent): Counter = {
+    val counter = Kamon.counter(s"${Keys.CounterPrefix}${circuitBreakerEvent.circuitBreakerName}")
+    val refinedTag = "eventType" -> Keys.extractName(circuitBreakerEvent)
     counter.refine(refinedTag)
   }
 
   private def kamonHistogram(circuitBreakerEvent: CircuitBreakerEvent): Histogram = {
-    val histogram = Kamon.histogram(s"circuit-breaker-elapsed-time-${circuitBreakerEvent.circuitBreakerName}")
-    val refinedTag = "eventType" -> {
-      circuitBreakerEvent match {
-        case SuccessfulCall(_, elapsedTime) =>
-          "success-call"
-        case CallFailure(_, elapsedTime) =>
-          "failure-call"
-        case CallTimeout(_, elapsedTime) =>
-          "call-timeout"
-      }
-    }
+    val histogram = Kamon.histogram(s"${Keys.HistrogramPrefix}${circuitBreakerEvent.circuitBreakerName}")
+    val refinedTag = "eventType" -> Keys.extractName(circuitBreakerEvent)
     histogram.refine(refinedTag)
   }
 
