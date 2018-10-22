@@ -91,8 +91,8 @@ class HystrixReporterSpec
     }
 
     "group successful and unsuccessful metrics" in {
-      val failures = fireFailures(2, circuitBreaker)
       val results: Seq[Int] = fireSuccessful(8, circuitBreaker)
+      val failures = fireFailures(2, circuitBreaker)
 
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
 
@@ -106,6 +106,17 @@ class HystrixReporterSpec
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
       statsMessage.latencyExecute_mean should be > 0L
       statsMessage.latencyTotal_mean should be > 0L
+    }
+    "also counting open circuits" in {
+      val failures = fireFailures(3, circuitBreaker)
+      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+      statsMessage should matchPattern {
+        case CircuitBreakerStats(
+        "testCircuitBreaker", 3L, time, true,
+        1f, 3L, 3L, 3L, 0L, 0L, latencyExecute_mean, latencyExecute,
+        latencyTotal_mean, latencyTotal, 1
+        ) =>
+      }
     }
 
 

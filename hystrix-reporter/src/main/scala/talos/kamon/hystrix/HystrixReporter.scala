@@ -48,7 +48,6 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
 
   private def asCircuitBreakerStats(circuitBreakerName: String, stats: Map[String, Long]): CircuitBreakerStats = {
     import StatsAggregator.Keys
-    println(stats)
     val successCalls = stats.getOrElse(Keys.Success, 0L)
     val failedCalls = stats.getOrElse(Keys.Failure, 0L)
     val shortCircuited = stats.getOrElse(Keys.ShortCircuit, 0L)
@@ -61,7 +60,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       circuitBreakerName,
       requestCount = totalCalls,
       currentTime = ZonedDateTime.now(clock),
-      isCircuitBreakerOpen = stats.get("circuit-open").map(_ > 0).getOrElse(false),
+      isCircuitBreakerOpen = stats.get(Keys.Open).map(_ > 0).getOrElse(false),
       errorPercentage = errorPercentage,
       errorCount = allErrors,
       failedCalls + timeouts,
