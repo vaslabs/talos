@@ -44,22 +44,11 @@ object BootstrapSpec extends App {
       serverStart <- Http().bindAndHandle(router.route, "0.0.0.0", 8080)
     } yield serverStart
 
-//    import akka.http.scaladsl.unmarshalling.sse.EventStreamUnmarshalling._
-//
-//
-//    import akka.http.scaladsl.model._
-
     sys.addShutdownHook {
       actorSystem.terminate()
       startingServer.map(_.unbind())
     }
     val activity = startCircuitBreakerActivity()
-
-//    val streaming = Http()
-//      .singleRequest(model.HttpRequest(uri = "http://0.0.0.0:8000/hystrix.stream"))
-//      .flatMap(Unmarshal(_).to[Source[ServerSentEvent, NotUsed]])
-//      .map(_.runForeach(println))
-//
 
 
   def startCircuitBreakerActivity()(implicit actorSystem: ActorSystem): Future[Unit] = {
