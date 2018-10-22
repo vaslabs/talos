@@ -24,7 +24,8 @@ object StatsAggregator {
       circuitBreakerEvent match {
         case SuccessfulCall(_, _) =>
           Success
-        case ShortCircuitedCall(_) => ShortCircuit
+        case ShortCircuitedCall(_) =>
+          ShortCircuit
         case CallFailure(_, _) =>
           Failure
         case CircuitOpen(_) =>

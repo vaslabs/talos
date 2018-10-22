@@ -14,6 +14,7 @@ import talos.kamon.StatsAggregator
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.Try
 
 object HystrixReporterSpec {
   import talos.events.syntax._
@@ -32,6 +33,11 @@ object HystrixReporterSpec {
 
   def fireSuccessful(times: Int, circuitBreaker: CircuitBreaker): Seq[Int] =
     for (i <- 1 to times) yield circuitBreaker.callWithSyncCircuitBreaker(() => i)
+
+  def fireFailures(times: Int, circuitBreaker: CircuitBreaker) =
+    for(i <- 1 to times) yield Try(
+      circuitBreaker.callWithSyncCircuitBreaker(() => throw new RuntimeException())
+    )
 }
 
 class HystrixReporterSpec
@@ -60,7 +66,7 @@ class HystrixReporterSpec
   }
   system.eventStream.subscribe(statsAggregator, classOf[CircuitBreakerEvent])
 
-  "Hystrix reporter receiving kamon metric snapshots" can {
+  "Hystrix reporter receiving kamon metric snapshots for a single circuit breaker" can {
 
     val circuitBreaker = createCircuitBreaker()
     val statsGatherer: TestProbe = TestProbe()
@@ -81,7 +87,28 @@ class HystrixReporterSpec
       }
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
       statsMessage.latencyExecute_mean should be > 0L
+      statsMessage.latencyTotal_mean should be > 0L
     }
+
+    "group successful and unsuccessful metrics" in {
+      val failures = fireFailures(2, circuitBreaker)
+      val results: Seq[Int] = fireSuccessful(8, circuitBreaker)
+
+      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+
+      statsMessage should matchPattern {
+        case CircuitBreakerStats(
+        "testCircuitBreaker", 10L, time, false,
+        0.2f, 2L, 2L, 2L, 0L, 8L, latencyExecute_mean, latencyExecute,
+        latencyTotal_mean, latencyTotal, 1
+        ) =>
+      }
+      statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
+      statsMessage.latencyExecute_mean should be > 0L
+      statsMessage.latencyTotal_mean should be > 0L
+    }
+
+
 
   }
 
