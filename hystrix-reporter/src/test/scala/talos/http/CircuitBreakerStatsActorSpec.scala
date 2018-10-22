@@ -4,11 +4,8 @@ import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
-import cats.data.NonEmptyList
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import talos.http.CircuitBreakerStatsActor.FetchHystrixEvents
-
-import scala.concurrent.duration._
 class CircuitBreakerStatsActorSpec
       extends TestKit(ActorSystem("HystrixReporterSpec"))
       with WordSpecLike
