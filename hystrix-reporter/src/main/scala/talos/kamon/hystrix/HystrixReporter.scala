@@ -12,6 +12,7 @@ import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
 import talos.kamon.StatsAggregator
 
 import scala.collection.immutable
+import scala.util.Try
 
 class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends MetricReporter{
 
@@ -60,7 +61,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       circuitBreakerName,
       requestCount = totalCalls,
       currentTime = ZonedDateTime.now(clock),
-      isCircuitBreakerOpen = stats.get(Keys.Open).map(_ > 0).getOrElse(false),
+      isCircuitBreakerOpen = shortCircuited > 0 || stats.get(Keys.Open).map(_ > 0).getOrElse(false),
       errorPercentage = errorPercentage,
       errorCount = allErrors,
       failedCalls + timeouts,
@@ -83,7 +84,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
     }
 
   def findHistogramMetricsOfCircuitBreaker(name: String, distributions: Seq[MetricDistribution]): CircuitBreakerStats = {
-    def mean(t: (Long, Long)) = t._1 / t._2
+    def mean(t: (Long, Long)) = if (t._2 == 0) 0L else (t._1 / t._2)
     val latencyExecuteMean: Long =
       mean(distributions.foldLeft((0L, 0L)) {
         (stats, md) => stats |+| (md.distribution.sum, md.distribution.count)
@@ -124,7 +125,9 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
     val histogramMetrics = findHistogramMetrics(snapshot.metrics.histograms)
     val mergedStats = countersMetrics |+| histogramMetrics
     mergedStats.foreach {
-      case (circuitBreaker, circuitBreakerStats) => statsGatherer ! circuitBreakerStats
+      case (circuitBreaker, circuitBreakerStats) =>
+        if (circuitBreakerStats.requestCount > 0)
+          statsGatherer ! circuitBreakerStats
     }
   }
 

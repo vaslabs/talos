@@ -11,6 +11,7 @@ import akka.actor.typed.scaladsl.adapter._
 import talos.events.TalosEvents.model.CircuitBreakerEvent
 
 import scala.concurrent.duration._
+import scala.util.Try
 class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   var gatheringValues = Map.empty[String, Long]
@@ -64,11 +65,18 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
     for (i <- 1 to 10) yield circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => i)
 
+    for (i <- 1 to 10) yield Try(
+      circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => throw new RuntimeException)
+    )
+
 
     Thread.sleep(2000)
 
     gatheringValues shouldBe Map(
-      "circuit-breaker-myCircuitBreaker-success-call" -> 10
+      "circuit-breaker-myCircuitBreaker-success-call" -> 10,
+      "circuit-breaker-myCircuitBreaker-failed-call" -> 5,
+      "circuit-breaker-myCircuitBreaker-short-circuited" -> 5,
+      "circuit-breaker-myCircuitBreaker-circuit-open" -> 1
     )
   }
 

@@ -107,13 +107,25 @@ class HystrixReporterSpec
       statsMessage.latencyExecute_mean should be > 0L
       statsMessage.latencyTotal_mean should be > 0L
     }
-    "also counting open circuits" in {
+    "count open circuits" in {
       val failures = fireFailures(3, circuitBreaker)
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 3L, time, true,
         1f, 3L, 3L, 3L, 0L, 0L, latencyExecute_mean, latencyExecute,
+        latencyTotal_mean, latencyTotal, 1
+        ) =>
+      }
+    }
+
+    "count short circuits" in {
+      Try(fireFailures(1, circuitBreaker))
+      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+      statsMessage should matchPattern {
+        case CircuitBreakerStats(
+        "testCircuitBreaker", 1L, time, true,
+        1f, 1L, 0L, 0L, 1L, 0L, latencyExecute_mean, latencyExecute,
         latencyTotal_mean, latencyTotal, 1
         ) =>
       }
