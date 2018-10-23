@@ -51,17 +51,21 @@ object BootstrapSpec extends App {
     val activity = startCircuitBreakerActivity()
 
 
-  def startCircuitBreakerActivity()(implicit actorSystem: ActorSystem): Future[Unit] = {
-    val foo = Utils.createCircuitBreaker("foo")
-    val bar = Utils.createCircuitBreaker("bar")
-    implicit val executionContext = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
-    Future {
-      while (true) {
-        foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100)))
-        bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50)))
+    def startCircuitBreakerActivity()(implicit actorSystem: ActorSystem): Future[Unit] = {
+      val foo = Utils.createCircuitBreaker("foo")
+      val bar = Utils.createCircuitBreaker("bar")
+      implicit val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+      Future {
+        while (true) {
+          bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50)))
+        }
+      }
+      Future {
+        while (true) {
+          foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100)))
+        }
       }
     }
-  }
 
 
 }

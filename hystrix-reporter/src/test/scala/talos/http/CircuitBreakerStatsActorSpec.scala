@@ -1,7 +1,5 @@
 package talos.http
 
-import java.time.ZonedDateTime
-
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
