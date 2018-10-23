@@ -1,18 +1,19 @@
-package talos.http
+package talos.examples
 
 import java.time.Clock
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
+import talos.http.HystrixReporterServer
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
+import scala.concurrent.duration._
 
-object BootstrapSpec extends App {
+object ExampleApp extends App {
 
-    implicit val actorSystem: ActorSystem = ActorSystem("BootstrapSpec")
+    implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
 
     implicit val clock: Clock = Clock.systemUTC()
 

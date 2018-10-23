@@ -1,0 +1,1 @@
+version := sys.env.getOrElse("VASLABS_PUBLISH_VERSION", "SNAPSHOT")

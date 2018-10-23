@@ -53,6 +53,33 @@ lazy val hystrixReporter =
   ).settings(compilerSettings)
   .dependsOn(talosKamon)
 
+lazy val talosExamples =
+  (project in file("examples"))
+  .enablePlugins(DockerPlugin)
+  .enablePlugins(UniversalPlugin)
+  .enablePlugins(AshScriptPlugin)
+  .enablePlugins(JavaAppPackaging)
+  .settings(
+    packageName in Docker := "talos-demo",
+    version in Docker := version.value,
+    maintainer in Docker := "Vasilis Nicolaou",
+    dockerBaseImage := "openjdk:8-alpine",
+    dockerExposedPorts := Seq(8080),
+    maintainer := "vaslabsco@gmail.com",
+    dockerUsername := Some("vaslabs"),
+  )
+  .settings(
+    libraryDependencies ++=
+      libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
+  )
+  .dependsOn(hystrixReporter)
+
+val noPublishSettings = Seq(
+  publish := {},
+  publishLocal := {}
+)
+
 lazy val talos =
   (project in file("."))
-    .aggregate(talosEvents, talosKamon, hystrixReporter)
+  .settings(noPublishSettings)
+  .aggregate(talosEvents, talosKamon, hystrixReporter, talosExamples)
