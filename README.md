@@ -12,3 +12,21 @@ Currently you can get this screen by running the dashboard (https://github.com/k
 and the BootstrapSpec (https://github.com/vaslabs/talos/blob/master/hystrix-reporter/src/test/scala/talos/http/BootstrapSpec.scala)
 
 ![alt text](https://user-images.githubusercontent.com/3875429/47317475-8e18ac00-d641-11e8-99fa-843e79ee7ec8.png)
+
+## Run the demo
+
+- Spin up the docker images provided: 
+
+```bash
+cd examples
+docker-compose up
+```
+
+- Then go to a browser and navigate to (http://localhost:7979/hystrix-dashboard/)
+You should see this
+![alt_text](https://user-images.githubusercontent.com/3875429/47372906-a4c30f80-d6e2-11e8-8219-0a01a464ba11.png)
+
+- The address of the stream is http://talos-demo:8080/hystrix.stream
+
+- Click add stream and then monitor stream.
+
