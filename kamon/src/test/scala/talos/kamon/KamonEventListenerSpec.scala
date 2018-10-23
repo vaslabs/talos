@@ -1,6 +1,5 @@
 package talos.kamon
 
-import akka.actor.ActorRef
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.pattern.CircuitBreaker
 import com.typesafe.config.Config
@@ -8,7 +7,6 @@ import kamon.metric.{MetricValue, PeriodSnapshot}
 import kamon.{Kamon, MetricReporter}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import akka.actor.typed.scaladsl.adapter._
-import talos.events.TalosEvents.model.CircuitBreakerEvent
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -46,7 +44,7 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
     val circuitBreakerName = "myCircuitBreaker"
 
-    val eventListener: ActorRef = testKit.spawn(StatsAggregator.behavior()).toUntyped
+    testKit.spawn(StatsAggregator.behavior()).toUntyped
 
     implicit val untypedActorSystem = testKit.system.toUntyped
 
@@ -61,7 +59,7 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
     for (i <- 1 to 10) yield circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => i)
 
-    for (i <- 1 to 10) yield Try(
+    for (_ <- 1 to 10) yield Try(
       circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => throw new RuntimeException)
     )
 

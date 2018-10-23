@@ -35,7 +35,7 @@ object HystrixReporterSpec {
     for (i <- 1 to times) yield circuitBreaker.callWithSyncCircuitBreaker(() => i)
 
   def fireFailures(times: Int, circuitBreaker: CircuitBreaker) =
-    for(i <- 1 to times) yield Try(
+    for(_ <- 1 to times) yield Try(
       circuitBreaker.callWithSyncCircuitBreaker(() => throw new RuntimeException())
     )
 }
@@ -52,6 +52,7 @@ class HystrixReporterSpec
 
   override def afterAll(): Unit = {
     system.terminate()
+    ()
   }
 
 
@@ -73,14 +74,14 @@ class HystrixReporterSpec
     val circuitBreaker = createCircuitBreaker()
 
     "group successful metrics into one single snapshot event" in {
-      val results: Seq[Int] = fireSuccessful(10, circuitBreaker)
+      fireSuccessful(10, circuitBreaker)
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
 
       statsMessage should matchPattern {
         case CircuitBreakerStats(
-          "testCircuitBreaker", 10L, time, false,
-          0f, 0L, 0L, 0L, 0L, 0L, 10L, latencyExecute_mean, latencyExecute,
-          latencyTotal_mean, latencyTotal, 1
+          "testCircuitBreaker", 10L, _, false,
+          0f, 0L, 0L, 0L, 0L, 0L, 10L,
+          _, _, _, _, 1
         ) =>
       }
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
@@ -91,16 +92,16 @@ class HystrixReporterSpec
     }
 
     "group successful and unsuccessful metrics" in {
-      val results: Seq[Int] = fireSuccessful(8, circuitBreaker)
-      val failures = fireFailures(2, circuitBreaker)
+      fireSuccessful(8, circuitBreaker)
+      fireFailures(2, circuitBreaker)
 
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
 
       statsMessage should matchPattern {
         case CircuitBreakerStats(
-        "testCircuitBreaker", 10L, time, false,
-        0.2f, 2L, 2L, 2L, 0L, 0L, 8L, latencyExecute_mean, latencyExecute,
-        latencyTotal_mean, latencyTotal, 1
+        "testCircuitBreaker", 10L, _, false,
+        0.2f, 2L, 2L, 2L, 0L, 0L, 8L,
+        _, _, _, _, 1
         ) =>
       }
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
@@ -109,13 +110,13 @@ class HystrixReporterSpec
       println(statsMessage.latencyExecute)
     }
     "count open circuits" in {
-      val failures = fireFailures(3, circuitBreaker)
+      fireFailures(3, circuitBreaker)
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
-        "testCircuitBreaker", 3L, time, true,
-        1f, 3L, 3L, 3L, 0L, 0L, 0L, latencyExecute_mean, latencyExecute,
-        latencyTotal_mean, latencyTotal, 1
+        "testCircuitBreaker", 3L, _, true,
+        1f, 3L, 3L, 3L, 0L, 0L, 0L,
+        _, _, _, _, 1
         ) =>
       }
     }
@@ -125,9 +126,9 @@ class HystrixReporterSpec
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
-        "testCircuitBreaker", 1L, time, true,
-        1f, 1L, 0L, 0L, 0L, 1L, 0L, latencyExecute_mean, latencyExecute,
-        latencyTotal_mean, latencyTotal, 1
+        "testCircuitBreaker", 1L, _, true,
+        1f, 1L, 0L, 0L, 0L, 1L, 0L, _, _,
+        _, _, 1
         ) =>
       }
     }
@@ -150,18 +151,17 @@ class HystrixReporterSpec
 
       barStats should matchPattern {
         case CircuitBreakerStats(
-        "bar", 5L, time, false,
+        "bar", 5L, _, false,
         0.2f, 1L, 1L, 1L, 0L, 0L, 4L,
-        latencyExecute_mean, latencyExecute,
-        latencyTotal_mean, latencyTotal, 1
+        _, _, _, _, 1
         ) =>
       }
       fooStats should matchPattern {
         case CircuitBreakerStats(
-        "foo", 10L, time, false,
+        "foo", 10L, _, false,
         0.3f, 3L, 3L, 3L, 0L, 0L, 7L,
-        latencyExecute_mean, latencyExecute,
-        latencyTotal_mean, latencyTotal, 1
+        _, _,
+        _, _, 1
         ) =>
       }
     }

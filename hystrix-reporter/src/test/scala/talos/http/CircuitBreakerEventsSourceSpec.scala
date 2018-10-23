@@ -16,12 +16,12 @@ class CircuitBreakerEventsSourceSpec
 
   override def afterAll(): Unit = {
     system.terminate()
+    ()
   }
 
   "events source" should "periodically send events for streaming data" in {
     val metricsReporterActor = TestProbe("MetricsReporter")
 
-    val receiverEnd = TestProbe("receiver")
     val circuitBreakerEventsSource =
       new CircuitBreakerEventsSource(3 seconds, metricsReporterActor.ref)
 

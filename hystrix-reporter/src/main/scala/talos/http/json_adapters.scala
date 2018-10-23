@@ -11,10 +11,9 @@ import scala.concurrent.duration.FiniteDuration
 object json_adapters {
 
   import io.circe.generic.semiauto._
-  import io.circe.generic.auto._
   import io.circe.syntax._
 
-  private implicit final val zonedDateTimeDecoder = Encoder.instance[ZonedDateTime] {
+  implicit final val zonedDateTimeDecoder = Encoder.instance[ZonedDateTime] {
     (zdt => Json.fromLong(zdt.toInstant.toEpochMilli))
   }
 
@@ -49,7 +48,7 @@ object json_adapters {
     "propertyValue_metricsRollingStatisticalWindowInMilliseconds" -> 1000
   )
 
-  private implicit val finiteDurationEncoder: Encoder[FiniteDuration] = Encoder.encodeLong.contramap(
+  implicit val finiteDurationEncoder: Encoder[FiniteDuration] = Encoder.encodeLong.contramap(
     _.toMillis
   )
 

@@ -57,15 +57,15 @@ object StatsAggregator {
     ctx => {
       ctx.system.toUntyped.eventStream.subscribe(ctx.self.toUntyped, classOf[CircuitBreakerEvent])
       Behaviors.receive[CircuitBreakerEvent] {
-        (ctx, msg) =>
+        (_, msg) =>
           msg match {
-            case sc@SuccessfulCall(identifier, elapsedTime) =>
+            case sc@SuccessfulCall(_, elapsedTime) =>
               kamonCounter(sc).increment()
               kamonHistogram(sc).record(elapsedTime.toNanos)
-            case cf@CallFailure(identifier, elapsedTime) =>
+            case cf@CallFailure(_, elapsedTime) =>
               kamonCounter(cf).increment()
               kamonHistogram(cf).record(elapsedTime.toNanos)
-            case ct@CallTimeout(identifier, elapsedTime) =>
+            case ct@CallTimeout(_, elapsedTime) =>
               kamonCounter(ct)
               kamonHistogram(ct).record(elapsedTime.toNanos)
             case eventsWithoutElapsedTime: CircuitBreakerEvent =>

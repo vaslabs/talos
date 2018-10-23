@@ -96,10 +96,10 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       case (name, stats) => name -> asCircuitBreakerStats(name, stats)
     }
 
-  def normalize(quantile: Double, percentile: Percentile): Percentile = {
-    if (quantile != percentile.quantile)
+  def normalize(p: Double, percentile: Percentile): Percentile = {
+    if (p != percentile.quantile)
       new Percentile {
-        override val quantile: Double = quantile
+        override val quantile: Double = p
 
         override val value: Long = percentile.value
 
@@ -115,10 +115,6 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       mean(distributions.foldLeft((0L, 0L)) {
         (stats, md) => stats |+| (md.distribution.sum, md.distribution.count)
       })
-    def percentile(p: Double)(seq: Seq[Long]): Long = {
-      val sorted = seq.sorted
-      math.ceil((seq.length - 1) * (p/100.0)).toLong
-    }
 
     val allPercentiles: Seq[String] = Seq(
       "0", "25", "50", "75",
@@ -167,7 +163,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       val histogramMetrics = findHistogramMetrics(snapshot.metrics.histograms)
       val mergedStats = countersMetrics |+| histogramMetrics
       mergedStats.foreach {
-        case (circuitBreaker, circuitBreakerStats) =>
+        case (_, circuitBreakerStats) =>
           if (circuitBreakerStats.requestCount > 0)
             statsGatherer ! circuitBreakerStats
       }

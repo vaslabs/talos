@@ -1,6 +1,6 @@
 package talos.http
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorRef
 import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.stream.scaladsl.Source
 import akka.util.Timeout
@@ -8,8 +8,7 @@ import talos.http.CircuitBreakerStatsActor.{HystrixDashboardEvent}
 
 import scala.concurrent.duration._
 class CircuitBreakerEventsSource
-      (timeout: FiniteDuration, hystrixReporter: ActorRef)
-      (implicit actorSystem: ActorSystem) {
+      (timeout: FiniteDuration, hystrixReporter: ActorRef) {
 
   private implicit val streamTimeout: Timeout = Timeout(timeout)
 

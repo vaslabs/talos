@@ -14,12 +14,14 @@ class CircuitBreakerEventsSpec extends
       with Matchers
       with BeforeAndAfterAll{
 
-  override def afterAll(): Unit = system.terminate()
+  override def afterAll(): Unit = {
+    system.terminate()
+    ()
+  }
 
   "a circuit breaker" can {
     val circuitBreakerName = "testCircuitBreaker"
     import syntax._
-    import scala.concurrent.ExecutionContext.Implicits.global
     val circuitBreakerWithEventStreamReporting =
       CircuitBreaker.withEventReporting(
         circuitBreakerName,
@@ -61,9 +63,8 @@ class CircuitBreakerEventsSpec extends
     "publish events on open circuit" in {
       circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => 1)
       eventListener.expectMsgType[SuccessfulCall]
-      for (i <- 1 to 5) {
-        val failedCall =
-          Try(circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => throw new RuntimeException))
+      for (_ <- 1 to 5) {
+        Try(circuitBreakerWithEventStreamReporting.callWithSyncCircuitBreaker(() => throw new RuntimeException))
         eventListener.expectMsgType[CallFailure]
       }
       eventListener.expectMsg(CircuitOpen(circuitBreakerName))

@@ -4,14 +4,7 @@ import java.time.Clock
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
-import akka.actor.typed.scaladsl.adapter._
-import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import kamon.Kamon
-import talos.events.TalosEvents.model.CircuitBreakerEvent
-import talos.kamon.StatsAggregator
-import talos.kamon.hystrix.HystrixReporter
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,6 +26,7 @@ object BootstrapSpec extends App {
       import ExecutionContext.Implicits.global
       actorSystem.terminate()
       startingServer.map(_.unbind())
+      ()
     }
     val activity = startCircuitBreakerActivity()
 
@@ -43,12 +37,12 @@ object BootstrapSpec extends App {
       implicit val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
       Future {
         while (true) {
-          bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50)))
+          bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50).toLong))
         }
       }
       Future {
         while (true) {
-          foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100)))
+          foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100).toLong))
         }
       }
     }

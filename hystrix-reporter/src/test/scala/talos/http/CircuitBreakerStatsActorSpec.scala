@@ -13,6 +13,7 @@ class CircuitBreakerStatsActorSpec
 
   override def afterAll(): Unit = {
     system.terminate()
+    ()
   }
 
 
