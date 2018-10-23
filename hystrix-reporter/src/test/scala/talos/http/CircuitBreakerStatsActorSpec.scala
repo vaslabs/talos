@@ -3,7 +3,7 @@ package talos.http
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import talos.http.CircuitBreakerStatsActor.{FetchHystrixEvents, HystrixDashboardEvent}
+import talos.http.CircuitBreakerStatsActor.StreamTo
 class CircuitBreakerStatsActorSpec
       extends TestKit(ActorSystem("HystrixReporterSpec"))
       with WordSpecLike
@@ -22,22 +22,18 @@ class CircuitBreakerStatsActorSpec
 
   "hystrix reporter" can {
     val hystrixReporter = TestActorRef(CircuitBreakerStatsActor.props)
+    hystrixReporter ! StreamTo(self)
     "receive stats for circuit breaker" in {
       val statsSample: CircuitBreakerStatsActor.CircuitBreakerStats = sample
       hystrixReporter ! statsSample
-      hystrixReporter ! FetchHystrixEvents
-      expectMsg(HystrixDashboardEvent(List(statsSample)))
+      expectMsg(statsSample)
     }
     "receive the latest stats only" in {
       val statsSample = List(sample, sample)
       hystrixReporter ! statsSample(0)
       hystrixReporter ! statsSample(1)
-      hystrixReporter ! FetchHystrixEvents
-      expectMsg(HystrixDashboardEvent(statsSample))
-    }
-    "support at most once delivery" in {
-      hystrixReporter ! FetchHystrixEvents
-      expectMsg(HystrixDashboardEvent(List.empty))
+      expectMsg(statsSample(0))
+      expectMsg(statsSample(1))
     }
 
   }

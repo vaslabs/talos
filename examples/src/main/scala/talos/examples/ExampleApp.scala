@@ -19,7 +19,7 @@ object ExampleApp extends App {
 
     implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
 
-    val server = new HystrixReporterServer(1 second, "0.0.0.0", 8080)
+    val server = new HystrixReporterServer("0.0.0.0", 8080)
 
     val startingServer = server.start(clock)
 
