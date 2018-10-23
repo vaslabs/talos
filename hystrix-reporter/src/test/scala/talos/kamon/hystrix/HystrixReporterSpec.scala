@@ -52,8 +52,6 @@ class HystrixReporterSpec
 
   override def afterAll(): Unit = {
     system.terminate()
-    Kamon.stopAllReporters()
-    system.eventStream.unsubscribe(statsAggregator)
   }
 
 
@@ -64,7 +62,6 @@ class HystrixReporterSpec
       Await.result(system.toTyped.systemActorOf[CircuitBreakerEvent](StatsAggregator.behavior(), "statsAggregator"), 2 seconds)
     typedActor.toUntyped
   }
-  system.eventStream.subscribe(statsAggregator, classOf[CircuitBreakerEvent])
 
   val statsGatherer: TestProbe = TestProbe()
 

@@ -41,8 +41,6 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
   "circuit breaker" should "integrate with kamon" in {
 
-
-
     import talos.events.syntax._
 
 
@@ -51,7 +49,6 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
     val eventListener: ActorRef = testKit.spawn(StatsAggregator.behavior()).toUntyped
 
     implicit val untypedActorSystem = testKit.system.toUntyped
-    untypedActorSystem.eventStream.subscribe(eventListener, classOf[CircuitBreakerEvent])
 
     val circuitBreakerWithEventStreamReporting =
       CircuitBreaker.withEventReporting(

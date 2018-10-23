@@ -1,6 +1,6 @@
 package talos.kamon
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{Behavior, PostStop, PreRestart}
 import akka.actor.typed.scaladsl.Behaviors
 import kamon.Kamon
 import kamon.metric.{Counter, Histogram}
@@ -35,7 +35,7 @@ object StatsAggregator {
         case CircuitHalfOpen(_) =>
           HalfOpen
         case CallTimeout(_, _) => Timeout
-    }
+      }
   }
 
   private def kamonCounter(circuitBreakerEvent: CircuitBreakerEvent): Counter = {
@@ -50,21 +50,37 @@ object StatsAggregator {
     histogram.refine(refinedTag)
   }
 
-  def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.receive {
-    (ctx, msg) =>
-      msg match {
-        case sc @ SuccessfulCall(identifier, elapsedTime) =>
-          kamonCounter(sc).increment()
-          kamonHistogram(sc).record(elapsedTime.toNanos)
-        case cf @ CallFailure(identifier, elapsedTime) =>
-          kamonCounter(cf).increment()
-          kamonHistogram(cf).record(elapsedTime.toNanos)
-        case ct @ CallTimeout(identifier, elapsedTime) =>
-          kamonCounter(ct)
-          kamonHistogram(ct).record(elapsedTime.toNanos)
-        case eventsWithoutElapsedTime: CircuitBreakerEvent =>
-          kamonCounter(eventsWithoutElapsedTime).increment()
+  import akka.actor.typed.scaladsl.adapter._
+
+
+  def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.setup {
+    ctx => {
+      ctx.system.toUntyped.eventStream.subscribe(ctx.self.toUntyped, classOf[CircuitBreakerEvent])
+      Behaviors.receive[CircuitBreakerEvent] {
+        (ctx, msg) =>
+          msg match {
+            case sc@SuccessfulCall(identifier, elapsedTime) =>
+              kamonCounter(sc).increment()
+              kamonHistogram(sc).record(elapsedTime.toNanos)
+            case cf@CallFailure(identifier, elapsedTime) =>
+              kamonCounter(cf).increment()
+              kamonHistogram(cf).record(elapsedTime.toNanos)
+            case ct@CallTimeout(identifier, elapsedTime) =>
+              kamonCounter(ct)
+              kamonHistogram(ct).record(elapsedTime.toNanos)
+            case eventsWithoutElapsedTime: CircuitBreakerEvent =>
+              kamonCounter(eventsWithoutElapsedTime).increment()
+          }
+          Behaviors.same
       }
-      Behaviors.same
+    }.receiveSignal {
+      case (ctx, PostStop) =>
+        ctx.system.toUntyped.eventStream.unsubscribe(ctx.self.toUntyped)
+        Behaviors.same
+      case (ctx, PreRestart) =>
+        ctx.system.toUntyped.eventStream.subscribe(ctx.self.toUntyped, classOf[CircuitBreakerEvent])
+        Behaviors.same
+    }
+
   }
 }

@@ -20,31 +20,17 @@ import scala.util.Random
 object BootstrapSpec extends App {
 
     implicit val actorSystem: ActorSystem = ActorSystem("BootstrapSpec")
-    val statsAggregator =
-      actorSystem.toTyped.systemActorOf(StatsAggregator.behavior(), "StatsAggregator")(Timeout(3 seconds))
 
-
-    val statsGatherer = actorSystem.actorOf(CircuitBreakerStatsActor.props)
     implicit val clock: Clock = Clock.systemUTC()
 
+    implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
 
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val httpRouter: ServerEventHttpRouter =
-      new CircuitBreakerEventsSource(2 seconds, statsGatherer) with ServerEventHttpRouter
+    val server = new HystrixReporterServer(1 second, "0.0.0.0", 8080)
 
-
-    implicit val actorMaterializer: ActorMaterializer = ActorMaterializer()
-    val startingServer = for {
-      aggregator <- statsAggregator
-      gatherer = statsGatherer
-      _ = actorSystem.eventStream.subscribe(aggregator.toUntyped, classOf[CircuitBreakerEvent])
-      reporter = new HystrixReporter(gatherer)
-      _ = Kamon.addReporter(reporter)
-      router = httpRouter
-      serverStart <- Http().bindAndHandle(router.route, "0.0.0.0", 8080)
-    } yield serverStart
+    val startingServer = server.start(clock)
 
     sys.addShutdownHook {
+      import ExecutionContext.Implicits.global
       actorSystem.terminate()
       startingServer.map(_.unbind())
     }
