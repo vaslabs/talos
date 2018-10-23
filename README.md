@@ -13,6 +13,10 @@ and the BootstrapSpec (https://github.com/vaslabs/talos/blob/master/hystrix-repo
 
 ![alt text](https://user-images.githubusercontent.com/3875429/47317475-8e18ac00-d641-11e8-99fa-843e79ee7ec8.png)
 
+## Usage example
+Some how to code can be found here:
+https://github.com/vaslabs/talos/blob/master/examples/src/main/scala/talos/examples/ExampleApp.scala
+
 ## Run the demo
 
 - Spin up the docker images provided: 
