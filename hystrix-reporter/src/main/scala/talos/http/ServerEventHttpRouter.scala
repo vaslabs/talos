@@ -16,7 +16,6 @@ import talos.kamon.StatsAggregator
 import talos.kamon.hystrix.HystrixReporter
 
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
 
 trait ServerEventHttpRouter extends
       EventStreamMarshalling
@@ -32,7 +31,6 @@ trait ServerEventHttpRouter extends
 
 
 class HystrixReporterServer(
-    serverEventTimeout: FiniteDuration,
     host: String,
     port: Int
   )(implicit actorSystem: ActorSystem, timeout: Timeout) {
@@ -47,7 +45,7 @@ class HystrixReporterServer(
         val statsGatherer = actorSystem.actorOf(CircuitBreakerStatsActor.props, "CircuitBreakerStats")
         val hystrixReporter = new HystrixReporter(statsGatherer)(clock)
         Kamon.addReporter(hystrixReporter)
-        new CircuitBreakerEventsSource(serverEventTimeout, statsGatherer) with ServerEventHttpRouter
+        new CircuitBreakerEventsSource(statsGatherer) with ServerEventHttpRouter
       }
   }
 

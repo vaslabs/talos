@@ -1,22 +1,14 @@
 package talos.http
 
 import java.time.ZonedDateTime
-import java.util
 
-import akka.actor.{Actor, Props}
-import talos.http.CircuitBreakerStatsActor.{CircuitBreakerStats, FetchHystrixEvents, HystrixDashboardEvent}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Status}
 
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.FiniteDuration
 
 
 object CircuitBreakerStatsActor {
   def props: Props = Props(new CircuitBreakerStatsActor)
-
-
-  case object FetchHystrixEvents
-
-  case class HystrixDashboardEvent(stats: List[CircuitBreakerStats])
 
 
   case class CircuitBreakerStats
@@ -41,23 +33,20 @@ object CircuitBreakerStatsActor {
 
 }
 
-class CircuitBreakerStatsActor extends Actor {
+class CircuitBreakerStatsActor extends Actor with ActorLogging {
 
-  private[this] val deque: util.ArrayDeque[CircuitBreakerStats] = new util.ArrayDeque()
+  import talos.http.CircuitBreakerStatsActor._
 
-  override def postStop(): Unit = {
-    println("Circtuit breaker stats actor was stopped")
-  }
-  override def receive: Receive = {
+  override def receive: Receive = sendEventsTo(Set.empty)
+
+  private[this] def sendEventsTo(streamTo: Set[ActorRef]): Receive = {
+    case CircuitBreakerEventsSource.Start(streamingActor) =>
+      context.become(sendEventsTo(streamTo + streamingActor))
     case cbs: CircuitBreakerStats =>
-      deque.addFirst(cbs)
-    case FetchHystrixEvents =>
-      var listBuffer: ListBuffer[CircuitBreakerStats] = ListBuffer.empty
-      var cbs = deque.pollLast()
-      while (cbs != null) {
-         listBuffer = cbs +: listBuffer
-         cbs = deque.pollLast()
-      }
-      sender() ! HystrixDashboardEvent(listBuffer.toList)
+      streamTo.foreach(_ ! cbs)
+    case CircuitBreakerEventsSource.Done(actorRef) =>
+      val newSet = streamTo - actorRef
+      actorRef ! Status.Success
+      context.become(sendEventsTo(newSet))
   }
 }

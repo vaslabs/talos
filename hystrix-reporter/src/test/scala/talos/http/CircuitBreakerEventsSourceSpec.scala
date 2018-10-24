@@ -12,8 +12,6 @@ class CircuitBreakerEventsSourceSpec
       with Matchers
       with BeforeAndAfterAll{
 
-  import scala.concurrent.duration._
-
   override def afterAll(): Unit = {
     system.terminate()
     ()
@@ -23,12 +21,13 @@ class CircuitBreakerEventsSourceSpec
     val metricsReporterActor = TestProbe("MetricsReporter")
 
     val circuitBreakerEventsSource =
-      new CircuitBreakerEventsSource(3 seconds, metricsReporterActor.ref)
+      new CircuitBreakerEventsSource(metricsReporterActor.ref)
 
     implicit val actorMaterializer = ActorMaterializer()
     circuitBreakerEventsSource.main.runWith(Sink.ignore)
 
-    metricsReporterActor.expectMsg(CircuitBreakerStatsActor.FetchHystrixEvents)
+    metricsReporterActor.expectMsgType[CircuitBreakerEventsSource.Start]
+
 
   }
 

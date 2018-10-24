@@ -1,9 +1,12 @@
 package talos.http
 
 import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
+import akka.actor.Status.Success
+import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import talos.http.CircuitBreakerStatsActor.{FetchHystrixEvents, HystrixDashboardEvent}
+
+import scala.concurrent.duration._
+
 class CircuitBreakerStatsActorSpec
       extends TestKit(ActorSystem("HystrixReporterSpec"))
       with WordSpecLike
@@ -22,22 +25,28 @@ class CircuitBreakerStatsActorSpec
 
   "hystrix reporter" can {
     val hystrixReporter = TestActorRef(CircuitBreakerStatsActor.props)
-    "receive stats for circuit breaker" in {
-      val statsSample: CircuitBreakerStatsActor.CircuitBreakerStats = sample
+    hystrixReporter ! CircuitBreakerEventsSource.Start(self)
+    val statsSample: CircuitBreakerStatsActor.CircuitBreakerStats = sample
+    val anotherStreamActor = TestProbe()
+
+    "push stats to stream actor" in {
+      hystrixReporter !  CircuitBreakerEventsSource.Start(self)
       hystrixReporter ! statsSample
-      hystrixReporter ! FetchHystrixEvents
-      expectMsg(HystrixDashboardEvent(List(statsSample)))
+      expectMsg(statsSample)
     }
-    "receive the latest stats only" in {
-      val statsSample = List(sample, sample)
-      hystrixReporter ! statsSample(0)
-      hystrixReporter ! statsSample(1)
-      hystrixReporter ! FetchHystrixEvents
-      expectMsg(HystrixDashboardEvent(statsSample))
+    "push stats to multiple streams" in {
+      hystrixReporter !  CircuitBreakerEventsSource.Start(anotherStreamActor.ref)
+      hystrixReporter ! statsSample
+      expectMsg(statsSample)
+      anotherStreamActor.expectMsg(statsSample)
     }
-    "support at most once delivery" in {
-      hystrixReporter ! FetchHystrixEvents
-      expectMsg(HystrixDashboardEvent(List.empty))
+
+    "stop streaming to an actor when stream is done" in {
+      hystrixReporter ! CircuitBreakerEventsSource.Done(anotherStreamActor.ref)
+      anotherStreamActor.expectMsg(Success)
+      hystrixReporter ! statsSample
+      expectMsg(statsSample)
+      anotherStreamActor.expectNoMessage(10 millis)
     }
 
   }
