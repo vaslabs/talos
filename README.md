@@ -28,4 +28,4 @@ You should see this
 
 - Click add stream and then monitor stream.
 
-![alt text](https://user-images.githubusercontent.com/3875429/47317475-8e18ac00-d641-11e8-99fa-843e79ee7ec8.png)
+![alt text](https://user-images.githubusercontent.com/3875429/47429624-dc879100-d78e-11e8-856a-15ca3855a2eb.gif)
