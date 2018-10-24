@@ -26,7 +26,8 @@ class CircuitBreakerEventsSourceSpec
     implicit val actorMaterializer = ActorMaterializer()
     circuitBreakerEventsSource.main.runWith(Sink.ignore)
 
-    metricsReporterActor.expectMsgType[CircuitBreakerStatsActor.StreamTo]
+    metricsReporterActor.expectMsgType[CircuitBreakerEventsSource.Start]
+
 
   }
 

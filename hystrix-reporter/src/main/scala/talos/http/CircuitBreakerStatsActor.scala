@@ -31,8 +31,6 @@ object CircuitBreakerStatsActor {
       reportingHosts: Int = 1
     )
 
-  case class StreamTo(reportTo: ActorRef)
-
 }
 
 class CircuitBreakerStatsActor extends Actor {
@@ -42,16 +40,16 @@ class CircuitBreakerStatsActor extends Actor {
   override def postStop(): Unit = {
     println("Circtuit breaker stats actor was stopped")
   }
-  override def receive: Receive = {
-    case StreamTo(actorRef) =>
-      context.become(sendEventsTo(actorRef))
-  }
+  override def receive: Receive = sendEventsTo(Set.empty)
 
-  private[this] def sendEventsTo(actorRef: ActorRef): Receive = {
-    case StreamTo(replacement) =>
-      actorRef ! Status.Success
-      context.become(sendEventsTo(replacement))
+  private[this] def sendEventsTo(streamTo: Set[ActorRef]): Receive = {
+    case CircuitBreakerEventsSource.Start(streamingActor) =>
+      context.become(sendEventsTo(streamTo + streamingActor))
     case cbs: CircuitBreakerStats =>
-      actorRef ! cbs
+      streamTo.foreach(_ ! cbs)
+    case CircuitBreakerEventsSource.Done(actorRef) =>
+      val newSet = streamTo - actorRef
+      actorRef ! Status.Success
+      context.become(sendEventsTo(newSet))
   }
 }
