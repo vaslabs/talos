@@ -8,7 +8,7 @@ import akka.util.Timeout
 import talos.http.HystrixReporterServer
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Random
+import scala.util.{Random, Try}
 import scala.concurrent.duration._
 
 object ExampleApp extends App {
@@ -35,15 +35,25 @@ object ExampleApp extends App {
     def startCircuitBreakerActivity()(implicit actorSystem: ActorSystem): Future[Unit] = {
       val foo = Utils.createCircuitBreaker("foo")
       val bar = Utils.createCircuitBreaker("bar")
-      implicit val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+      implicit val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
       Future {
         while (true) {
-          bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50).toLong))
+          Try(bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50).toLong)))
         }
       }
       Future {
         while (true) {
-          foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100).toLong))
+          Try(foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100).toLong)))
+        }
+      }
+      Future {
+        while (true) {
+          Thread.sleep(20000)
+          if (Random.nextDouble() < 0.5) {
+              for (i <- 1 to 10) yield Try(bar.callWithSyncCircuitBreaker(() => throw new RuntimeException))
+          } else {
+              for (i <- 1 to 10) yield Try(foo.callWithSyncCircuitBreaker(() => throw new RuntimeException))
+          }
         }
       }
     }

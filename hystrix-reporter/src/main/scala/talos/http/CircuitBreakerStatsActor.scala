@@ -2,7 +2,7 @@ package talos.http
 
 import java.time.ZonedDateTime
 
-import akka.actor.{Actor, ActorRef, Props, Status}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Status}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -33,13 +33,10 @@ object CircuitBreakerStatsActor {
 
 }
 
-class CircuitBreakerStatsActor extends Actor {
+class CircuitBreakerStatsActor extends Actor with ActorLogging {
 
   import talos.http.CircuitBreakerStatsActor._
 
-  override def postStop(): Unit = {
-    println("Circtuit breaker stats actor was stopped")
-  }
   override def receive: Receive = sendEventsTo(Set.empty)
 
   private[this] def sendEventsTo(streamTo: Set[ActorRef]): Receive = {

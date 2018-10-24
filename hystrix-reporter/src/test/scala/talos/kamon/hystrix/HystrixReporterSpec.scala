@@ -100,7 +100,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 10L, _, false,
-        0.2f, 2L, 2L, 2L, 0L, 0L, 8L,
+        20f, 2L, 2L, 2L, 0L, 0L, 8L,
         _, _, _, _, 1
         ) =>
       }
@@ -115,7 +115,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 3L, _, true,
-        1f, 3L, 3L, 3L, 0L, 0L, 0L,
+        100f, 3L, 3L, 3L, 0L, 0L, 0L,
         _, _, _, _, 1
         ) =>
       }
@@ -127,7 +127,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 1L, _, true,
-        1f, 1L, 0L, 0L, 0L, 1L, 0L, _, _,
+        100f, 1L, 0L, 0L, 0L, 1L, 0L, _, _,
         _, _, 1
         ) =>
       }
@@ -152,14 +152,14 @@ class HystrixReporterSpec
       barStats should matchPattern {
         case CircuitBreakerStats(
         "bar", 5L, _, false,
-        0.2f, 1L, 1L, 1L, 0L, 0L, 4L,
+        20f, 1L, 1L, 1L, 0L, 0L, 4L,
         _, _, _, _, 1
         ) =>
       }
       fooStats should matchPattern {
         case CircuitBreakerStats(
         "foo", 10L, _, false,
-        0.3f, 3L, 3L, 3L, 0L, 0L, 7L,
+        30f, 3L, 3L, 3L, 0L, 0L, 7L,
         _, _,
         _, _, 1
         ) =>

@@ -68,7 +68,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
     val allErrors = failedCalls + shortCircuited
     val totalCalls = successCalls + failedCalls + shortCircuited
     val errorPercentage: Float =
-      if (totalCalls == 0) 0 else (BigDecimal(allErrors)/totalCalls).floatValue()
+      if (totalCalls == 0) 0 else (BigDecimal(allErrors*100)/totalCalls).floatValue()
     CircuitBreakerStats(
       circuitBreakerName,
       requestCount = totalCalls,
