@@ -45,7 +45,7 @@ object json_adapters {
     "propertyValue_fallbackIsolationSemaphoreMaxConcurrentRequests" -> 0,
     "propertyValue_requestCacheEnabled" -> false,
     "propertyValue_requestLogEnabled" -> false,
-    "propertyValue_metricsRollingStatisticalWindowInMilliseconds" -> 1000
+    "reportingHosts" -> 1
   )
 
   implicit val finiteDurationEncoder: Encoder[FiniteDuration] = Encoder.encodeLong.contramap(

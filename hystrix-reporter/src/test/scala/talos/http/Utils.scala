@@ -24,7 +24,8 @@ object Utils {
       0 nanos,
       Map.empty,
       0 nanos,
-      Map.empty
+      Map.empty,
+      1 second
     )
 
   import talos.events.syntax._

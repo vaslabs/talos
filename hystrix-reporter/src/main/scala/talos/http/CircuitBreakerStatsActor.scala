@@ -28,7 +28,7 @@ object CircuitBreakerStatsActor {
       latencyExecute: Map[String, FiniteDuration],
       latencyTotal_mean: FiniteDuration,
       latencyTotal: Map[String, FiniteDuration],
-      reportingHosts: Int = 1
+      propertyValue_metricsRollingStatisticalWindowInMilliseconds: FiniteDuration
     )
 
 }

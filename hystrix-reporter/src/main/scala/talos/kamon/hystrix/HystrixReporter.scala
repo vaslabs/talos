@@ -3,17 +3,17 @@ package talos.kamon.hystrix
 import java.time.{Clock, ZonedDateTime}
 
 import akka.actor.ActorRef
+import cats.implicits._
+import cats.kernel.Semigroup
 import com.typesafe.config.Config
 import kamon.MetricReporter
 import kamon.metric.{MetricDistribution, MetricValue, Percentile, PeriodSnapshot}
-import cats.implicits._
-import cats.kernel.Semigroup
 import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
 import talos.kamon.StatsAggregator
 
 import scala.collection.immutable
-import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 
 class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends MetricReporter{
 
@@ -45,7 +45,8 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
         fromHistograms.latencyExecute_mean,
         fromHistograms.latencyExecute,
         fromHistograms.latencyTotal_mean,
-        fromHistograms.latencyTotal
+        fromHistograms.latencyTotal,
+        x.propertyValue_metricsRollingStatisticalWindowInMilliseconds
       )
     }
 
@@ -84,7 +85,8 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       0 millis,
       Map.empty,
       0 millis,
-      Map.empty
+      Map.empty,
+      1 second
     )
   }
 
@@ -146,7 +148,8 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       latencyExecuteMean nanos,
       latencyExecute,
       latencyExecuteMean nanos,
-      latencyExecute
+      latencyExecute,
+      0 seconds
     )
   }
 
@@ -160,6 +163,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
   def merge(countersMetrics: immutable.Iterable[CircuitBreakerStats], histogramMetrics: immutable.Iterable[CircuitBreakerStats]): Unit = ???
 
   override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
+    val period = (snapshot.to.getEpochSecond  - snapshot.from.getEpochSecond) seconds
     val outcome = Try {
       val countersMetrics = findCountersMetrics(snapshot.metrics.counters)
       val histogramMetrics = findHistogramMetrics(snapshot.metrics.histograms)
@@ -167,7 +171,9 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       mergedStats.foreach {
         case (_, circuitBreakerStats) =>
           if (circuitBreakerStats.requestCount > 0)
-            statsGatherer ! circuitBreakerStats
+            statsGatherer ! circuitBreakerStats.copy(
+              propertyValue_metricsRollingStatisticalWindowInMilliseconds = period
+            )
       }
     }
     outcome match {

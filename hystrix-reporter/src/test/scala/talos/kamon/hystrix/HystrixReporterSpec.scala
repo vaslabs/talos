@@ -81,7 +81,7 @@ class HystrixReporterSpec
         case CircuitBreakerStats(
           "testCircuitBreaker", 10L, _, false,
           0f, 0L, 0L, 0L, 0L, 0L, 10L,
-          _, _, _, _, 1
+          _, _, _, _, _
         ) =>
       }
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
@@ -99,7 +99,7 @@ class HystrixReporterSpec
         case CircuitBreakerStats(
         "testCircuitBreaker", 10L, _, false,
         0f, 0L, 0L, 0L, 0L, 0L, 10L,
-        _, _, _, _, 1
+        _, _, _, _, _
         ) =>
       }
     }
@@ -114,7 +114,7 @@ class HystrixReporterSpec
         case CircuitBreakerStats(
         "testCircuitBreaker", 10L, _, false,
         20f, 2L, 2L, 2L, 0L, 0L, 8L,
-        _, _, _, _, 1
+        _, _, _, _, _
         ) =>
       }
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
@@ -130,7 +130,7 @@ class HystrixReporterSpec
         case CircuitBreakerStats(
         "testCircuitBreaker", 3L, _, true,
         100f, 3L, 3L, 3L, 0L, 0L, 0L,
-        _, _, _, _, 1
+        _, _, _, _, _
         ) =>
       }
     }
@@ -142,7 +142,7 @@ class HystrixReporterSpec
         case CircuitBreakerStats(
         "testCircuitBreaker", 1L, _, true,
         100f, 1L, 0L, 0L, 0L, 1L, 0L, _, _,
-        _, _, 1
+        _, _, _
         ) =>
       }
     }
@@ -167,7 +167,7 @@ class HystrixReporterSpec
         case CircuitBreakerStats(
         "bar", 5L, _, false,
         20f, 1L, 1L, 1L, 0L, 0L, 4L,
-        _, _, _, _, 1
+        _, _, _, _, _
         ) =>
       }
       fooStats should matchPattern {
@@ -175,7 +175,7 @@ class HystrixReporterSpec
         "foo", 10L, _, false,
         30f, 3L, 3L, 3L, 0L, 0L, 7L,
         _, _,
-        _, _, 1
+        _, _, _
         ) =>
       }
     }
