@@ -90,6 +90,19 @@ class HystrixReporterSpec
       println(statsMessage.latencyExecute)
       statsMessage.latencyExecute.get("100").get should be > statsMessage.latencyTotal_mean
     }
+    "ignores unrelated metrics" in {
+      Kamon.counter("random-counter").increment()
+      Try(fireSuccessful(10, circuitBreaker))
+      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+
+      statsMessage should matchPattern {
+        case CircuitBreakerStats(
+        "testCircuitBreaker", 10L, _, false,
+        0f, 0L, 0L, 0L, 0L, 0L, 10L,
+        _, _, _, _, 1
+        ) =>
+      }
+    }
 
     "group successful and unsuccessful metrics" in {
       fireSuccessful(8, circuitBreaker)
@@ -109,6 +122,7 @@ class HystrixReporterSpec
       statsMessage.latencyTotal_mean should be > (0 nanos)
       println(statsMessage.latencyExecute)
     }
+
     "count open circuits" in {
       fireFailures(3, circuitBreaker)
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]

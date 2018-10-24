@@ -90,7 +90,8 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
 
 
   private def findCountersMetrics(counters: Seq[MetricValue]): Map[String, CircuitBreakerStats] =
-    counters.groupBy(_.name.substring(StatsAggregator.Keys.CounterPrefix.length()))
+    counters.filter(_.name.startsWith(StatsAggregator.Keys.CounterPrefix))
+      .groupBy(_.name.substring(StatsAggregator.Keys.CounterPrefix.length()))
       .mapValues(findCountersMetricsOfCircuitBreaker(_))
     .map {
       case (name, stats) => name -> asCircuitBreakerStats(name, stats)
@@ -150,7 +151,8 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
   }
 
   private def findHistogramMetrics(histograms: Seq[MetricDistribution]): Map[String, CircuitBreakerStats] = {
-    histograms.groupBy(_.name.substring(StatsAggregator.Keys.HistrogramPrefix.length)).map {
+    histograms.filter(_.name.startsWith(StatsAggregator.Keys.HistrogramPrefix))
+      .groupBy(_.name.substring(StatsAggregator.Keys.HistrogramPrefix.length)).map {
       case (name, metrics) => name -> findHistogramMetricsOfCircuitBreaker(name, metrics)
     }
   }
