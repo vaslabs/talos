@@ -2,7 +2,30 @@ import Dependencies._
 
 name := "talos"
 
-version := "0.1"
+version in ThisBuild := sys.env.getOrElse("VASLABS_PUBLISH_VERSION", "SNAPSHOT")
+
+val publishSettings = Seq(
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (version.value.trim.endsWith("SNAPSHOT"))
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  },
+  organization := "org.vaslabs.talos",
+  organizationName := "vaslabs",
+  scmInfo := Some(ScmInfo(url("https://github.com/vaslabs/talos"), "scm:git@github.com:vaslabs/talos.git")),
+  developers := List(
+    Developer(
+      id    = "vaslabs",
+      name  = "Vasilis Nicolaou",
+      email = "vaslabsco@gmail.com",
+      url   = url("http://vaslabs.org")
+    )
+  ),
+  publishMavenStyle := true,
+  licenses := List("MIT" -> new URL("https://opensource.org/licenses/MIT"))
+)
 
 scalaVersion := "2.12.7"
 
@@ -38,12 +61,13 @@ lazy val talosEvents =
     libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all
   ).settings(
     compilerSettings
-  )
+  ).settings(publishSettings)
 
 lazy val talosKamon =
   (project in file("kamon")).settings(
     libraryDependencies ++= libraries.Kamon.all ++ libraries.ScalaTest.all ++ libraries.Akka.all
   ).settings(compilerSettings)
+    .settings(publishSettings)
   .dependsOn(talosEvents)
 
 lazy val hystrixReporter =
@@ -51,6 +75,7 @@ lazy val hystrixReporter =
     libraryDependencies ++=
       libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
   ).settings(compilerSettings)
+    .settings(publishSettings)
   .dependsOn(talosKamon)
 
 lazy val talosExamples =
@@ -71,12 +96,13 @@ lazy val talosExamples =
   .settings(
     libraryDependencies ++=
       libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
-  )
+  ).settings(noPublishSettings)
   .dependsOn(hystrixReporter)
 
-val noPublishSettings = Seq(
+lazy val noPublishSettings = Seq(
   publish := {},
-  publishLocal := {}
+  publishLocal := {},
+  publishArtifact in Test := false
 )
 
 lazy val talos =
