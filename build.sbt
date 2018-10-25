@@ -1,7 +1,7 @@
 import Dependencies._
 
 name := "talos"
-
+sonatypeProfileName := "org.vaslabs"
 version in ThisBuild := sys.env.getOrElse("VASLABS_PUBLISH_VERSION", "SNAPSHOT")
 
 val publishSettings = Seq(
@@ -24,7 +24,9 @@ val publishSettings = Seq(
     )
   ),
   publishMavenStyle := true,
-  licenses := List("MIT" -> new URL("https://opensource.org/licenses/MIT"))
+  licenses := List("MIT" -> new URL("https://opensource.org/licenses/MIT")),
+  homepage := Some(url("https://talos.vaslabs.org")),
+  startYear := Some(2018)
 )
 
 scalaVersion := "2.12.7"
@@ -101,6 +103,7 @@ lazy val talosExamples =
 
 lazy val noPublishSettings = Seq(
   publish := {},
+  skip in publish := true,
   publishLocal := {},
   publishArtifact in Test := false
 )
