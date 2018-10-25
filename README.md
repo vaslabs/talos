@@ -8,7 +8,7 @@ Talos is modularised. You can twist it and pick the dependencies that fit your n
 
 ### Talos events
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "talosevents" % "0.0.2"
+libraryDependencies += "org.vaslabs.talos" %% "talosevents" % "0.0.3"
 ```
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
 ```scala
@@ -48,7 +48,7 @@ case class ShortCircuitedCall(circuitBreakerName: String) extends CircuitBreaker
 ```
 You can consume these events and create your own metrics or you can use taloskamon for getting metrics in Kamon out of the box.
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.0.2"
+libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.0.3"
 ```
 Now you get counters and histograms recorded in Kamon in the following format:
 - Counters
@@ -63,14 +63,15 @@ You can now use any Kamon reported library of your preference or you can import 
 
 - Dependency
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.0.2"
+libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.0.3"
 ```
 Getting an Akka directive
 ```scala
-val hystrixReporterDirective = new HystrixReporterDirective().collectCircuitBreakerStats.run(Clock.systemUTC())
+import akka.http.scaladsl.server.Route
+
+val hystrixReporterDirective: Route  = new HystrixReporterDirective().hystrixStreamHttpRoute.run(Clock.systemUTC())
 ```
 And you can mix the Akka directive with the rest of your application.
-
 
 The example below shows a complete server start 
 ```scala
@@ -78,10 +79,10 @@ implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
 val clock: Clock = Clock.systemUTC()
 
 implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
-val hystrixReporterDirective = new HystrixReporterDirective().collectCircuitBreakerStats
+val hystrixStreamRoute = new HystrixReporterDirective().hystrixStreamHttpRoute
 val server = new HystrixReporterServer("0.0.0.0", 8080)
 
-val startingServer = (hystrixReporterDirective andThen server.startHttpServer).run(Clock.systemUTC())
+val startingServer = (hystrixStreamRoute andThen server.startHttpServer).run(Clock.systemUTC())
 ```
 
 Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.
