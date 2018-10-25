@@ -19,6 +19,7 @@ def circuitBreaker = CircuitBreaker(
         callTimeout = 1 second,
         resetTimeout = 5 seconds
 )
+
 import talos.events.TalosEvents
 val circuitBreakerWithEvents = TalosEvents.wrap(circuitBreaker, "foo")
 ```
@@ -33,7 +34,7 @@ val circuitBreaker = CircuitBreaker.withEventReporting(
       5,
       2 seconds,
       5 seconds
-    )
+)
 ```
 
 Now circuit breaker events arrive in the akka event stream.
@@ -76,7 +77,6 @@ And you can mix the Akka directive with the rest of your application.
 The example below shows a complete server start 
 ```scala
 implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
-val clock: Clock = Clock.systemUTC()
 
 implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
 val hystrixStreamRoute = new HystrixReporterDirective().hystrixStreamHttpRoute
