@@ -1,4 +1,5 @@
-# talos [![Build Status](https://travis-ci.com/vaslabs/talos.svg?branch=master)](https://travis-ci.com/vaslabs/talos)
+# talos [![Build Status](https://travis-ci.com/vaslabs/talos.svg?branch=master)](https://travis-ci.com/vaslabs/talos)[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/vaslabs/talos) 
+
 
 Talos is a set of tools for enabling fine grained monitoring of the Akka circuit breakers.
 
