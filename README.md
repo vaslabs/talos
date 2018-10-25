@@ -13,7 +13,6 @@ libraryDependencies += "org.vaslabs.talos" %% "talosevents" % "0.0.2"
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
 ```scala
 import akka.pattern.CircuitBreaker
-
 val circuitBreaker = CircuitBreaker(
         system.scheduler,
         maxFailures = 5,
@@ -21,7 +20,20 @@ val circuitBreaker = CircuitBreaker(
         resetTimeout = 5 seconds
 )
 import talos.events.TalosEvents
-TalosEvents.wrap(circuitBreaker, "foo")
+val circuitBreakerWithEvents = TalosEvents.wrap(circuitBreaker, "foo")
+```
+Alternatively to avoid double reference
+```scala
+import akka.pattern.CircuitBreaker
+import talos.events.syntax._
+
+val circuitBreaker = CircuitBreaker.withEventReporting(
+      name,
+      actorSystem.scheduler,
+      5,
+      2 seconds,
+      5 seconds
+    )
 ```
 
 Now circuit breaker events arrive in the akka event stream.
