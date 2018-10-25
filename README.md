@@ -79,10 +79,11 @@ The example below shows a complete server start
 implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
 
 implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
+import talos.http._
 val hystrixStreamRoute = new HystrixReporterDirective().hystrixStreamHttpRoute
-val server = new HystrixReporterServer("0.0.0.0", 8080)
+val server = new StartServer("0.0.0.0", 8080)
+val startingServer = (hystrixReporterDirective andThen server.startHttpServer).run(Clock.systemUTC())
 
-val startingServer = (hystrixStreamRoute andThen server.startHttpServer).run(Clock.systemUTC())
 ```
 
 Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.
