@@ -34,7 +34,7 @@ case class CircuitHalfOpen(circuitBreakerName: String) extends CircuitBreakerEve
 case class CircuitClosed(circuitBreakerName: String) extends CircuitBreakerEvent
 case class ShortCircuitedCall(circuitBreakerName: String) extends CircuitBreakerEvent
 ```
-You can consume this events and create your own metrics or you can use taloskamon for getting metrics in Kamon out of the box.
+You can consume these events and create your own metrics or you can use taloskamon for getting metrics in Kamon out of the box.
 ```scala
 libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.0.2"
 ```
