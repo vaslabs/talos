@@ -65,6 +65,16 @@ You can now use any Kamon reported library of your preference or you can import 
 ```scala
 libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.0.2"
 ```
+Getting an Akka directive example (this API will be improved)
+```scala
+actorSystem.toTyped.systemActorOf(StatsAggregator.behavior(), "CircuitBreakerStatsAggregator").map { _ =>
+        val statsGatherer = actorSystem.actorOf(CircuitBreakerStatsActor.props, "CircuitBreakerStats")
+        val hystrixReporter = new HystrixReporter(statsGatherer)(clock)
+        Kamon.addReporter(hystrixReporter)
+        new CircuitBreakerEventsSource(statsGatherer) with ServerEventHttpRouter
+}
+```
+
 ```scala
 implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
 
