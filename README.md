@@ -65,26 +65,23 @@ You can now use any Kamon reported library of your preference or you can import 
 ```scala
 libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.0.2"
 ```
-Getting an Akka directive example (this API will be improved)
+Getting an Akka directive
 ```scala
-actorSystem.toTyped.systemActorOf(StatsAggregator.behavior(), "CircuitBreakerStatsAggregator").map { _ =>
-        val statsGatherer = actorSystem.actorOf(CircuitBreakerStatsActor.props, "CircuitBreakerStats")
-        val hystrixReporter = new HystrixReporter(statsGatherer)(clock)
-        Kamon.addReporter(hystrixReporter)
-        new CircuitBreakerEventsSource(statsGatherer) with ServerEventHttpRouter
-}
+val hystrixReporterDirective = new HystrixReporterDirective().collectCircuitBreakerStats.run(Clock.systemUTC())
 ```
+And you can mix the Akka directive with the rest of your application.
 
+
+The example below shows a complete server start 
 ```scala
 implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
-
-implicit val clock: Clock = Clock.systemUTC()
+val clock: Clock = Clock.systemUTC()
 
 implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
+val hystrixReporterDirective = new HystrixReporterDirective().collectCircuitBreakerStats
+val server = new HystrixReporterServer("0.0.0.0", 8080)
 
-val server = new HystrixReporterServer("localhost", 8080)
-
-val startingServer = server.start(clock)
+val startingServer = (hystrixReporterDirective andThen server.startHttpServer).run(Clock.systemUTC())
 ```
 
 Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.
