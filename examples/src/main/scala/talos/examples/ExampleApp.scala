@@ -5,26 +5,28 @@ import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import talos.http.HystrixReporterServer
+import talos.http.{HystrixReporterDirective, HystrixReporterServer}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Random, Try}
 import scala.concurrent.duration._
-
+import cats.implicits._
 object ExampleApp extends App {
 
     implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
 
-    implicit val clock: Clock = Clock.systemUTC()
+    val clock: Clock = Clock.systemUTC()
 
     implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
+    import actorSystem.dispatcher
 
+    val hystrixReporterDirective = new HystrixReporterDirective().collectCircuitBreakerStats
     val server = new HystrixReporterServer("0.0.0.0", 8080)
 
-    val startingServer = server.start(clock)
+    val startingServer = (hystrixReporterDirective andThen server.startHttpServer).run(Clock.systemUTC())
+
 
     sys.addShutdownHook {
-      import ExecutionContext.Implicits.global
       actorSystem.terminate()
       startingServer.map(_.unbind())
       ()
@@ -35,17 +37,17 @@ object ExampleApp extends App {
     def startCircuitBreakerActivity()(implicit actorSystem: ActorSystem): Future[Unit] = {
       val foo = Utils.createCircuitBreaker("foo")
       val bar = Utils.createCircuitBreaker("bar")
-      implicit val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
+      val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
       Future {
         while (true) {
           Try(bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50).toLong)))
         }
-      }
+      }(executionContext)
       Future {
         while (true) {
           Try(foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100).toLong)))
         }
-      }
+      }(executionContext)
       Future {
         while (true) {
           Thread.sleep(20000)
@@ -55,7 +57,7 @@ object ExampleApp extends App {
               for (i <- 1 to 10) yield Try(foo.callWithSyncCircuitBreaker(() => throw new RuntimeException))
           }
         }
-      }
+      }(executionContext)
     }
 
 
