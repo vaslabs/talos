@@ -5,7 +5,7 @@ import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import talos.http.{HystrixReporterDirective, HystrixReporterServer}
+import talos.http._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Random, Try}
@@ -20,8 +20,8 @@ object ExampleApp extends App {
     implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
     import actorSystem.dispatcher
 
-    val hystrixReporterDirective = new HystrixReporterDirective().collectCircuitBreakerStats
-    val server = new HystrixReporterServer("0.0.0.0", 8080)
+    val hystrixReporterDirective = new HystrixReporterDirective().hystrixStreamHttpRoute
+    val server = new StartServer("0.0.0.0", 8080)
 
     val startingServer = (hystrixReporterDirective andThen server.startHttpServer).run(Clock.systemUTC())
 

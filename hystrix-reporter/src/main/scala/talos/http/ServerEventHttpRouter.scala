@@ -3,7 +3,7 @@ package talos.http
 import java.time.Clock
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
+import akka.http.scaladsl.{Http, server}
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling
 import akka.http.scaladsl.server.Directives
@@ -32,27 +32,28 @@ class HystrixReporterDirective(implicit actorSystem: ActorSystem, timeout: Timeo
   import akka.actor.typed.scaladsl.adapter._
   import actorSystem.dispatcher
 
-  val collectCircuitBreakerStats = Kleisli[Future, Clock, CircuitBreakerEventsSource with ServerEventHttpRouter] {
+  val hystrixStreamHttpRoute = Kleisli[Future, Clock, server.Route] {
     clock =>
       actorSystem.toTyped.systemActorOf(StatsAggregator.behavior(), "CircuitBreakerStatsAggregator").map { _ =>
         val statsGatherer = actorSystem.actorOf(CircuitBreakerStatsActor.props, "CircuitBreakerStats")
         val hystrixReporter = new HystrixReporter(statsGatherer)(clock)
         Kamon.addReporter(hystrixReporter)
-        new CircuitBreakerEventsSource(statsGatherer) with ServerEventHttpRouter
+        val hystrixRouter = new CircuitBreakerEventsSource(statsGatherer) with ServerEventHttpRouter
+        hystrixRouter.route
       }
   }
 }
 
-class HystrixReporterServer(
+class StartServer(
     host: String,
     port: Int
   )(implicit actorSystem: ActorSystem) {
 
 
-  val startHttpServer = Kleisli[Future, CircuitBreakerEventsSource with ServerEventHttpRouter, ServerBinding] {
-    source =>
+  val startHttpServer = Kleisli[Future, server.Route, ServerBinding] {
+    route =>
       implicit val actorMaterializer = ActorMaterializer()
-      Http().bindAndHandle(source.route, host, port)
+      Http().bindAndHandle(route, host, port)
   }
 
 }
