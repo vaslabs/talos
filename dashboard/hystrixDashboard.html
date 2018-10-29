@@ -12,30 +12,19 @@ deliver fine grained visualisations.</p>
 
 <p>Get an akka directive</p>
 
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">java.time.Clock</span>
-<span class="k">import</span> <span class="nn">java.time.Clock</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.time.Clock</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">akka.http.scaladsl.server.Route</span>
 <span class="k">import</span> <span class="nn">akka.http.scaladsl.server.Route</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
 <span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">akka.util.Timeout</span>
 <span class="k">import</span> <span class="nn">akka.util.Timeout</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
 <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">scala.concurrent.Future</span>
 <span class="k">import</span> <span class="nn">scala.concurrent.Future</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">talos.http.HystrixReporterDirective</span>
 <span class="k">import</span> <span class="nn">talos.http.HystrixReporterDirective</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">def</span> <span class="n">hystrixReporterDirective</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">,</span> <span class="n">timeout</span><span class="k">:</span> <span class="kt">Timeout</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Route</span><span class="o">]</span>  <span class="k">=</span> 
-     <span class="o">|</span>     <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="n">hystrixStreamHttpRoute</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="nc">Clock</span><span class="o">.</span><span class="n">systemUTC</span><span class="o">())</span>
-<span class="n">hystrixReporterDirective</span><span class="k">:</span> <span class="o">(</span><span class="kt">implicit</span> <span class="kt">actorSystem:</span> <span class="kt">akka.actor.ActorSystem</span><span class="o">,</span> <span class="kt">implicit</span> <span class="kt">timeout:</span> <span class="kt">akka.util.Timeout</span><span class="o">)</span><span class="n">scala</span><span class="o">.</span><span class="n">concurrent</span><span class="o">.</span><span class="nc">Future</span><span class="o">[</span><span class="kt">akka.http.scaladsl.server.Route</span><span class="o">]</span>
+<span class="k">def</span> <span class="n">hystrixReporterDirective</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">,</span> <span class="n">timeout</span><span class="k">:</span> <span class="kt">Timeout</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Route</span><span class="o">]</span>  <span class="k">=</span> 
+    <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="n">hystrixStreamHttpRoute</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="nc">Clock</span><span class="o">.</span><span class="n">systemUTC</span><span class="o">())</span>
 </code></pre>
 </div>
 

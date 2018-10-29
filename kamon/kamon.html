@@ -13,54 +13,33 @@ two ways to start the actor.</p>
 an actor in the following ways</p>
 
 <h4 id="with-an-actor-context">With an actor context</h4>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">akka.actor.ActorContext</span>
-<span class="k">import</span> <span class="nn">akka.actor.ActorContext</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>  <span class="k">import</span> <span class="nn">akka.actor.ActorContext</span>
+  <span class="k">import</span> <span class="nn">akka.actor.typed.ActorRef</span>
+  <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
 
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">akka.actor.typed.ActorRef</span>
-<span class="k">import</span> <span class="nn">akka.actor.typed.ActorRef</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
-<span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
-<span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
-<span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">def</span> <span class="n">recordKamonMetrics</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">ActorContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span>
-     <span class="o">|</span>     <span class="n">ctx</span><span class="o">.</span><span class="n">spawn</span><span class="o">(</span><span class="nc">StatsAggregator</span><span class="o">.</span><span class="n">behavior</span><span class="o">(),</span> <span class="s">"KamonStatsAggregator"</span><span class="o">)</span>
-<span class="n">recordKamonMetrics</span><span class="k">:</span> <span class="o">(</span><span class="kt">ctx:</span> <span class="kt">akka.actor.ActorContext</span><span class="o">)</span><span class="kt">akka.actor.typed.ActorRef</span><span class="o">[</span><span class="kt">talos.events.TalosEvents.model.CircuitBreakerEvent</span><span class="o">]</span>
+  <span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
+  <span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
+  
+  <span class="k">def</span> <span class="n">recordKamonMetrics</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">ActorContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">spawn</span><span class="o">(</span><span class="nc">StatsAggregator</span><span class="o">.</span><span class="n">behavior</span><span class="o">(),</span> <span class="s">"KamonStatsAggregator"</span><span class="o">)</span>
 </code></pre>
 </div>
 
 <h4 id="from-the-actor-system-directly">From the actor system directly</h4>
 
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>  <span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+  
+  <span class="k">import</span> <span class="nn">akka.actor.typed.ActorRef</span>
+  <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
+  
+  <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+  <span class="k">import</span> <span class="nn">scala.concurrent.Future</span>
+  
+  <span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
+  <span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
 
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">akka.actor.typed.ActorRef</span>
-<span class="k">import</span> <span class="nn">akka.actor.typed.ActorRef</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
-<span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">scala.concurrent.Future</span>
-<span class="k">import</span> <span class="nn">scala.concurrent.Future</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
-<span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
-<span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
-
-<span class="n">scala</span><span class="o">&gt;</span>   <span class="k">def</span> <span class="n">recordKamonMetrics</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]]</span> <span class="k">=</span>
-     <span class="o">|</span>     <span class="n">actorSystem</span><span class="o">.</span><span class="n">toTyped</span><span class="o">.</span><span class="n">systemActorOf</span><span class="o">(</span><span class="nc">StatsAggregator</span><span class="o">.</span><span class="n">behavior</span><span class="o">(),</span> <span class="s">"KamonStatsAggregator"</span><span class="o">)(</span><span class="mi">2</span> <span class="n">seconds</span><span class="o">)</span>
-<span class="n">warning</span><span class="k">:</span> <span class="kt">there</span> <span class="kt">was</span> <span class="kt">one</span> <span class="kt">feature</span> <span class="kt">warning</span><span class="o">;</span> <span class="k">for</span> <span class="n">details</span><span class="o">,</span> <span class="n">enable</span> <span class="n">`:setting -feature' or `</span><span class="k">:</span><span class="kt">replay</span> <span class="kt">-feature'</span>
-<span class="kt">recordKamonMetrics:</span> <span class="o">(</span><span class="kt">implicit</span> <span class="kt">actorSystem:</span> <span class="kt">akka.actor.ActorSystem</span><span class="o">)</span><span class="kt">scala.concurrent.Future</span><span class="o">[</span><span class="kt">akka.actor.</span><span class="k">type</span><span class="kt">d.ActorRef</span><span class="o">[</span><span class="kt">talos.events.TalosEvents.model.CircuitBreakerEvent</span><span class="o">]]</span>
+  <span class="k">def</span> <span class="n">recordKamonMetrics</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]]</span> <span class="k">=</span>
+    <span class="n">actorSystem</span><span class="o">.</span><span class="n">toTyped</span><span class="o">.</span><span class="n">systemActorOf</span><span class="o">(</span><span class="nc">StatsAggregator</span><span class="o">.</span><span class="n">behavior</span><span class="o">(),</span> <span class="s">"KamonStatsAggregator"</span><span class="o">)(</span><span class="mi">2</span> <span class="n">seconds</span><span class="o">)</span>
 </code></pre>
 </div>
 
