@@ -1,4 +1,5 @@
 import Dependencies._
+import microsites.ExtraMdFileConfig
 
 name := "talos"
 sonatypeProfileName := "org.vaslabs"
@@ -108,7 +109,44 @@ lazy val noPublishSettings = Seq(
   publishArtifact in Test := false
 )
 
+lazy val micrositeSettings = Seq(
+  micrositeName := "Talos",
+  micrositeDescription := "Monitoring tools for Akka circuit breakers",
+  micrositeAuthor := "Vasilis Nicolaou",
+  micrositeTwitterCreator := "@vaslabs",
+  micrositeGithubOwner := "vaslabs",
+  micrositeGithubRepo := "talos",
+  micrositeBaseUrl := "/talos",
+  micrositeExtraMdFiles := Map(
+    file("README.md") -> ExtraMdFileConfig(
+      "index.md",
+      "home"
+    )
+  ),
+  fork in tut := true,
+  micrositePalette := Map(
+    "brand-primary" -> "#E05236",
+    "brand-secondary" -> "#3F3242",
+    "brand-tertiary" -> "#2D232F",
+    "gray-dark" -> "#453E46",
+    "gray" -> "#837F84",
+    "gray-light" -> "#E3E2E3",
+    "gray-lighter" -> "#F4F3F4",
+    "white-color" -> "#FFFFFF")
+)
+
+lazy val talosMicrosite = (project in file("site"))
+  .enablePlugins(MicrositesPlugin)
+  .settings(noPublishSettings)
+  .settings(
+    git.remoteRepo := "git@github.com:vaslabs/talos.git"
+  )
+  .settings(micrositeSettings)
+
+
 lazy val talos =
   (project in file("."))
   .settings(noPublishSettings)
   .aggregate(talosEvents, talosKamon, hystrixReporter, talosExamples)
+
+addCommandAlias("release", ";project root ;reload ;+publishSigned ;sonatypeReleaseAll")
