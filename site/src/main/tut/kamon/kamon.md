@@ -19,7 +19,7 @@ The most common use case is that you are still using the untyped actor system. Y
 an actor in the following ways
 
 #### With an actor context
-```tut
+```tut:silent
   import akka.actor.ActorContext
   import akka.actor.typed.ActorRef
   import akka.actor.typed.scaladsl.adapter._
@@ -33,7 +33,7 @@ an actor in the following ways
 
 #### From the actor system directly
 
-```tut
+```tut:silent
   import akka.actor.ActorSystem
   
   import akka.actor.typed.ActorRef

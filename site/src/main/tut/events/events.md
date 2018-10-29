@@ -7,23 +7,9 @@ number: 1
 
 ## Talos events
 
-```
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
 
-```scala
-import akka.pattern.CircuitBreaker
-def circuitBreaker = CircuitBreaker(
-        system.scheduler,
-        maxFailures = 5,
-        callTimeout = 1 second,
-        resetTimeout = 5 seconds
-)
-
-import talos.events.TalosEvents
-val circuitBreakerWithEvents = TalosEvents.wrap(circuitBreaker, "foo")
-```
-Alternatively if you prefer this
-```tut
+```tut:silent
 import akka.actor.ActorSystem
 
 import akka.pattern.CircuitBreaker
@@ -42,7 +28,7 @@ def circuitBreaker(implicit actorSystem: ActorSystem) = CircuitBreaker.withEvent
 ```
 
 Now circuit breaker events arrive in the akka event stream.
-```tut
+```scala
 import talos.events.TalosEvents.model._
 ```
 

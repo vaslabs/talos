@@ -19,7 +19,7 @@ libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.0.3"
 
 Get an akka directive
 
-```tut
+```tut:silent
 import java.time.Clock
 
 import akka.http.scaladsl.server.Route
