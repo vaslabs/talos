@@ -149,4 +149,4 @@ lazy val talos =
   .settings(noPublishSettings)
   .aggregate(talosEvents, talosKamon, hystrixReporter, talosExamples)
 
-addCommandAlias("release", ";project root ;reload ;+publishSigned ;sonatypeReleaseAll")
+addCommandAlias("release", ";project talos ;reload ;+publishSigned ;sonatypeReleaseAll; talosMicrosite/publishMicrosite")
