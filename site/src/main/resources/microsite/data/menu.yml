@@ -1,0 +1,12 @@
+options:
+- title: Events
+  url: events/events.html
+  section: events
+
+- title: Kamon
+  url: kamon/kamon.html
+  section: kamon
+
+- title: Dashboard
+  url: dashboard/hystrixDashboard.html
+  section: dashboard

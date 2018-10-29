@@ -117,10 +117,12 @@ lazy val micrositeSettings = Seq(
   micrositeGithubOwner := "vaslabs",
   micrositeGithubRepo := "talos",
   micrositeBaseUrl := "/talos",
+  micrositeDocumentationUrl := "/talos/events/events.html",
   micrositeExtraMdFiles := Map(
     file("README.md") -> ExtraMdFileConfig(
       "index.md",
-      "home"
+      "home",
+      Map("section" -> "home", "position" -> "0")
     )
   ),
   fork in tut := true,
@@ -142,6 +144,7 @@ lazy val talosMicrosite = (project in file("site"))
     git.remoteRepo := "git@github.com:vaslabs/talos.git"
   )
   .settings(micrositeSettings)
+  .dependsOn(talosEvents, talosKamon, hystrixReporter)
 
 
 lazy val talos =

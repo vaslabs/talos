@@ -1,29 +1,17 @@
 # talos [![Build Status](https://travis-ci.com/vaslabs/talos.svg?branch=master)](https://travis-ci.com/vaslabs/talos) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloskamon_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloskamon_2.12) [![Join the chat at https://gitter.im/vaslabs/talos](https://badges.gitter.im/vaslabs/talos.svg)](https://gitter.im/vaslabs/talos?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
-Talos is a set of tools for enabling fine grained monitoring of the Akka circuit breakers.
+Talos is a set of tools for enabling fine grained monitoring of the Akka circuit breakers. For comprehensive [documentation](https://vaslabs.github.io/talos/events/events.html)
 
 ## Usage
 Talos is modularised. You can twist it and pick the dependencies that fit your need. But let's go step by step.
 
-### Talos events
 ```scala
 libraryDependencies += "org.vaslabs.talos" %% "talosevents" % "0.0.3"
+libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.0.3"
+libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.0.3"
 ```
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
-```scala
-import akka.pattern.CircuitBreaker
-def circuitBreaker = CircuitBreaker(
-        system.scheduler,
-        maxFailures = 5,
-        callTimeout = 1 second,
-        resetTimeout = 5 seconds
-)
-
-import talos.events.TalosEvents
-val circuitBreakerWithEvents = TalosEvents.wrap(circuitBreaker, "foo")
-```
-Alternatively if you prefer this
 ```scala
 import akka.pattern.CircuitBreaker
 import talos.events.syntax._
@@ -35,38 +23,9 @@ val circuitBreaker = CircuitBreaker.withEventReporting(
       2 seconds,
       5 seconds
 )
+
 ```
-
-Now circuit breaker events arrive in the akka event stream.
-```scala
-case class SuccessfulCall(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
-case class CallFailure(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
-case class CallTimeout(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
-case class CircuitOpen(circuitBreakerName: String) extends CircuitBreakerEvent
-case class CircuitHalfOpen(circuitBreakerName: String) extends CircuitBreakerEvent
-case class CircuitClosed(circuitBreakerName: String) extends CircuitBreakerEvent
-case class ShortCircuitedCall(circuitBreakerName: String) extends CircuitBreakerEvent
-```
-You can consume these events and create your own metrics or you can use taloskamon for getting metrics in Kamon out of the box.
-```scala
-libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.0.3"
-```
-Now you get counters and histograms recorded in Kamon in the following format:
-- Counters
-
-`name="circuit-breaker-<circuit breaker name>", tags={eventType=[successful-call][failed-call][circuit-open][circuit-closed][circuit-half-open][call-timeout][short-circuited]}`
-
-- Histograms
-
-`name="circuit-breaker-elapsed-time-", tags={eventType=[successful-call][failed-call][call-timeout]}`
-
-You can now use any Kamon reported library of your preference or you can import the talos Hystrix reporter which gives you the ability to display fine grained circuit breaker stats into a hystrix dashboard like this:
-
-- Dependency
-```scala
-libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.0.3"
-```
-Getting an Akka directive
+Get an akka directive
 ```scala
 import akka.http.scaladsl.server.Route
 
