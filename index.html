@@ -1,0 +1,136 @@
+<html><head><title>Talos</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Vasilis Nicolaou" /><meta name="description" content="Monitoring tools for Akka circuit breakers" /><meta name="og:image" content="/talos/img/poster.png" /><meta name="og:title" content="Talos" /><meta name="og:site_name" content="Talos" /><meta name="og:url" content="" /><meta name="og:type" content="website" /><meta name="og:description" content="Monitoring tools for Akka circuit breakers" /><link rel="icon" type="image/png" href="/talos/img/favicon.png" /><meta name="twitter:title" content="Talos" /><meta name="twitter:image" content="img/poster.png" /><meta name="twitter:description" content="Monitoring tools for Akka circuit breakers" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:creator" content="@vaslabs" /><link rel="icon" type="image/png" sizes="16x16" href="/talos/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/talos/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/talos/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/talos/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/talos/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/talos/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/talos/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/talos/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/talos/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/talos/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/talos/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/talos/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/talos/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/talos/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/talos/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/talos/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/talos/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/talos/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/talos/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/talos/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/talos/highlight/styles/default.css" /><link rel="stylesheet" href="/talos/css/style.css" /><link rel="stylesheet" href="/talos/css/palette.css" /><link rel="stylesheet" href="/talos/css/codemirror.css" /><link rel="stylesheet" href="/talos/css/home.css" /></head><body><header id="site-header"><div class="navbar-wrapper"><div class="container"><div class="row"><div class="col-xs-6"><a href="/talos/" class="brand"><div class="icon-wrapper"><span>Talos</span></div></a></div><div class="col-xs-6"><nav class="text-right"><ul class=""><li><a href="https://github.com/vaslabs/talos"><i class="fa fa-github"></i><span class="hidden-xs">GitHub</span></a></li></ul></nav></div></div></div></div><div class="jumbotron"><div class="container"><h1 class="text-center">Monitoring tools for Akka circuit breakers</h1><h2></h2><p class="text-center"><a href="https://github.com/vaslabs/talos" class="btn btn-outline-inverse">View on GitHub</a></p></div></div><div><ul class="horizontalNav">      </ul></div></header><main id="site-main"><section class="use"><div class="container"><div id="content"><h1 id="talos---">talos <a href="https://travis-ci.com/vaslabs/talos"><img src="https://travis-ci.com/vaslabs/talos.svg?branch=master" alt="Build Status" /></a> <a href="https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloskamon_2.12"><img src="https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloskamon_2.12/badge.svg" alt="Maven Central" /></a> <a href="https://gitter.im/vaslabs/talos?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/vaslabs/talos.svg" alt="Join the chat at https://gitter.im/vaslabs/talos" /></a></h1>
+
+<p>Talos is a set of tools for enabling fine grained monitoring of the Akka circuit breakers.</p>
+
+<h2 id="usage">Usage</h2>
+<p>Talos is modularised. You can twist it and pick the dependencies that fit your need. But let’s go step by step.</p>
+
+<h3 id="talos-events">Talos events</h3>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"talosevents"</span> <span class="o">%</span> <span class="s">"0.0.3"</span>
+</code></pre>
+</div>
+<p>This library provides a way to stream events on what’s happening in the circuit breakers. You can do:</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.pattern.CircuitBreaker</span>
+<span class="k">def</span> <span class="n">circuitBreaker</span> <span class="k">=</span> <span class="nc">CircuitBreaker</span><span class="o">(</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">,</span>
+        <span class="n">maxFailures</span> <span class="k">=</span> <span class="mi">5</span><span class="o">,</span>
+        <span class="n">callTimeout</span> <span class="k">=</span> <span class="mi">1</span> <span class="n">second</span><span class="o">,</span>
+        <span class="n">resetTimeout</span> <span class="k">=</span> <span class="mi">5</span> <span class="n">seconds</span>
+<span class="o">)</span>
+
+<span class="k">import</span> <span class="nn">talos.events.TalosEvents</span>
+<span class="k">val</span> <span class="n">circuitBreakerWithEvents</span> <span class="k">=</span> <span class="nc">TalosEvents</span><span class="o">.</span><span class="n">wrap</span><span class="o">(</span><span class="n">circuitBreaker</span><span class="o">,</span> <span class="s">"foo"</span><span class="o">)</span>
+</code></pre>
+</div>
+<p>Alternatively if you prefer this</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.pattern.CircuitBreaker</span>
+<span class="k">import</span> <span class="nn">talos.events.syntax._</span>
+
+<span class="k">val</span> <span class="n">circuitBreaker</span> <span class="k">=</span> <span class="nc">CircuitBreaker</span><span class="o">.</span><span class="n">withEventReporting</span><span class="o">(</span>
+      <span class="n">name</span><span class="o">,</span>
+      <span class="n">actorSystem</span><span class="o">.</span><span class="n">scheduler</span><span class="o">,</span>
+      <span class="mi">5</span><span class="o">,</span>
+      <span class="mi">2</span> <span class="n">seconds</span><span class="o">,</span>
+      <span class="mi">5</span> <span class="n">seconds</span>
+<span class="o">)</span>
+</code></pre>
+</div>
+
+<p>Now circuit breaker events arrive in the akka event stream.</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">case</span> <span class="k">class</span> <span class="nc">SuccessfulCall</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CallFailure</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CallTimeout</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitOpen</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitHalfOpen</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitClosed</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">ShortCircuitedCall</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+</code></pre>
+</div>
+<p>You can consume these events and create your own metrics or you can use taloskamon for getting metrics in Kamon out of the box.</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloskamon"</span> <span class="o">%</span> <span class="s">"0.0.3"</span>
+</code></pre>
+</div>
+<p>Now you get counters and histograms recorded in Kamon in the following format:</p>
+<ul>
+  <li>Counters</li>
+</ul>
+
+<p><code class="highlighter-rouge">name="circuit-breaker-&lt;circuit breaker name&gt;", tags={eventType=[successful-call][failed-call][circuit-open][circuit-closed][circuit-half-open][call-timeout][short-circuited]}</code></p>
+
+<ul>
+  <li>Histograms</li>
+</ul>
+
+<p><code class="highlighter-rouge">name="circuit-breaker-elapsed-time-", tags={eventType=[successful-call][failed-call][call-timeout]}</code></p>
+
+<p>You can now use any Kamon reported library of your preference or you can import the talos Hystrix reporter which gives you the ability to display fine grained circuit breaker stats into a hystrix dashboard like this:</p>
+
+<ul>
+  <li>Dependency
+    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"hystrixreporter"</span> <span class="o">%</span> <span class="s">"0.0.3"</span>
+</code></pre>
+    </div>
+    <p>Getting an Akka directive
+```scala
+import akka.http.scaladsl.server.Route</p>
+  </li>
+</ul>
+
+<p>val hystrixReporterDirective: Route  = new HystrixReporterDirective().hystrixStreamHttpRoute.run(Clock.systemUTC())</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>And you can mix the Akka directive with the rest of your application.
+
+The example below shows a complete server start 
+```scala
+implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
+
+implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
+import talos.http._
+val hystrixStreamRoute = new HystrixReporterDirective().hystrixStreamHttpRoute
+val server = new StartServer("0.0.0.0", 8080)
+val startingServer = (hystrixReporterDirective andThen server.startHttpServer).run(Clock.systemUTC())
+
+</code></pre>
+</div>
+
+<p>Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.</p>
+
+<h3 id="complete-usage-example">Complete usage example</h3>
+
+<p>How to code can be found here:
+https://github.com/vaslabs/talos/blob/master/examples/src/main/scala/talos/examples/ExampleApp.scala</p>
+
+<h2 id="run-the-demo">Run the demo</h2>
+
+<ul>
+  <li>Spin up the docker images provided:</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">cd </span>examples
+docker-compose up
+</code></pre>
+</div>
+
+<ul>
+  <li>
+    <p>Then go to a browser and navigate to (http://localhost:7979/hystrix-dashboard/)
+You should see this
+<img src="https://user-images.githubusercontent.com/3875429/47372906-a4c30f80-d6e2-11e8-8219-0a01a464ba11.png" alt="alt_text" /></p>
+  </li>
+  <li>
+    <p>The address of the stream is http://talos-demo:8080/hystrix.stream</p>
+  </li>
+  <li>
+    <p>Click add stream and then monitor stream.</p>
+  </li>
+</ul>
+
+<p><img src="https://user-images.githubusercontent.com/3875429/47429624-dc879100-d78e-11e8-856a-15ca3855a2eb.gif" alt="alt text" /></p>
+
+<h2 id="architecture">Architecture</h2>
+
+<p><img src="https://docs.google.com/drawings/d/e/2PACX-1vRKebbVROyBITii1GHHigPvGbFt0QdEIzk5oT1mZa16VN30MYH4wvhqd14Qllp_1SIz3wcqDdAP5Kx6/pub?w=1440&amp;h=1080" alt="alt text" /></p>
+
+</div></div></section><section class="technologies"><div class="container"><div class="row"></div></div></section></main><footer id="site-footer"><div class="container"><div class="row"><div class="col-xs-6"><p>Talos is designed and developed by <a href="" target="_blank">Vasilis Nicolaou</a></p></div><div class="col-xs-6"><p class="text-right"><a href="https://github.com/vaslabs/talos"><span class="fa fa-github"></span>View on GitHub</a></p></div></div><div class="row"><div class="col-xs-6"><p>Website built with <a href="https://47deg.github.io/sbt-microsites/" target="_blank">Sbt-microsites</a> - © 2016 <a href="https://www.47deg.com/" target="_blank">47 Degrees</a></p></div></div></div></footer><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/talos/highlight/highlight.pack.js"></script><script>hljs.configure({languages:['scala','java','bash']});
+hljs.initHighlighting();
+              </script><script>((window.gitter = {}).chat = {}).options = {
+room: 'vaslabs/talos'};</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js"></script></body></html>
