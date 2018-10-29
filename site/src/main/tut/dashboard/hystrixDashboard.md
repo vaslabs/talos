@@ -26,7 +26,6 @@ import akka.http.scaladsl.server.Route
 import akka.actor.ActorSystem
 import akka.util.Timeout
 
-import scala.concurrent.duration._
 import scala.concurrent.Future
 
 import talos.http.HystrixReporterDirective
