@@ -61,7 +61,7 @@ lazy val compilerSettings = {
 
 lazy val talosEvents =
   (project in file("events")).settings(
-    libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all
+    libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all :+ libraries.Monix.monix
   ).settings(
     compilerSettings
   ).settings(publishSettings)

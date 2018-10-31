@@ -7,6 +7,7 @@ object Dependencies {
     val kamon = "1.1.0"
     val scalatest = "3.0.5"
     val akkaHttp = "10.1.5"
+    val monix = "3.0.0-RC1"
   }
 
   object libraries {
@@ -19,6 +20,10 @@ object Dependencies {
       val stream = "com.typesafe.akka" %% "akka-stream" % versions.akka
       val all = Seq(actorTyped, actorTestkitTyped)
       val allHttp = all ++ Seq(stream, http, httpTestkit, streamTestKit)
+    }
+
+    object Monix {
+      val monix = "io.monix" %% "monix" % versions.monix
     }
 
     object Kamon {
