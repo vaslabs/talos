@@ -6,7 +6,7 @@ import akka.stream.scaladsl.Sink
 import akka.testkit.{TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
-class CircuitBreakerEventsSourceSpec
+class TalosCircuitBreakerEventsSourceSpec
       extends TestKit(ActorSystem("CircuitBreakerEventsSourceSpec"))
       with FlatSpecLike
       with Matchers

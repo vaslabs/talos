@@ -2,6 +2,8 @@ import sbt._
 object Dependencies {
 
   object versions {
+    val catsEffect: String = "1.0.0"
+
     val akka = "2.5.17"
     val circe = "0.10.0"
     val kamon = "1.1.0"
@@ -38,6 +40,9 @@ object Dependencies {
         "io.circe" %% "circe-parser",
         "io.circe" %% "circe-java8"
       ).map(_ % versions.circe)
+    }
+    object Cats {
+      val effect = "org.typelevel" %% "cats-effect" % versions.catsEffect
     }
     object ScalaTest {
       val all = Seq("org.scalatest" %% "scalatest" % versions.scalatest % Test)

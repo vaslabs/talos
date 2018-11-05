@@ -38,6 +38,7 @@ lazy val compilerSettings = {
     "-feature",
     "-language:postfixOps",              //Allow postfix operator notation, such as `1 to 10 toList'
     "-language:implicitConversions",
+    "-language:higherKinds",
     "-Ypartial-unification",
     "-Ywarn-dead-code",                  // Warn when dead code is identified.
     "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
@@ -61,10 +62,27 @@ lazy val compilerSettings = {
 
 lazy val talosEvents =
   (project in file("events")).settings(
-    libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all :+ libraries.Monix.monix
+    libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all
   ).settings(
     compilerSettings
   ).settings(publishSettings)
+
+lazy val talosMonixSupport = (project in file("monix"))
+  .settings(
+    libraryDependencies ++=
+      Seq(libraries.Akka.actorTyped, libraries.Akka.actorTestkitTyped)
+        ++ libraries.ScalaTest.all :+ libraries.Monix.monix
+  )
+  .settings(compilerSettings)
+  .settings(publishSettings)
+  .dependsOn(talosEvents)
+
+lazy val talosAkkaSupport = (project in file("akka"))
+  .settings(
+    libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all :+ libraries.Cats.effect
+  ).settings(compilerSettings)
+  .settings(publishSettings)
+  .dependsOn(talosEvents)
 
 lazy val talosKamon =
   (project in file("kamon")).settings(
@@ -144,12 +162,15 @@ lazy val talosMicrosite = (project in file("site"))
     git.remoteRepo := "git@github.com:vaslabs/talos.git"
   )
   .settings(micrositeSettings)
-  .dependsOn(talosEvents, talosKamon, hystrixReporter)
+  .dependsOn(talosEvents, talosKamon, hystrixReporter, talosAkkaSupport, talosMonixSupport)
 
 
 lazy val talos =
   (project in file("."))
   .settings(noPublishSettings)
-  .aggregate(talosEvents, talosKamon, hystrixReporter, talosExamples)
+  .aggregate(
+    talosEvents, talosKamon, hystrixReporter,
+    talosExamples, talosAkkaSupport, talosMonixSupport
+  )
 
 addCommandAlias("release", ";project talos ;reload ;+publishSigned ;sonatypeReleaseAll; talosMicrosite/publishMicrosite")
