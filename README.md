@@ -7,24 +7,43 @@ Talos is a set of tools for enabling fine grained monitoring of the Akka circuit
 Talos is modularised. You can twist it and pick the dependencies that fit your need. But let's go step by step.
 
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "talosevents" % "0.0.3"
-libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.0.3"
-libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.0.3"
+libraryDependencies += "org.vaslabs.talos" %% "talosevents" % "0.1.0"
+libraryDependencies += "org.vaslabs.talos" %% "talosakkasupport" % "0.1.0"
+libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.1.0"
+libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.1.0"
 ```
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
 ```scala
-import akka.pattern.CircuitBreaker
-import talos.events.syntax._
+import java.time.ZonedDateTime
 
-val circuitBreaker = CircuitBreaker.withEventReporting(
+import akka.actor.ActorSystem
+import akka.pattern.CircuitBreaker
+import cats.effect.IO
+import talos.circuitbreakers.TalosCircuitBreaker
+import talos.circuitbreakers.akka.AkkaCircuitBreaker
+
+    val talosCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] = AkkaCircuitBreaker(
       name,
-      actorSystem.scheduler,
-      5,
-      2 seconds,
-      5 seconds
-)
+      CircuitBreaker(
+        actorSystem.scheduler,
+        5,
+        2 seconds,
+        5 seconds
+      )
+    )
 
 ```
+If you are using this library on an existing solution and you need to extract the akka circuit breaker you can do
+```scala
+    val akkaCB: CircuitBreaker = talosCircuitBreaker.circuitBreaker.unsafeRunSync()
+```
+
+Otherwise you can use the TalosCircuitBreaker typeclass directly
+```scala
+    val action: IO[Unit] = talosCircuitBreaker.protect(IO(println("Running inside the circuit breaker")))
+    action.unsafeRunSync()
+```
+
 Get an akka directive
 ```scala
 import akka.http.scaladsl.server.Route
