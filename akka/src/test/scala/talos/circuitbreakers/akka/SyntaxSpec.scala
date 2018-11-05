@@ -1,10 +1,9 @@
 package talos.circuitbreakers.akka
 
-import akka.actor.{ActorSystem, Scheduler}
+import akka.actor.ActorSystem
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
-import talos.events.TalosEvents
 
 import scala.concurrent.duration._
 class SyntaxSpec {

@@ -5,6 +5,7 @@ import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
+import cats.effect.IO
 import talos.http._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,21 +41,21 @@ object ExampleApp extends App {
       val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
       Future {
         while (true) {
-          Try(bar.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(50).toLong)))
+          Try(bar.protectUnsafe(IO(Thread.sleep(Random.nextInt(50).toLong))))
         }
       }(executionContext)
       Future {
         while (true) {
-          Try(foo.callWithSyncCircuitBreaker(() => Thread.sleep(Random.nextInt(100).toLong)))
+          Try(foo.protectUnsafe(IO(Thread.sleep(Random.nextInt(100).toLong))))
         }
       }(executionContext)
       Future {
         while (true) {
           Thread.sleep(20000)
           if (Random.nextDouble() < 0.5) {
-              for (i <- 1 to 10) yield Try(bar.callWithSyncCircuitBreaker(() => throw new RuntimeException))
+              for (i <- 1 to 10) yield Try(bar.protectUnsafe(IO(throw new RuntimeException)))
           } else {
-              for (i <- 1 to 10) yield Try(foo.callWithSyncCircuitBreaker(() => throw new RuntimeException))
+              for (i <- 1 to 10) yield Try(foo.protectUnsafe(IO(throw new RuntimeException)))
           }
         }
       }(executionContext)

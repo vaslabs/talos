@@ -118,7 +118,7 @@ lazy val talosExamples =
     libraryDependencies ++=
       libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
   ).settings(noPublishSettings)
-  .dependsOn(hystrixReporter)
+  .dependsOn(hystrixReporter, talosAkkaSupport)
 
 lazy val noPublishSettings = Seq(
   publish := {},
