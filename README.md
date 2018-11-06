@@ -34,8 +34,6 @@ import talos.circuitbreakers.akka.AkkaCircuitBreaker
 
 ```
 
-Talos also supports the TaskCircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
-
 
 If you are using this library on an existing solution and you need to extract the akka circuit breaker you can do
 ```scala
@@ -47,6 +45,8 @@ Otherwise you can use the TalosCircuitBreaker typeclass directly
     val action: IO[Unit] = talosCircuitBreaker.protect(IO(println("Running inside the circuit breaker")))
     action.unsafeRunSync()
 ```
+
+Talos also supports the TaskCircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
 
 Get an akka directive
 ```scala
