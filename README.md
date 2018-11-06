@@ -22,15 +22,15 @@ import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
 import talos.circuitbreakers.akka.AkkaCircuitBreaker
 
-    val talosCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] = AkkaCircuitBreaker(
-      name,
-      CircuitBreaker(
-        actorSystem.scheduler,
-        5,
-        2 seconds,
-        5 seconds
-      )
-    )
+val talosCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] = AkkaCircuitBreaker(
+  name,
+  CircuitBreaker(
+    actorSystem.scheduler,
+    5,
+    2 seconds,
+    5 seconds
+  )
+)
 
 ```
 
