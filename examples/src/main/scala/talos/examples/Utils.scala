@@ -4,11 +4,15 @@ import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.pattern.CircuitBreaker
+import cats.effect.IO
+import talos.circuitbreakers.TalosCircuitBreaker
+import talos.circuitbreakers.akka.AkkaCircuitBreaker
 import talos.http.CircuitBreakerStatsActor
 
 object Utils {
 
   import scala.concurrent.duration._
+
   def statsSample =
     CircuitBreakerStatsActor.CircuitBreakerStats(
       "myCircuitBreaker",
@@ -29,18 +33,19 @@ object Utils {
       1 second
     )
 
-  import talos.events.syntax._
-
   import scala.concurrent.duration._
 
   def createCircuitBreaker(name: String = "testCircuitBreaker")
-                          (implicit actorSystem: ActorSystem) =
-    CircuitBreaker.withEventReporting(
+                          (implicit actorSystem: ActorSystem): TalosCircuitBreaker[CircuitBreaker, IO] = {
+    AkkaCircuitBreaker(
       name,
-      actorSystem.scheduler,
-      5,
-      2 seconds,
-      5 seconds
+      CircuitBreaker(
+        actorSystem.scheduler,
+        5,
+        2 seconds,
+        5 seconds
+      )
     )
+  }
 
 }

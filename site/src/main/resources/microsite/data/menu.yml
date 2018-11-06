@@ -10,3 +10,17 @@ options:
 - title: Dashboard
   url: dashboard/hystrixDashboard.html
   section: dashboard
+
+- title: Advanced
+  url: advanced/
+  menu_section: advanced
+
+  nested_options:
+
+    - title: Monix circuit breakers
+      url: monix/monix.html
+      menu_section: advanced
+
+    - title: Generic solution
+      url: talostypeclass/generic.html
+      menu_section: advanced

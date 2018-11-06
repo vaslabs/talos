@@ -3,12 +3,11 @@ package talos.kamon.hystrix
 import java.time.{Clock, Instant, ZoneOffset, ZonedDateTime}
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.pattern.CircuitBreaker
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import akka.util.Timeout
 import kamon.{Kamon, MetricReporter}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import talos.events.TalosEvents.model.CircuitBreakerEvent
+import talos.events.TalosEvents.model._
 import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
 import talos.kamon.StatsAggregator
 
@@ -17,26 +16,16 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 object HystrixReporterSpec {
-  import talos.events.syntax._
 
   implicit val testClock: Clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
-  def createCircuitBreaker(name: String = "testCircuitBreaker")
-                          (implicit actorSystem: ActorSystem) =
-    CircuitBreaker.withEventReporting(
-      name,
-      actorSystem.scheduler,
-      5,
-      2 seconds,
-      5 seconds
-    )
 
-  def fireSuccessful(times: Int, circuitBreaker: CircuitBreaker): Seq[Int] =
-    for (i <- 1 to times) yield circuitBreaker.callWithSyncCircuitBreaker(() => i)
+  def fireSuccessful(times: Int, circuitBreaker: String)(implicit actorSystem: ActorSystem) =
+    for (i <- 1 to times) yield actorSystem.eventStream.publish(SuccessfulCall(circuitBreaker, i seconds))
 
-  def fireFailures(times: Int, circuitBreaker: CircuitBreaker) =
+  def fireFailures(times: Int, circuitBreaker: String)(implicit actorSystem: ActorSystem) =
     for(_ <- 1 to times) yield Try(
-      circuitBreaker.callWithSyncCircuitBreaker(() => throw new RuntimeException())
+      actorSystem.eventStream.publish(CallFailure(circuitBreaker, 5 seconds))
     )
 }
 
@@ -71,7 +60,7 @@ class HystrixReporterSpec
 
   "Hystrix reporter receiving kamon metric snapshots for a single circuit breaker" can {
 
-    val circuitBreaker = createCircuitBreaker()
+    val circuitBreaker = "testCircuitBreaker"
 
     "group successful metrics into one single snapshot event" in {
       fireSuccessful(10, circuitBreaker)
@@ -81,14 +70,23 @@ class HystrixReporterSpec
         case CircuitBreakerStats(
           "testCircuitBreaker", 10L, _, false,
           0f, 0L, 0L, 0L, 0L, 0L, 10L,
-          _, _, _, _, _
-        ) =>
+          latencyExecute_mean, _, _, _, _
+        ) if latencyExecute_mean.toSeconds == 5L =>
       }
       statsMessage.currentTime shouldBe ZonedDateTime.now(testClock)
-      statsMessage.latencyExecute_mean should be > (0 nanos)
-      statsMessage.latencyTotal_mean should be > (0 nanos)
-      println(statsMessage.latencyExecute)
-      statsMessage.latencyExecute.get("100").get should be > statsMessage.latencyTotal_mean
+      statsMessage.latencyTotal_mean.toSeconds shouldBe 5L
+
+      statsMessage.latencyExecute.mapValues(_.toSeconds) shouldBe Map(
+        "100" -> 9L,
+        "90" -> 8L,
+        "50" -> 4L,
+        "99" -> 9L,
+        "0"-> 0L,
+        "25" -> 2L,
+        "95" -> 9L,
+        "75" -> 7L,
+        "99.5" -> 9L
+      )
     }
     "ignores unrelated metrics" in {
       Kamon.counter("random-counter").increment()
@@ -125,6 +123,7 @@ class HystrixReporterSpec
 
     "count open circuits" in {
       fireFailures(3, circuitBreaker)
+      system.eventStream.publish(CircuitOpen(circuitBreaker))
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
@@ -136,7 +135,7 @@ class HystrixReporterSpec
     }
 
     "count short circuits" in {
-      Try(fireFailures(1, circuitBreaker))
+      system.eventStream.publish(ShortCircuitedCall(circuitBreaker))
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
@@ -150,8 +149,8 @@ class HystrixReporterSpec
   }
 
   "Hystrix reporter receiving kamon metric snapshots for a multiple circuit breaker" can {
-    val circuitBreakerFoo = createCircuitBreaker("foo")
-    val circuitBreakerBar = createCircuitBreaker("bar")
+    val circuitBreakerFoo = "foo"
+    val circuitBreakerBar = "bar"
     "gather stats for all" in {
       fireSuccessful(7, circuitBreakerFoo)
       fireFailures(3, circuitBreakerFoo)
