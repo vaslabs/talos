@@ -33,6 +33,10 @@ import talos.circuitbreakers.akka.AkkaCircuitBreaker
     )
 
 ```
+
+Talos also supports the TaskCircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
+
+
 If you are using this library on an existing solution and you need to extract the akka circuit breaker you can do
 ```scala
     val akkaCB: CircuitBreaker = talosCircuitBreaker.circuitBreaker.unsafeRunSync()
