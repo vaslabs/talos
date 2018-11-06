@@ -4,7 +4,10 @@ title:  "Kamon metrics"
 number: 2
 ---
 
-## Generate Kamon metrics
+# Kamon metrics
+
+
+## Dependency
 
 ```scala
 libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.0.3"
@@ -13,12 +16,12 @@ libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.0.3"
 A typed actor is used to register to the event stream and record stats in Kamon. Thus there are 
 two ways to start the actor. 
 
-### Using the untyped actor system
+## Using the untyped actor system
 
 The most common use case is that you are still using the untyped actor system. You can spawn 
 an actor in the following ways
 
-#### With an actor context
+### With an actor context
 ```tut:silent
   import akka.actor.ActorContext
   import akka.actor.typed.ActorRef
@@ -31,7 +34,7 @@ an actor in the following ways
     ctx.spawn(StatsAggregator.behavior(), "KamonStatsAggregator")
 ```
 
-#### From the actor system directly
+### From the actor system directly
 
 ```tut:silent
   import akka.actor.ActorSystem
@@ -49,7 +52,7 @@ an actor in the following ways
     actorSystem.toTyped.systemActorOf(StatsAggregator.behavior(), "KamonStatsAggregator")(2 seconds)
 ```
 
-### Using the typed actor system
+## Using the typed actor system
 
 There is no need for implicit resolution, you can start the actor from any of your behaviours following 
 the Akka typed documentation.
@@ -58,7 +61,7 @@ The actor is adding metrics to Kamon directly.
 
 In the future the underlying actor will be encapsulated better.
 
-### Metrics format
+## Metrics format
 
 Now you can get counters and histograms recorded in Kamon in the following format:
 - Counters
