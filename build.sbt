@@ -180,4 +180,4 @@ lazy val talos =
   )
 
 addCommandAlias("release", ";project talos ;reload ;+publishSigned ;sonatypeReleaseAll; talosMicrosite/publishMicrosite")
-addCommandAlias("reportTestCov", "project talos; coverage test; coverageReport; coverageAggregate; codacyCoverage")
+addCommandAlias("reportTestCov", ";project talos; coverageReport; coverageAggregate; codacyCoverage")
