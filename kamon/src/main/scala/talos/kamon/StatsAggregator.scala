@@ -2,8 +2,11 @@ package talos.kamon
 
 import akka.actor.typed.{Behavior, PostStop, PreRestart}
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.adapter._
+
 import kamon.Kamon
 import kamon.metric.{Counter, Histogram}
+
 import talos.events.TalosEvents.model._
 
 object StatsAggregator {
@@ -49,9 +52,6 @@ object StatsAggregator {
     val refinedTag = "eventType" -> Keys.extractName(circuitBreakerEvent)
     histogram.refine(refinedTag)
   }
-
-  import akka.actor.typed.scaladsl.adapter._
-
 
   def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.setup {
     ctx => {
