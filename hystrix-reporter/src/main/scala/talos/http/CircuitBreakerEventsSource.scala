@@ -23,12 +23,12 @@ class CircuitBreakerEventsSource
         1000, OverflowStrategy.dropTail
       ).preMaterialize()
 
-    val streamingActor = prematerialisedSource._1
+    val (streamingActor, source) = prematerialisedSource
 
     hystrixReporter ! CircuitBreakerEventsSource.Start(streamingActor)
 
 
-    prematerialisedSource._2.map(_.asJson.noSpaces)
+    source.map(_.asJson.noSpaces)
       .map(ServerSentEvent(_))
       .keepAlive(2 second, () => ServerSentEvent.heartbeat)
       .watchTermination(){(_, done) =>
