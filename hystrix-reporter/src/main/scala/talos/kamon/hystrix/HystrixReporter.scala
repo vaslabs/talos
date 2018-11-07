@@ -112,11 +112,13 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
   }
 
   def findHistogramMetricsOfCircuitBreaker(name: String, distributions: Seq[MetricDistribution]): CircuitBreakerStats = {
-    def mean(t: (Long, Long)) = if (t._2 == 0) 0L else (t._1 / t._2)
-    val latencyExecuteMean: Long =
-      mean(distributions.foldLeft((0L, 0L)) {
-        (stats, md) => stats |+| (md.distribution.sum, md.distribution.count)
-      })
+    val latencyExecuteMean: Long = distributions.foldLeft((0L, 0L)) {
+      (stats, md) => stats |+| (md.distribution.sum, md.distribution.count)
+    } match {
+      case (sum, size) if size != 0L => sum/size
+      case _ => 0L
+    }
+
 
     val allPercentiles: Seq[String] = Seq(
       "0", "25", "50", "75",
