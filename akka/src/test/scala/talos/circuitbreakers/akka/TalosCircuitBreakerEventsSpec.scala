@@ -1,9 +1,11 @@
 package talos.circuitbreakers.akka
 
 import akka.actor.ActorSystem
+import akka.pattern.CircuitBreaker
 import akka.testkit.{TestKit, TestProbe}
 import cats.effect.IO
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import talos.circuitbreakers.TalosCircuitBreaker
 import talos.events.TalosEvents
 import talos.events.TalosEvents.model._
 
@@ -23,14 +25,14 @@ class TalosCircuitBreakerEventsSpec extends
   "a circuit breaker" can {
     val circuitBreakerName = "testCircuitBreaker"
 
-    implicit val akkaCircuitBreaker = AkkaCircuitBreaker(
+    implicit val akkaCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] = AkkaCircuitBreaker(
       circuitBreakerName,
       maxFailures = 5,
       callTimeout = 1 second,
       resetTimeout = 5 seconds
     )
 
-    val circuitBreakerWithEventStreamReporting = TalosEvents.circuitBreaker
+    val circuitBreakerWithEventStreamReporting = TalosEvents.circuitBreaker[CircuitBreaker, IO]
 
     val eventListener = TestProbe("talosEventsListener")
     system.eventStream.subscribe(eventListener.ref, classOf[CircuitBreakerEvent])

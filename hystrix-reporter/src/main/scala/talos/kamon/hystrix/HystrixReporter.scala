@@ -11,7 +11,6 @@ import kamon.metric.{MetricDistribution, MetricValue, Percentile, PeriodSnapshot
 import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
 import talos.kamon.StatsAggregator
 
-import scala.collection.immutable
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -159,8 +158,6 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       case (name, metrics) => name -> findHistogramMetricsOfCircuitBreaker(name, metrics)
     }
   }
-
-  def merge(countersMetrics: immutable.Iterable[CircuitBreakerStats], histogramMetrics: immutable.Iterable[CircuitBreakerStats]): Unit = ???
 
   override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
     val period = (snapshot.to.getEpochSecond  - snapshot.from.getEpochSecond) seconds

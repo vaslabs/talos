@@ -11,11 +11,11 @@ class SyntaxSpec {
   implicit val dummyTalosCircuitBreaker = new TalosCircuitBreaker[Unit, Id] {
     override def name: String = "dummy"
 
-    override def protect[A](task: Id[A]): Id[A] = ???
+    override def protect[A](task: Id[A]): Id[A] = task
 
-    override def circuitBreaker: Id[Unit] = ???
+    override def circuitBreaker: Id[Unit] = ()
 
-    override def protectUnsafe[A](task: Id[A]): A = ???
+    override def protectUnsafe[A](task: Id[A]): A = task
   }
 
   TalosEvents.circuitBreaker[Unit, Id]
