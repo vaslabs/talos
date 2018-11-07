@@ -8,5 +8,4 @@ cache:
   - $HOME/.ivy2
 
 script:
-- sbt test
-
+- sbt reportTestCov
