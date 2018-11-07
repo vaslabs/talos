@@ -1,16 +1,17 @@
 package talos.circuitbreakers
 
+import _root_.akka.event.EventStream
+import _root_.akka.pattern.{CircuitBreaker => AkkaCB}
+import _root_.akka.actor.{ActorRef, ActorSystem}
+
 import cats.effect.IO
 import talos.events.TalosEvents
 import talos.events.TalosEvents.model._
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 package object akka {
 
-  import _root_.akka.event.EventStream
-  import _root_.akka.pattern.{CircuitBreaker => AkkaCB}
-  import _root_.akka.actor.{ActorRef, ActorSystem}
 
   class AkkaEventBus(implicit actorSystem: ActorSystem) extends EventBus[ActorRef]{
 
@@ -41,7 +42,6 @@ package object akka {
 
 
     private def wrap(circuitBreaker: AkkaCB, identifier: String): AkkaCB = {
-      import scala.concurrent.duration._
       def publish(event: EventStream#Event): Unit = eventBus.publish(event)
       circuitBreaker.addOnCallSuccessListener(
         elapsedTime => publish(SuccessfulCall(identifier, elapsedTime nanoseconds))
