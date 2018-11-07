@@ -118,6 +118,9 @@ lazy val talosExamples =
     libraryDependencies ++=
       libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
   ).settings(noPublishSettings)
+  .settings(
+    coverageExcludedPackages := ".*"
+  )
   .dependsOn(hystrixReporter, talosAkkaSupport)
 
 lazy val noPublishSettings = Seq(
@@ -162,6 +165,9 @@ lazy val talosMicrosite = (project in file("site"))
     git.remoteRepo := "git@github.com:vaslabs/talos.git"
   )
   .settings(micrositeSettings)
+  .settings(
+    coverageExcludedPackages := ".*"
+  )
   .dependsOn(talosEvents, talosKamon, hystrixReporter, talosAkkaSupport, talosMonixSupport)
 
 
@@ -174,3 +180,4 @@ lazy val talos =
   )
 
 addCommandAlias("release", ";project talos ;reload ;+publishSigned ;sonatypeReleaseAll; talosMicrosite/publishMicrosite")
+addCommandAlias("reportTestCov", ";project talos; coverageReport; coverageAggregate; codacyCoverage")
