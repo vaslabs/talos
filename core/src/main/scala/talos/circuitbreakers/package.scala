@@ -8,8 +8,6 @@ package object circuitbreakers {
 
     def protect[A](task: F[A]): F[A]
 
-    def protectUnsafe[A](task: F[A]): A
-
     def circuitBreaker: F[C]
 
     def eventBus[S](implicit eventBus: EventBus[S]): EventBus[S] = eventBus

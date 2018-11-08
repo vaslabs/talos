@@ -71,7 +71,7 @@ lazy val talosMonixSupport = (project in file("monix"))
   .settings(
     libraryDependencies ++=
       Seq(libraries.Akka.actorTyped, libraries.Akka.actorTestkitTyped)
-        ++ libraries.ScalaTest.all :+ libraries.Monix.monix
+        ++ libraries.ScalaTest.all ++ libraries.Monix.all
   )
   .settings(compilerSettings)
   .settings(publishSettings)
