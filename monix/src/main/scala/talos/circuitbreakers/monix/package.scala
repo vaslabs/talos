@@ -27,8 +27,10 @@ package object monix {
   class MonixCircuitBreaker[F[_]] private (
       val name: String,
       internalCircuitBreaker: CircuitBreaker[F]
-  )(implicit eventBus: AkkaEventBus, clock: Clock[F], F: Async[F])
+  )(implicit eventBus: AkkaEventBus, F: Async[F])
     extends TalosCircuitBreaker[CircuitBreaker[F], F] {
+
+    val clock: Clock[F] = Clock.create[F]
 
     override def protect[A](task: F[A]): F[A] = {
       for {
@@ -78,8 +80,7 @@ package object monix {
         name: String,
         circuitBreaker: CircuitBreaker[F]
     )(implicit actorSystem: ActorSystem,
-               F: Async[F],
-               clock: Clock[F]
+               F: Async[F]
     ): TalosCircuitBreaker[CircuitBreaker[F], F] = {
 
       implicit val eventBus = new AkkaEventBus()

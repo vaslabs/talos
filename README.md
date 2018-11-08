@@ -46,7 +46,7 @@ Otherwise you can use the TalosCircuitBreaker typeclass directly
     action.unsafeRunSync()
 ```
 
-Talos also supports the TaskCircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
+Talos also supports the CircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
 
 Get an akka directive
 ```scala
