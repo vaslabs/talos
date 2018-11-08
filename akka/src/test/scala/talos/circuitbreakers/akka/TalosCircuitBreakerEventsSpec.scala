@@ -5,8 +5,7 @@ import akka.pattern.CircuitBreaker
 import akka.testkit.{TestKit, TestProbe}
 import cats.effect.IO
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import talos.circuitbreakers.TalosCircuitBreaker
-import talos.events.TalosEvents
+import talos.circuitbreakers.{Talos, TalosCircuitBreaker}
 import talos.events.TalosEvents.model._
 
 import scala.concurrent.duration._
@@ -32,7 +31,7 @@ class TalosCircuitBreakerEventsSpec extends
       resetTimeout = 5 seconds
     )
 
-    val circuitBreakerWithEventStreamReporting = TalosEvents.circuitBreaker[CircuitBreaker, IO]
+    val circuitBreakerWithEventStreamReporting = Talos.circuitBreaker[CircuitBreaker, IO]
 
     val eventListener = TestProbe("talosEventsListener")
     system.eventStream.subscribe(eventListener.ref, classOf[CircuitBreakerEvent])

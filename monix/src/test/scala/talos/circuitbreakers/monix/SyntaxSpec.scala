@@ -2,7 +2,7 @@ package talos.circuitbreakers.monix
 
 import akka.actor.ActorSystem
 import monix.eval.{Task, TaskCircuitBreaker}
-import talos.circuitbreakers.TalosCircuitBreaker
+import talos.circuitbreakers.{TalosCircuitBreaker}
 
 import scala.concurrent.duration._
 

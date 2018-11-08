@@ -1,14 +1,8 @@
 package talos.events
 
-import talos.circuitbreakers.TalosCircuitBreaker
-
 import scala.concurrent.duration._
 
 object TalosEvents {
-
-
-  def circuitBreaker[C, F[_]](
-      implicit F: TalosCircuitBreaker[C, F]): TalosCircuitBreaker[C, F] = F
 
   object model {
 
