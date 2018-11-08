@@ -13,8 +13,8 @@ This is the basic documentation for exposing the Akka circuit breaker events. Fo
 
 ```scala
 libraryDependencies ++= Seq(
-          "org.vaslabs.talos" %% "talosevents" % "0.1.0",
-          "org.vaslabs.talos" %% "talosakkasupport" % "0.1.0"
+          "org.vaslabs.talos" %% "taloscore" % "0.2.0",
+          "org.vaslabs.talos" %% "talosakkasupport" % "0.2.0"
 )
 ```
 ## Usage example
@@ -65,7 +65,7 @@ And you still get the events through the akka event stream.
 ADT of the events under:
 
 ```scala
-import talos.events.TalosEvents.model._
+import talos.events.taloscore.model._
 ```
 
 You can consume these events and create your own metrics or you can use taloskamon for getting metrics in Kamon out of the box. 
