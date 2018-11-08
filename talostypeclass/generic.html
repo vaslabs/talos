@@ -19,8 +19,6 @@ TalosCircuitBreaker definition.</p>
     <span class="k">override</span> <span class="k">def</span> <span class="n">protect</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="n">task</span><span class="k">:</span> <span class="kt">Id</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span><span class="k">:</span> <span class="kt">Id</span><span class="o">[</span><span class="kt">A</span><span class="o">]</span> <span class="k">=</span> <span class="n">task</span>
 
     <span class="k">override</span> <span class="k">def</span> <span class="n">circuitBreaker</span><span class="k">:</span> <span class="kt">Id</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="o">()</span>
-
-    <span class="k">override</span> <span class="k">def</span> <span class="n">protectUnsafe</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="n">task</span><span class="k">:</span> <span class="kt">Id</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span><span class="k">:</span> <span class="kt">A</span> <span class="o">=</span> <span class="n">task</span>
   <span class="o">}</span>
 
   <span class="k">import</span> <span class="nn">talos.events.TalosEvents</span>
