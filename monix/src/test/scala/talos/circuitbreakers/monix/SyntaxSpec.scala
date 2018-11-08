@@ -1,21 +1,19 @@
 package talos.circuitbreakers.monix
 
 import akka.actor.ActorSystem
-import monix.eval.{Task, TaskCircuitBreaker}
-import talos.circuitbreakers.{TalosCircuitBreaker}
-
-import scala.concurrent.duration._
+import cats.effect.{Clock, IO}
+import monix.catnap.CircuitBreaker
+import talos.circuitbreakers.TalosCircuitBreaker
 
 class SyntaxSpec {
 
-  def implicitResolution: TalosCircuitBreaker[TaskCircuitBreaker, Task] = {
+  def implicitResolution: TalosCircuitBreaker[CircuitBreaker[IO], IO] = {
     implicit def actorSystem: ActorSystem = ???
-
+    def circuitBreaker: CircuitBreaker[IO] = ???
+    implicit def clock: Clock[IO] = ???
     MonixCircuitBreaker(
       "testCircuitBreaker",
-      5 seconds,
-      5,
-      5 seconds
+      circuitBreaker
     )
   }
 }

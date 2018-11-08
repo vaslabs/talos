@@ -24,29 +24,27 @@ package object monix {
     override def publish[A <: AnyRef](a: A): Unit = actorSystem.eventStream.publish(a)
   }
 
-  import _root_.monix.execution.Scheduler
-
   class MonixCircuitBreaker[F[_]] private (
       val name: String,
-      internalCircuitBreaker: CircuitBreaker[F],
-      scheduler: Scheduler = Scheduler.io()
-  )(implicit eventBus: AkkaEventBus, F: Async[F])
+      internalCircuitBreaker: CircuitBreaker[F]
+  )(implicit eventBus: AkkaEventBus, clock: Clock[F], F: Async[F])
     extends TalosCircuitBreaker[CircuitBreaker[F], F] {
 
     override def protect[A](task: F[A]): F[A] = {
       for {
-        startTimer <- F.delay(scheduler.clockRealTime(TimeUnit.NANOSECONDS))
+        startTimer <- clock.monotonic(TimeUnit.NANOSECONDS)
         protectedTask <- internalCb.protect(task).onError {
-          case t: Throwable => publishError(t, startTimer)
+          case t: Throwable =>
+            publishError(t, startTimer)
         }
-        endTimer <- F.delay(scheduler.clockRealTime(TimeUnit.NANOSECONDS))
+        endTimer <- clock.monotonic(TimeUnit.NANOSECONDS)
         _ = publishSuccess((endTimer - startTimer) nanos)
       } yield (protectedTask)
     }
 
     private def publishError(throwable: Throwable, started: Long): F[Unit] = {
       for {
-        ended <- F.delay(scheduler.clockRealTime(TimeUnit.NANOSECONDS))
+        ended <- clock.monotonic(TimeUnit.NANOSECONDS)
         elapsedTime = (ended - started) nanos
 
         errorEvent = throwable match {
@@ -60,7 +58,9 @@ package object monix {
     }
 
 
-    private def publishSuccess(elapsedTime: FiniteDuration): Unit = eventBus.publish(SuccessfulCall(name, elapsedTime))
+    private def publishSuccess(elapsedTime: FiniteDuration): Unit =
+      eventBus.publish(SuccessfulCall(name, elapsedTime))
+
 
     private val internalCb = internalCircuitBreaker.doOnClosed(F.delay(eventBus.publish(CircuitClosed(name))))
       .doOnHalfOpen(F.delay(eventBus.publish(CircuitHalfOpen(name))))
@@ -77,7 +77,10 @@ package object monix {
     def apply[F[_]](
         name: String,
         circuitBreaker: CircuitBreaker[F]
-        )(implicit actorSystem: ActorSystem, F: Async[F]): TalosCircuitBreaker[CircuitBreaker[F], F] = {
+    )(implicit actorSystem: ActorSystem,
+               F: Async[F],
+               clock: Clock[F]
+    ): TalosCircuitBreaker[CircuitBreaker[F], F] = {
 
       implicit val eventBus = new AkkaEventBus()
       implicit val monixCircuitBreaker = new MonixCircuitBreaker(name, circuitBreaker)

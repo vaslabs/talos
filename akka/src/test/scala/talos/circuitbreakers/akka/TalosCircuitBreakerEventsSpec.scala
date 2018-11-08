@@ -58,7 +58,7 @@ class TalosCircuitBreakerEventsSpec extends
     }
 
     "publish events for timeouts" in {
-      Try(circuitBreakerWithEventStreamReporting.protectUnsafe(IO.delay(Thread.sleep(2000))))
+      Try(circuitBreakerWithEventStreamReporting.protect(IO.delay(Thread.sleep(2000))).unsafeRunSync())
       val timeoutCall = eventListener.expectMsgType[CallTimeout]
       timeoutCall should matchPattern {
         case CallTimeout("testCircuitBreaker", elapsedTime) if elapsedTime >= (1 seconds) =>
@@ -66,16 +66,16 @@ class TalosCircuitBreakerEventsSpec extends
     }
 
     "publish events on open circuit" in {
-      circuitBreakerWithEventStreamReporting.protectUnsafe(IO(1))
+      circuitBreakerWithEventStreamReporting.protect(IO(1)).unsafeRunSync()
       eventListener.expectMsgType[SuccessfulCall]
       for (_ <- 1 to 5) {
-        Try(circuitBreakerWithEventStreamReporting.protectUnsafe(IO.delay(throw new RuntimeException)))
+        Try(circuitBreakerWithEventStreamReporting.protect(IO.delay(throw new RuntimeException)).unsafeRunSync())
         eventListener.expectMsgType[CallFailure]
       }
       eventListener.expectMsg(CircuitOpen(circuitBreakerName))
     }
     "publish events short circuited calls" in {
-      Try(circuitBreakerWithEventStreamReporting.protectUnsafe(IO.delay(throw new RuntimeException)))
+      Try(circuitBreakerWithEventStreamReporting.protect(IO.delay(throw new RuntimeException)).unsafeRunSync())
       eventListener.expectMsgType[ShortCircuitedCall]
     }
     "publish events on half open" in{
@@ -84,7 +84,7 @@ class TalosCircuitBreakerEventsSpec extends
     }
 
     "publish events on closed" in{
-      circuitBreakerWithEventStreamReporting.protectUnsafe(IO(1))
+      circuitBreakerWithEventStreamReporting.protect(IO(1)).unsafeRunSync()
       eventListener.expectMsgType[SuccessfulCall]
       eventListener.expectMsg(CircuitClosed(circuitBreakerName))
     }
