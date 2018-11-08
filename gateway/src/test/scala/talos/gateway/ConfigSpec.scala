@@ -21,12 +21,12 @@ class ConfigSpec extends FlatSpec with Matchers {
             List(
               Mapping(
                 "/dogs",
-                HttpMethods.GET,
+                List(HttpMethods.GET, HttpMethods.POST),
                 "/animals/dogs/"
               ),
               Mapping(
                 "/cats",
-                HttpMethods.POST,
+                List(HttpMethods.PUT, HttpMethods.DELETE),
                 "/animals/cats/"
               )
             ),
@@ -40,12 +40,12 @@ class ConfigSpec extends FlatSpec with Matchers {
             List(
               Mapping(
                 "/cars",
-                HttpMethods.PUT,
+                List(HttpMethods.PATCH),
                 "/vehicles/cars/"
               ),
               Mapping(
                 "/bikes",
-                HttpMethods.DELETE,
+                List(HttpMethods.GET, HttpMethods.DELETE),
                 "/vehicles/bikes/"
               )
             ),

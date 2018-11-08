@@ -30,7 +30,7 @@ object config {
 
   case class Mapping(
     gatewayPath: String,
-    method: HttpMethod,
+    methods: List[HttpMethod],
     targetPath: String
   )
 
