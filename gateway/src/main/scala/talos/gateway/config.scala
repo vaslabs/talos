@@ -2,7 +2,7 @@ package talos.gateway
 
 import akka.http.scaladsl.model.{HttpMethod, HttpMethods}
 import pureconfig._
-import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
+import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -34,7 +34,7 @@ object config {
     targetPath: String
   )
 
-  protected object pureconfigExt {
+  private[gateway] object pureconfigExt {
     implicit val httpMethodReader: ConfigReader[HttpMethod] = ConfigReader[String].emap {
       _ match {
         case "POST" => Right(HttpMethods.POST)

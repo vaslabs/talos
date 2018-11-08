@@ -178,7 +178,11 @@ lazy val talosGateway =
   (project in file("gateway"))
   .enablePlugins(dockerPlugins: _*)
   .settings(
-    libraryDependencies ++= libraries.ScalaTest.all :+ libraries.PureConf.core
+    libraryDependencies ++=
+      libraries.Akka.allHttp ++ libraries.ScalaTest.all :+ libraries.PureConf.core
+  )
+  .settings(
+    compilerSettings
   )
   .settings(
     noPublishSettings

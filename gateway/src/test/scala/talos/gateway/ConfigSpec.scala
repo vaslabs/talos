@@ -1,9 +1,12 @@
 package talos.gateway
 
 import akka.http.scaladsl.model.HttpMethods
+import com.typesafe.config.ConfigFactory
 import org.scalatest.{FlatSpec, Matchers}
 import pureconfig._
+import pureconfig.error.{CannotConvert, ConfigReaderFailures, ConvertFailure}
 import talos.gateway.config._
+
 import scala.concurrent.duration._
 
 
@@ -55,6 +58,23 @@ class ConfigSpec extends FlatSpec with Matchers {
         )
       )
     )
+  }
+
+  it must "not accept invalid http verbs" in {
+    import config.pureconfigExt._
+    import pureconfig.generic.auto._
+    val configString =
+      """
+      {
+        gateway-path = "s",
+        methods: [PUT, WHAT],
+        target-path = "b"
+      }
+      """.stripMargin
+
+    loadConfig[Mapping](ConfigFactory.parseString(configString)) should matchPattern {
+      case Left(ConfigReaderFailures(ConvertFailure(CannotConvert("WHAT", "HttpMethod", _), _, _), _)) =>
+    }
   }
 
 }
