@@ -2,6 +2,8 @@ import sbt._
 object Dependencies {
 
   object versions {
+    val pureconfig: String = "0.10.0"
+
     val catsEffect: String = "1.0.0"
 
     val akka = "2.5.17"
@@ -46,6 +48,10 @@ object Dependencies {
     }
     object ScalaTest {
       val all = Seq("org.scalatest" %% "scalatest" % versions.scalatest % Test)
+    }
+
+    object PureConf {
+      val core = "com.github.pureconfig" %% "pureconfig" % versions.pureconfig
     }
   }
 

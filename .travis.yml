@@ -10,3 +10,4 @@ cache:
 script:
 - sbt coverage test
 - sbt reportTestCov
+- sbt talosMicrosite/tut
