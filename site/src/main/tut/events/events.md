@@ -65,7 +65,7 @@ And you still get the events through the akka event stream.
 ADT of the events under:
 
 ```scala
-import talos.events.taloscore.model._
+import talos.events.TalosEvents.model._
 ```
 
 You can consume these events and create your own metrics or you can use taloskamon for getting metrics in Kamon out of the box. 

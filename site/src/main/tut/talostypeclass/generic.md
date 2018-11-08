@@ -30,7 +30,7 @@ More or less you can do
     override def protectUnsafe[A](task: Id[A]): A = task
   }
 
-  import talos.events.taloscore
+  import talos.events.TalosEvents
 
-  val circuitBreaker: TalosCircuitBreaker[Unit, Id] = taloscore.circuitBreaker[Unit, Id]
+  val circuitBreaker: TalosCircuitBreaker[Unit, Id] = Talos.circuitBreaker[Unit, Id]
 ```

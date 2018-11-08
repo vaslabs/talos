@@ -27,7 +27,7 @@ an actor in the following ways
   import akka.actor.typed.ActorRef
   import akka.actor.typed.scaladsl.adapter._
 
-  import talos.events.taloscore.model.CircuitBreakerEvent
+  import talos.events.TalosEvents.model.CircuitBreakerEvent
   import talos.kamon.StatsAggregator
   
   def recordKamonMetrics(ctx: ActorContext): ActorRef[CircuitBreakerEvent] =
@@ -45,7 +45,7 @@ an actor in the following ways
   import scala.concurrent.duration._
   import scala.concurrent.Future
   
-  import talos.events.taloscore.model.CircuitBreakerEvent
+  import talos.events.TalosEvents.model.CircuitBreakerEvent
   import talos.kamon.StatsAggregator
 
   def recordKamonMetrics(implicit actorSystem: ActorSystem): Future[ActorRef[CircuitBreakerEvent]] =
