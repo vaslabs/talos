@@ -1,6 +1,6 @@
 package talos.events
 
-import talos.circuitbreakers.TalosCircuitBreaker
+import talos.circuitbreakers.{Talos, TalosCircuitBreaker}
 
 class SyntaxSpec {
 
@@ -18,5 +18,5 @@ class SyntaxSpec {
     override def protectUnsafe[A](task: Id[A]): A = task
   }
 
-  TalosEvents.circuitBreaker[Unit, Id]
+  Talos.circuitBreaker[Unit, Id]
 }

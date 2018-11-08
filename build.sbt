@@ -60,9 +60,9 @@ lazy val compilerSettings = {
 }
 
 
-lazy val talosEvents =
-  (project in file("events")).settings(
-    libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all
+lazy val talosCore =
+  (project in file("core")).settings(
+    libraryDependencies ++= libraries.ScalaTest.all
   ).settings(
     compilerSettings
   ).settings(publishSettings)
@@ -75,21 +75,21 @@ lazy val talosMonixSupport = (project in file("monix"))
   )
   .settings(compilerSettings)
   .settings(publishSettings)
-  .dependsOn(talosEvents)
+  .dependsOn(talosCore)
 
 lazy val talosAkkaSupport = (project in file("akka"))
   .settings(
     libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all :+ libraries.Cats.effect
   ).settings(compilerSettings)
   .settings(publishSettings)
-  .dependsOn(talosEvents)
+  .dependsOn(talosCore)
 
 lazy val talosKamon =
   (project in file("kamon")).settings(
     libraryDependencies ++= libraries.Kamon.all ++ libraries.ScalaTest.all ++ libraries.Akka.all
   ).settings(compilerSettings)
     .settings(publishSettings)
-  .dependsOn(talosEvents)
+  .dependsOn(talosCore)
 
 lazy val hystrixReporter =
   (project in file("hystrix-reporter")).settings(
@@ -168,14 +168,14 @@ lazy val talosMicrosite = (project in file("site"))
   .settings(
     coverageExcludedPackages := ".*"
   )
-  .dependsOn(talosEvents, talosKamon, hystrixReporter, talosAkkaSupport, talosMonixSupport)
+  .dependsOn(talosCore, talosKamon, hystrixReporter, talosAkkaSupport, talosMonixSupport)
 
 
 lazy val talos =
   (project in file("."))
   .settings(noPublishSettings)
   .aggregate(
-    talosEvents, talosKamon, hystrixReporter,
+    talosCore, talosKamon, hystrixReporter,
     talosExamples, talosAkkaSupport, talosMonixSupport
   )
 

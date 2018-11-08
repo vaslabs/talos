@@ -4,7 +4,6 @@ import java.util.concurrent.{TimeUnit, TimeoutException}
 
 import _root_.akka.actor.{ActorRef, ActorSystem}
 import _root_.monix.eval.{Task, TaskCircuitBreaker}
-import talos.events.TalosEvents
 import talos.events.TalosEvents.model._
 
 import scala.concurrent.duration.{FiniteDuration, _}
@@ -89,7 +88,7 @@ package object monix {
 
       implicit val eventBus = new AkkaEventBus()
       implicit val monixCircuitBreaker = new MonixCircuitBreaker(name, callTimeout, maxFailures, resetTimeout)
-      TalosEvents.circuitBreaker
+      Talos.circuitBreaker
     }
   }
 }

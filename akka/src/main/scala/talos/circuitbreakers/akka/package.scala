@@ -5,7 +5,6 @@ import _root_.akka.pattern.{CircuitBreaker => AkkaCB}
 import _root_.akka.actor.{ActorRef, ActorSystem}
 
 import cats.effect.IO
-import talos.events.TalosEvents
 import talos.events.TalosEvents.model._
 
 import scala.concurrent.duration._
@@ -80,7 +79,7 @@ package object akka {
       implicit val eventBus: EventBus[ActorRef] = new AkkaEventBus()
       implicit val akkaCircuitBreaker: AkkaCircuitBreaker[ActorRef] =
         new AkkaCircuitBreaker[ActorRef](name, circuitBreaker)
-      TalosEvents.circuitBreaker
+      Talos.circuitBreaker
     }
   }
 

@@ -23,4 +23,7 @@ package object circuitbreakers {
     def publish[A <: AnyRef](a: A): Unit
   }
 
+  object Talos {
+    def circuitBreaker[C, F[_]](implicit F: TalosCircuitBreaker[C, F]): TalosCircuitBreaker[C, F] = F
+  }
 }
