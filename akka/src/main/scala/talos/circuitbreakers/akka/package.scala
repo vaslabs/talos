@@ -61,7 +61,7 @@ package object akka {
 
     override val circuitBreaker: IO[AkkaCB] = IO.pure(circuitBreakerInstance)
 
-    override def protectUnsafe[A](task: IO[A]): A =
+    private def protectUnsafe[A](task: IO[A]): A =
       circuitBreakerInstance.callWithSyncCircuitBreaker(() => task.unsafeRunSync())
   }
 
