@@ -14,9 +14,7 @@ libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.3.0"
 ```
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
 ```scala
-import java.time.ZonedDateTime
 
-import akka.actor.ActorSystem
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
