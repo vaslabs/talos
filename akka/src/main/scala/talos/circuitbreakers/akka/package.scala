@@ -29,7 +29,7 @@ package object akka {
          (implicit eventBus: EventBus[ActorRef]) extends TalosCircuitBreaker[AkkaCB, IO] {
 
     override def protect[A](task: IO[A]): IO[A] =
-      IO.delay {
+      IO {
         protectUnsafe(task)
       }
 
@@ -61,7 +61,7 @@ package object akka {
 
     override val circuitBreaker: IO[AkkaCB] = IO.pure(circuitBreakerInstance)
 
-    override def protectUnsafe[A](task: IO[A]): A =
+    private def protectUnsafe[A](task: IO[A]): A =
       circuitBreakerInstance.callWithSyncCircuitBreaker(() => task.unsafeRunSync())
   }
 

@@ -41,21 +41,21 @@ object ExampleApp extends App {
       val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
       Future {
         while (true) {
-          Try(bar.protectUnsafe(IO(Thread.sleep(Random.nextInt(50).toLong))))
+          Try(bar.protect(IO(Thread.sleep(Random.nextInt(50).toLong))).unsafeRunSync())
         }
       }(executionContext)
       Future {
         while (true) {
-          Try(foo.protectUnsafe(IO(Thread.sleep(Random.nextInt(100).toLong))))
+          Try(foo.protect(IO(Thread.sleep(Random.nextInt(100).toLong))).unsafeRunSync())
         }
       }(executionContext)
       Future {
         while (true) {
           Thread.sleep(20000)
           if (Random.nextDouble() < 0.5) {
-              for (i <- 1 to 10) yield Try(bar.protectUnsafe(IO(throw new RuntimeException)))
+              for (i <- 1 to 10) yield Try(bar.protect(IO(throw new RuntimeException)).unsafeRunSync())
           } else {
-              for (i <- 1 to 10) yield Try(foo.protectUnsafe(IO(throw new RuntimeException)))
+              for (i <- 1 to 10) yield Try(foo.protect(IO(throw new RuntimeException)).unsafeRunSync())
           }
         }
       }(executionContext)

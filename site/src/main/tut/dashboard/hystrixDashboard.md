@@ -14,7 +14,7 @@ deliver fine grained visualisations.
 ### Usage
 
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.2.0"
+libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.3.0"
 ```
 
 Get an akka directive

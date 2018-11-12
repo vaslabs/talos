@@ -11,7 +11,7 @@ object Dependencies {
     val kamon = "1.1.0"
     val scalatest = "3.0.5"
     val akkaHttp = "10.1.5"
-    val monix = "3.0.0-RC1"
+    val monix = "3.0.0-RC2"
   }
 
   object libraries {
@@ -27,7 +27,9 @@ object Dependencies {
     }
 
     object Monix {
-      val monix = "io.monix" %% "monix" % versions.monix
+      val core = "io.monix" %% "monix" % versions.monix
+      val catnip = "io.monix" %% "monix" % versions.monix
+      val all = Seq(core, catnip)
     }
 
     object Kamon {

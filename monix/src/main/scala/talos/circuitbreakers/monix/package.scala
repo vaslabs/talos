@@ -3,10 +3,12 @@ package talos.circuitbreakers
 import java.util.concurrent.{TimeUnit, TimeoutException}
 
 import _root_.akka.actor.{ActorRef, ActorSystem}
-import _root_.monix.eval.{Task, TaskCircuitBreaker}
+import _root_.monix.catnap.CircuitBreaker
+import cats.effect._
+import cats.implicits._
 import talos.events.TalosEvents.model._
 
-import scala.concurrent.duration.{FiniteDuration, _}
+import scala.concurrent.duration._
 package object monix {
 
   class AkkaEventBus(implicit actorSystem: ActorSystem) extends EventBus[ActorRef]{
@@ -22,34 +24,29 @@ package object monix {
     override def publish[A <: AnyRef](a: A): Unit = actorSystem.eventStream.publish(a)
   }
 
-  import _root_.monix.execution.Scheduler
-
-  class MonixCircuitBreaker private (
+  class MonixCircuitBreaker[F[_]] private (
       val name: String,
-      callTimeout: Duration,
-      maxFailures: Int,
-      resetTimeout: FiniteDuration,
-      scheduler: Scheduler = Scheduler.io()
-  )(implicit eventBus: AkkaEventBus)
-    extends TalosCircuitBreaker[TaskCircuitBreaker, Task] {
+      internalCircuitBreaker: CircuitBreaker[F]
+  )(implicit eventBus: AkkaEventBus, F: Async[F])
+    extends TalosCircuitBreaker[CircuitBreaker[F], F] {
 
-    private implicit val execScheduler = scheduler
+    val clock: Clock[F] = Clock.create[F]
 
-    override def protect[A](task: Task[A]): Task[A] = {
+    override def protect[A](task: F[A]): F[A] = {
       for {
-        startTimer <- Task(scheduler.clockRealTime(TimeUnit.NANOSECONDS))
-        cb <- circuitBreaker
-        protectedTask <- cb.protect[A](task.onErrorHandleWith[A](t => {
-          publishError(t, startTimer).flatMap(_ => Task[A](throw t))
-        }))
-        endTimer <- Task(scheduler.clockRealTime(TimeUnit.NANOSECONDS))
+        startTimer <- clock.monotonic(TimeUnit.NANOSECONDS)
+        protectedTask <- internalCb.protect(task).onError {
+          case t: Throwable =>
+            publishError(t, startTimer)
+        }
+        endTimer <- clock.monotonic(TimeUnit.NANOSECONDS)
         _ = publishSuccess((endTimer - startTimer) nanos)
       } yield (protectedTask)
     }
 
-    private def publishError(throwable: Throwable, started: Long): Task[Unit] = {
+    private def publishError(throwable: Throwable, started: Long): F[Unit] = {
       for {
-        ended <- Task(scheduler.clockRealTime(TimeUnit.NANOSECONDS))
+        ended <- clock.monotonic(TimeUnit.NANOSECONDS)
         elapsedTime = (ended - started) nanos
 
         errorEvent = throwable match {
@@ -63,31 +60,31 @@ package object monix {
     }
 
 
-    private def publishSuccess(elapsedTime: FiniteDuration): Unit = eventBus.publish(SuccessfulCall(name, elapsedTime))
+    private def publishSuccess(elapsedTime: FiniteDuration): Unit =
+      eventBus.publish(SuccessfulCall(name, elapsedTime))
 
 
-    override val circuitBreaker: Task[TaskCircuitBreaker] = TaskCircuitBreaker(
-      maxFailures,
-      resetTimeout,
-      onClosed = Task(eventBus.publish(CircuitClosed(name))),
-      onHalfOpen = Task(eventBus.publish(CircuitHalfOpen(name))),
-      onRejected = Task(eventBus.publish(ShortCircuitedCall(name))),
-      onOpen = Task(eventBus.publish(CircuitOpen(name)))
-    ).memoize
+    private val internalCb = internalCircuitBreaker.doOnClosed(F.delay(eventBus.publish(CircuitClosed(name))))
+      .doOnHalfOpen(F.delay(eventBus.publish(CircuitHalfOpen(name))))
+      .doOnRejectedTask(F.delay(eventBus.publish(ShortCircuitedCall(name))))
+      .doOnOpen(F.delay(eventBus.publish(CircuitOpen(name))))
 
-    override def protectUnsafe[A](task: Task[A]): A = protect(task).runSyncUnsafe(callTimeout)
+    override val circuitBreaker: F[CircuitBreaker[F]] = F.pure {
+      internalCb
+    }
 
   }
 
   object MonixCircuitBreaker {
-    def apply(
+    def apply[F[_]](
         name: String,
-        callTimeout: Duration,
-        maxFailures: Int,
-        resetTimeout: FiniteDuration)(implicit actorSystem: ActorSystem): TalosCircuitBreaker[TaskCircuitBreaker, Task] = {
+        circuitBreaker: CircuitBreaker[F]
+    )(implicit actorSystem: ActorSystem,
+               F: Async[F]
+    ): TalosCircuitBreaker[CircuitBreaker[F], F] = {
 
       implicit val eventBus = new AkkaEventBus()
-      implicit val monixCircuitBreaker = new MonixCircuitBreaker(name, callTimeout, maxFailures, resetTimeout)
+      implicit val monixCircuitBreaker = new MonixCircuitBreaker(name, circuitBreaker)
       Talos.circuitBreaker
     }
   }

@@ -1,22 +1,20 @@
-# talos [![Build Status](https://travis-ci.com/vaslabs/talos.svg?branch=master)](https://travis-ci.com/vaslabs/talos) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloskamon_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloscore_2.12) [![Join the chat at https://gitter.im/vaslabs/talos](https://badges.gitter.im/vaslabs/talos.svg)](https://gitter.im/vaslabs/talos?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d0dbf73a127c4eff9a5e62d9fa628cbd)](https://app.codacy.com/app/vaslabs/talos?utm_source=github.com&utm_medium=referral&utm_content=vaslabs/talos&utm_campaign=Badge_Grade_Dashboard) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/ae86edbdde884633a0417d851e4fcc9a)](https://www.codacy.com/app/vaslabs/talos?utm_source=github.com&utm_medium=referral&utm_content=vaslabs/talos&utm_campaign=Badge_Coverage)
+# talos [![Build Status](https://travis-ci.com/vaslabs/talos.svg?branch=master)](https://travis-ci.com/vaslabs/talos) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloscore_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloscore_2.12) [![Join the chat at https://gitter.im/vaslabs/talos](https://badges.gitter.im/vaslabs/talos.svg)](https://gitter.im/vaslabs/talos?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d0dbf73a127c4eff9a5e62d9fa628cbd)](https://app.codacy.com/app/vaslabs/talos?utm_source=github.com&utm_medium=referral&utm_content=vaslabs/talos&utm_campaign=Badge_Grade_Dashboard) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/ae86edbdde884633a0417d851e4fcc9a)](https://www.codacy.com/app/vaslabs/talos?utm_source=github.com&utm_medium=referral&utm_content=vaslabs/talos&utm_campaign=Badge_Coverage)
 
 
-Talos is a set of tools for enabling fine grained monitoring of the Akka circuit breakers. For comprehensive [documentation](https://vaslabs.github.io/talos/events/events.html)
+Talos is a set of tools for enabling fine grained monitoring of the Akka and monix circuit breakers. For comprehensive [documentation](https://vaslabs.github.io/talos/events/events.html)
 
 ## Usage
 Talos is modularised. You can twist it and pick the dependencies that fit your need. But let's go step by step.
 
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "taloscore" % "0.2.0"
-libraryDependencies += "org.vaslabs.talos" %% "talosakkasupport" % "0.2.0"
-libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.2.0"
-libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.2.0"
+libraryDependencies += "org.vaslabs.talos" %% "taloscore" % "0.3.0"
+libraryDependencies += "org.vaslabs.talos" %% "talosakkasupport" % "0.3.0"
+libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.3.0"
+libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.3.0"
 ```
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
 ```scala
-import java.time.ZonedDateTime
 
-import akka.actor.ActorSystem
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
@@ -46,7 +44,7 @@ Otherwise you can use the TalosCircuitBreaker typeclass directly
     action.unsafeRunSync()
 ```
 
-Talos also supports the TaskCircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
+Talos also supports the CircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
 
 Get an akka directive
 ```scala
