@@ -1,6 +1,6 @@
 package talos.gateway
 
-import akka.http.scaladsl.model.{HttpMethod, HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.{HttpMethod, HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import talos.gateway.EndpointResolver.HitEndpoint
@@ -23,8 +23,8 @@ class Gateway private
     _.map {
       _ {
         hitEndpoint =>
-          extractMethod { httpMethod =>
-            onComplete(executionApi.executeCall(ServiceCall(httpMethod, hitEndpoint))) {
+          extractRequest { httpRequest =>
+            onComplete(executionApi.executeCall(ServiceCall(hitEndpoint, httpRequest))) {
               case Success(value) => complete(value)
               case Failure(_) => complete(StatusCodes.InternalServerError)
             }
@@ -44,6 +44,6 @@ object Gateway {
 
   sealed trait HttpCall
 
-  case class ServiceCall(httpMethod: HttpMethod, hitEndpoint: HitEndpoint) extends HttpCall
+  case class ServiceCall(hitEndpoint: HitEndpoint, request: HttpRequest) extends HttpCall
 
 }
