@@ -1,10 +1,13 @@
 package talos.gateway
 
 import akka.http.scaladsl.model.{HttpMethod, HttpMethods}
-import akka.http.scaladsl.server.Directive0
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.{Directive, Directive0, Directive1}
+import talos.gateway.config.{Mapping, ServiceConfig}
 
 object EndpointResolver {
+
+  case class HitEndpoint(service: String, port: Int, targetPath: String)
 
   def resolve(httpMethod: HttpMethod): Either[String, Directive0] = httpMethod match {
     case HttpMethods.GET => Right(get)
@@ -22,5 +25,30 @@ object EndpointResolver {
       else
         pathFragment
     path(separateOnSlashes(removeTrailingSlash))
+  }
+
+  private[gateway] def mergeEitherDirectives[F](
+        routeA: Either[String, Directive[F]], routeB: Either[String, Directive[F]]
+  ): Either[String, Directive[F]] = for {
+      methodFragmentA <- routeA
+      methodFragmentB <- routeB
+    } yield methodFragmentA | methodFragmentB
+
+
+  def resolve(serviceConfig: ServiceConfig): Either[String, Directive1[HitEndpoint]] = {
+    serviceConfig.mappings.map {
+      case Mapping(gatewayPath, methods, targetPath) =>
+        val methodsRoute: List[Either[String, Directive0]] = methods.map(resolve(_))
+
+        val httpMethodRouteAggregation = methodsRoute.reduce(mergeEitherDirectives(_, _))
+
+        val pathDirective: Directive0 = resolve(gatewayPath)
+        httpMethodRouteAggregation.map(_ | pathDirective).map {
+          _.tmap {
+            _ => Tuple1(HitEndpoint(serviceConfig.host, serviceConfig.port, targetPath))
+          }
+        }
+
+    }.reduce((a, b) => mergeEitherDirectives(a, b))
   }
 }

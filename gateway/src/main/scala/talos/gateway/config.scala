@@ -21,7 +21,7 @@ object config {
 
   case class ServiceConfig(
     secure: Boolean,
-    endpoint: String,
+    host: String,
     port: Int,
     mappings: List[Mapping],
     maxInflightRequests: Int,

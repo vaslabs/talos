@@ -197,7 +197,7 @@ lazy val talos =
   .settings(noPublishSettings)
   .aggregate(
     talosCore, talosKamon, hystrixReporter,
-    talosExamples, talosAkkaSupport, talosMonixSupport
+    talosExamples, talosAkkaSupport, talosMonixSupport, talosGateway
   )
 
 addCommandAlias("release", ";project talos ;reload ;+publishSigned ;sonatypeReleaseAll; talosMicrosite/publishMicrosite")
