@@ -17,6 +17,11 @@ object TestUtils {
             "/foo/",
             List(HttpMethods.GET),
             "/"
+          ),
+          Mapping(
+            "/foobar/",
+            List(HttpMethods.GET),
+            "/bar"
           )
         ),
         8,

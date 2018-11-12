@@ -14,16 +14,20 @@ class GatewaySpec extends WordSpec with Matchers with ScalatestRouteTest{
     val talosGateway = Gateway(TestUtils.gatewayConfiguration, (httpCommand: Gateway.HttpCall) =>
       httpCommand match {
         case ServiceCall(_, hit) =>
-          Future.successful(HttpResponse(entity = hit.service))
+          Future.successful(HttpResponse(entity = s"${hit.service} ${hit.targetPath}"))
       }
     )
 
     "forward traffic to configured service" in {
 
       Get("/foo/") ~> talosGateway.route ~> check {
-        responseAs[String] shouldBe "fooservice"
+        responseAs[String] shouldBe "fooservice /"
       }
-
+    }
+    "forward traffic to different endpoints" in {
+      Get("/foobar/") ~> talosGateway.route ~> check {
+        responseAs[String] shouldBe "fooservice /bar"
+      }
     }
   }
 

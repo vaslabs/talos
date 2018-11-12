@@ -43,7 +43,7 @@ object EndpointResolver {
         val httpMethodRouteAggregation = methodsRoute.reduce(mergeEitherDirectives(_, _))
 
         val pathDirective: Directive0 = resolve(gatewayPath)
-        httpMethodRouteAggregation.map(_ | pathDirective).map {
+        httpMethodRouteAggregation.map(_ & pathDirective).map {
           _.tmap {
             _ => Tuple1(HitEndpoint(serviceConfig.host, serviceConfig.port, targetPath))
           }
