@@ -15,11 +15,30 @@ object TestUtils {
         List(
           Mapping(
             "/foo/",
-            List(HttpMethods.GET),
+            List(HttpMethods.GET, HttpMethods.POST),
             "/"
           ),
           Mapping(
             "/foobar/",
+            List(HttpMethods.GET),
+            "/bar"
+          )
+        ),
+        8,
+        1 second
+      ),
+      ServiceConfig(
+        false,
+        "barservice",
+        8080,
+        List(
+          Mapping(
+            "/bar/",
+            List(HttpMethods.GET, HttpMethods.POST),
+            "/"
+          ),
+          Mapping(
+            "/barfoo/",
             List(HttpMethods.GET),
             "/bar"
           )
