@@ -4,7 +4,7 @@ import java.util.concurrent._
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
@@ -19,7 +19,7 @@ trait ExecutionApi[F[_]] {
   def executeCall(httpCommand: HttpCall): F[HttpResponse]
 }
 
-class HttpServiceExecutionApi private[gateway] (gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem) extends ExecutionApi[Future] {
+class ServiceExecutionApi private[gateway](gatewayConfig: GatewayConfig, httpExecution: HttpRequest => IO[HttpResponse])(implicit actorSystem: ActorSystem) extends ExecutionApi[Future] {
 
   val executionContexts: Map[String, ExecutionContext] = {
     val fromServices = gatewayConfig.services.map {
@@ -57,7 +57,7 @@ class HttpServiceExecutionApi private[gateway] (gatewayConfig: GatewayConfig)(im
           circuitBreaker <- IO.delay(circuitBreakers(hitEndpoint.service))
           _ <- IO.shift(executionContext)
           httpRequest <- EndpointResolver.transformRequest(request, hitEndpoint)
-          unprotectedResponse = IO.fromFuture(IO.delay(Http().singleRequest(httpRequest)))
+          unprotectedResponse = httpExecution(httpRequest)
           response <- circuitBreaker.protect(unprotectedResponse)
         } yield response
     }
@@ -66,5 +66,18 @@ class HttpServiceExecutionApi private[gateway] (gatewayConfig: GatewayConfig)(im
 }
 
 object ExecutionApi {
-  def production(gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem) = new HttpServiceExecutionApi(gatewayConfig)
+  def http(gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem) =
+    apply(
+      gatewayConfig,
+      request => IO.fromFuture {
+        IO {
+          Http().singleRequest(request)
+        }
+      }
+    )
+
+  private[gateway] def apply
+      (gatewayConfig: GatewayConfig, httpRequest: HttpRequest => IO[HttpResponse])
+      (implicit actorSystem: ActorSystem) =
+    new ServiceExecutionApi(gatewayConfig, httpRequest)
 }

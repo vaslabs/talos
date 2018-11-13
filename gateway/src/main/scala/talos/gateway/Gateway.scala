@@ -38,7 +38,7 @@ class Gateway private
 
 object Gateway {
   def apply(gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem): Gateway =
-    apply(gatewayConfig, ExecutionApi.production(gatewayConfig))
+    apply(gatewayConfig, ExecutionApi.http(gatewayConfig))
 
   private[gateway] def apply(gatewayConfig: GatewayConfig, executionApi: ExecutionApi[Future]): Gateway =
     new Gateway(gatewayConfig, executionApi)
