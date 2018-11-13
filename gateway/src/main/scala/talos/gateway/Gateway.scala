@@ -1,6 +1,7 @@
 package talos.gateway
 
-import akka.http.scaladsl.model.{HttpMethod, HttpRequest, HttpResponse, StatusCodes}
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import talos.gateway.EndpointResolver.HitEndpoint
@@ -36,7 +37,7 @@ class Gateway private
 }
 
 object Gateway {
-  def apply(gatewayConfig: GatewayConfig): Gateway =
+  def apply(gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem): Gateway =
     apply(gatewayConfig, ExecutionApi.production(gatewayConfig))
 
   private[gateway] def apply(gatewayConfig: GatewayConfig, executionApi: ExecutionApi[Future]): Gateway =

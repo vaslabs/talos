@@ -1,11 +1,18 @@
 package talos.gateway
 
-import akka.http.scaladsl.model.{HttpMethod, HttpMethods}
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.{HttpMethod, HttpMethods, HttpRequest}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive, Directive0, Directive1}
+import cats.effect.IO
 import talos.gateway.config.{Mapping, ServiceConfig}
 
 object EndpointResolver {
+
+  def transformRequest(request: HttpRequest, hitEndpoint: HitEndpoint): IO[HttpRequest] = IO {
+    request.copy(uri = request.uri.withHost(hitEndpoint.service).withPath(Path(hitEndpoint.targetPath)).withPort(hitEndpoint.port))
+  }
+
 
   case class HitEndpoint(service: String, port: Int, targetPath: String)
 

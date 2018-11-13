@@ -1,10 +1,12 @@
 package talos.gateway
 
-import akka.http.scaladsl.model.{HttpMethods, StatusCodes}
+import akka.http.scaladsl.model.Uri.{Host, Path}
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest, StatusCodes, Uri}
 import org.scalatest.{Matchers, WordSpec}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import talos.gateway.EndpointResolver.HitEndpoint
 
 class EndpointResolverSpec extends WordSpec with Matchers with ScalatestRouteTest{
 
@@ -38,6 +40,15 @@ class EndpointResolverSpec extends WordSpec with Matchers with ScalatestRouteTes
             response.status shouldBe StatusCodes.OK
           }
       }
+    }
+
+    "rewrite http request" in {
+      val transformedRequest = EndpointResolver.transformRequest(
+        HttpRequest(uri = Uri("/dogs/").withHost("vaslabs.org")), HitEndpoint("localhost", 8080, "/cats/")
+      ).unsafeRunSync()
+      transformedRequest.uri.authority.host shouldBe Host("localhost")
+      transformedRequest.uri.path shouldBe Path("/cats/")
+      transformedRequest.uri.effectivePort shouldBe 8080
     }
 
   }

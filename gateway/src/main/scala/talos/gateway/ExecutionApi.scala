@@ -1,32 +1,31 @@
 package talos.gateway
 
-import java.time.Duration
 import java.util.concurrent._
 
-import akka.actor.Scheduler
-import akka.actor.typed.ActorRef
-import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpResponse
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
-import cats.implicits._
 import talos.circuitbreakers.TalosCircuitBreaker
 import talos.gateway.Gateway.HttpCall
-import talos.gateway.config.{GatewayConfig, ServiceConfig}
+import talos.gateway.config.GatewayConfig
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
+import talos.circuitbreakers.akka._
 
 trait ExecutionApi[F[_]] {
   def executeCall(httpCommand: HttpCall): F[HttpResponse]
 }
 
-private class HttpServiceExecutionApi private (gatewayConfig: GatewayConfig) extends ExecutionApi[Future] {
+class HttpServiceExecutionApi private[gateway] (gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem) extends ExecutionApi[Future] {
 
   val executionContexts: Map[String, ExecutionContext] = {
     val fromServices = gatewayConfig.services.map {
       serviceConfig =>
         val executor = new ThreadPoolExecutor(
-          Math.toIntExact(serviceConfig.maxInflightRequests / 2),
+          serviceConfig.maxInflightRequests / 2,
           serviceConfig.maxInflightRequests,
           1L,
           TimeUnit.MINUTES,
@@ -37,13 +36,35 @@ private class HttpServiceExecutionApi private (gatewayConfig: GatewayConfig) ext
     fromServices.toMap
   }
 
-  val circuitBreakers: Map[String, TalosCircuitBreaker[CircuitBreaker, IO]] = ???
+  lazy val circuitBreakers: Map[String, TalosCircuitBreaker[CircuitBreaker, IO]] = {
+    gatewayConfig.services.map {
+      serviceConfig =>
+        val circuitBreaker = CircuitBreaker(
+          actorSystem.scheduler,
+          5,
+          serviceConfig.callTimeout,
+          1 minute
+        )
+        serviceConfig.host -> AkkaCircuitBreaker(serviceConfig.host, circuitBreaker)
+    }.toMap
+  }
 
   override def executeCall(httpCommand: HttpCall): Future[HttpResponse] = {
-    ???
+    val executeHttpRequest = httpCommand match {
+      case Gateway.ServiceCall(hitEndpoint, request) =>
+        for {
+          executionContext <- IO.delay(executionContexts(hitEndpoint.service))
+          circuitBreaker <- IO.delay(circuitBreakers(hitEndpoint.service))
+          _ <- IO.shift(executionContext)
+          httpRequest <- EndpointResolver.transformRequest(request, hitEndpoint)
+          unprotectedResponse = IO.fromFuture(IO.delay(Http().singleRequest(httpRequest)))
+          response <- circuitBreaker.protect(unprotectedResponse)
+        } yield response
+    }
+    executeHttpRequest.unsafeToFuture()
   }
 }
 
 object ExecutionApi {
-  def production(gatewayConfig: GatewayConfig): ExecutionApi[Future] = ???
+  def production(gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem) = new HttpServiceExecutionApi(gatewayConfig)
 }
