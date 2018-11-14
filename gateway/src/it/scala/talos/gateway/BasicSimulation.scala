@@ -37,8 +37,8 @@ class BasicSimulation extends Simulation{
     .get("/dogs")) // 9
     .pause(5)
 
-  setUp( // 11
-    scn.inject(atOnceUsers(1)) // 12
+  val setup = setUp( // 11
+    scn.inject(atOnceUsers(32)) // 12
   ).protocols(httpProtocol)
 
   after {
