@@ -2,7 +2,7 @@ package talos.gateway
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
+import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
 import akka.testkit.TestKit
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -32,7 +32,7 @@ class GatewayServerSpec extends TestKit(ActorSystem("GatewayServerSpec")) with A
   }
 
   "gateway server" can "accept requests" in {
-    Http().singleRequest(HttpRequest(uri = "/dogs")).map(
+    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/dogs"))).map(
       _.status shouldBe StatusCodes.OK
     )
   }

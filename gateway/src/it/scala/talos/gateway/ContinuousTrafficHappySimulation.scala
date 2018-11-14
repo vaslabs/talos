@@ -27,6 +27,6 @@ class ContinuousTrafficHappySimulation extends Simulation{
   ).protocols(httpProtocol)
 
   after {
-    wireMockServer.stop()
+    dogWireMockServer.stop()
   }
 }

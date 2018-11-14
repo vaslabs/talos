@@ -13,22 +13,25 @@ object BasicSimulation {
     .doNotTrackHeader("1")
     .userAgentHeader("Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0")
 
-  val Host = "localhost"
+  val dogHost = "localhost"
 
-  val Port = 9000
+  val dogPort = 9000
 
-  val wireMockServer = new WireMockServer(wireMockConfig().port(Port))
+  val dogWireMockServer = new WireMockServer(wireMockConfig().port(dogPort))
+  val dogPath = "/animals/dogs/"
 
   lazy val dogServiceStub: Unit = {
-    wireMockServer.start()
-    stubFor(get(urlEqualTo(path))
-      .willReturn(
-        aResponse()
-          .withStatus(200)))
+    dogWireMockServer.start()
+    new WireMock(dogHost, dogPort).register(
+      get(urlEqualTo(dogPath))
+        .willReturn(
+          aResponse()
+            .withStatus(200))
+    )
   }
-  WireMock.configureFor(Host, Port)
 
-  val path = "/animals/dogs/"
+
+
 
 }
 
@@ -54,7 +57,7 @@ class BasicSimulation extends Simulation {
   ).protocols(httpProtocol)
 
   after {
-    wireMockServer.stop()
+    dogWireMockServer.stop()
   }
 
 

@@ -22,7 +22,7 @@ class ExecutionApiSpec extends
   "http execution api" can {
     val executionApi = ExecutionApi.apply(
       config,
-      request => IO(HttpResponse(entity = s"${request.uri}"))
+      serviceCall => IO(HttpResponse(entity = s"${serviceCall.request.uri}"))
     )
 
     "forward http request to backend service" in {
