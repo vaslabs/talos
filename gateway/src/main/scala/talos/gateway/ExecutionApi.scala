@@ -70,9 +70,9 @@ object ExecutionApi {
     }
     apply(
       gatewayConfig,
-      request => IO.fromFuture {
+      serviceCall => IO.fromFuture {
         IO {
-          Http().singleRequest(request.request, settings = executionContexts(request.hitEndpoint.service))
+          Http().singleRequest(serviceCall.request, settings = executionContexts(serviceCall.hitEndpoint.service))
         }
       }
     )
