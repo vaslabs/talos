@@ -11,13 +11,13 @@ import talos.gateway.config.GatewayConfig
 import scala.concurrent.Future
 import scala.util._
 
-
 class Gateway private
 (gatewayConfig: GatewayConfig, executionApi: ExecutionApi[Future]) {
 
   private def invalidRoute(error: String): Route = pathEndOrSingleSlash {
     complete(HttpResponse(status = StatusCodes.InternalServerError, entity = error))
   }
+
 
 
   val route: Route = gatewayConfig.services.map(EndpointResolver.resolve).map {

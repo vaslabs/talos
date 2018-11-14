@@ -52,14 +52,14 @@ class ServiceExecutionApi private[gateway](gatewayConfig: GatewayConfig, httpExe
   override def executeCall(httpCommand: HttpCall): Future[HttpResponse] = {
     val executeHttpRequest = httpCommand match {
       case Gateway.ServiceCall(hitEndpoint, request) =>
-        for {
+        val unprotectedResponse = for {
           executionContext <- IO.delay(executionContexts(hitEndpoint.service))
-          circuitBreaker <- IO.delay(circuitBreakers(hitEndpoint.service))
           _ <- IO.shift(executionContext)
           httpRequest <- EndpointResolver.transformRequest(request, hitEndpoint)
-          unprotectedResponse = httpExecution(httpRequest)
-          response <- circuitBreaker.protect(unprotectedResponse)
-        } yield response
+          unprotectedResponse <- httpExecution(httpRequest)
+        } yield unprotectedResponse
+        val circuitBreaker = circuitBreakers(hitEndpoint.service)
+        circuitBreaker.protect(unprotectedResponse)
     }
     executeHttpRequest.unsafeToFuture()
   }

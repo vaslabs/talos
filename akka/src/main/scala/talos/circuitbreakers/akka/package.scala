@@ -30,6 +30,7 @@ package object akka {
 
     override def protect[A](task: IO[A]): IO[A] =
       IO {
+        println(s"Protecting task $task")
         protectUnsafe(task)
       }
 
