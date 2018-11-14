@@ -55,7 +55,9 @@ class ConfigSpec extends FlatSpec with Matchers {
             4,
             15 seconds
           )
-        )
+        ),
+        "0.0.0.0",
+        8080
       )
     )
   }

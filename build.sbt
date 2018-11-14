@@ -177,9 +177,11 @@ lazy val talosMicrosite = (project in file("site"))
 lazy val talosGateway =
   (project in file("gateway"))
   .enablePlugins(dockerPlugins: _*)
+  .enablePlugins(GatlingPlugin)
   .settings(
     libraryDependencies ++=
-      libraries.Akka.allHttp ++ libraries.ScalaTest.all :+ libraries.PureConf.core
+      libraries.Akka.allHttp ++ libraries.ScalaTest.all ++
+        libraries.Gatling.all ++ libraries.Wiremock.all :+ libraries.PureConf.core
   )
   .settings(
     compilerSettings

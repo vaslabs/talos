@@ -8,7 +8,7 @@ import scala.concurrent.duration.FiniteDuration
 
 object config {
 
-  case class GatewayConfig(services: List[ServiceConfig])
+  case class GatewayConfig(services: List[ServiceConfig], interface: String, port: Int)
 
   object GatewayConfig {
 

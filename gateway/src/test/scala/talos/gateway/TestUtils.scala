@@ -46,7 +46,9 @@ object TestUtils {
         8,
         1 second
       )
-    )
+    ),
+    "0.0.0.0",
+    8080
   )
 
 }
