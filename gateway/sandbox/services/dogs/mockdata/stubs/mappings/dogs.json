@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/dogs"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "cat": "Bark",
+      "isGoodboy": true
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

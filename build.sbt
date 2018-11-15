@@ -184,6 +184,9 @@ lazy val talosGateway =
         libraries.Gatling.all ++ libraries.Wiremock.all :+ libraries.PureConf.core
   )
   .settings(
+    packageName in Docker := "talos-gateway",
+  )
+  .settings(
     compilerSettings
   )
   .settings(
