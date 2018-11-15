@@ -10,14 +10,14 @@ services:
     image: rodolpheche/wiremock
     container_name: cats-service
     ports:
-    - "9001:8080"
+      - "9001:8080"
     volumes:
-    - ./services/cats/mockdata/stubs:/home/wiremock:z
+      - ./services/cats/mockdata/stubs:/home/wiremock:z
 
   dogs-service:
     container_name: dogs-service
     image: rodolpheche/wiremock
     ports:
-    - "9000:8080"
+      - "9000:8080"
     volumes:
-    - ./services/dogs/mockdata/stubs:/home/wiremock:z
+      - ./services/dogs/mockdata/stubs:/home/wiremock:z

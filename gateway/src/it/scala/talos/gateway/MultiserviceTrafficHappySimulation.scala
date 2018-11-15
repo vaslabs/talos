@@ -1,9 +1,5 @@
 package talos.gateway
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlEqualTo}
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import io.gatling.core.Predef._
 import io.gatling.core.scenario.Simulation
 import io.gatling.http.Predef.http
@@ -14,34 +10,13 @@ import scala.util.Random
 class MultiserviceTrafficHappySimulation extends Simulation{
   import BasicSimulation._
 
-  val catsPort = 9001
-  val catsWireMockServer = new WireMockServer(wireMockConfig().port(catsPort))
-
-
-  lazy val catsServiceStub: Unit = {
-    catsWireMockServer.start()
-    new WireMock("localhost", catsPort).register(
-      get(urlEqualTo("/animals/cats/"))
-        .willReturn(
-          aResponse()
-            .withStatus(200))
-    )
-
-  }
-
-  before {
-    catsServiceStub
-    dogServiceStub
-    Bootstrap.main(Array())
-  }
-
   val callCats1In5 =  {
     Iterator.continually {
       val rndIdx = Random.nextInt(5)
       val path = if (rndIdx % 10 == 0)
-        "/cats"
+        "/animals/cats"
       else
-        "/dogs"
+        "/animals/dogs"
       Map("service" -> path)
     }
   }
@@ -61,8 +36,4 @@ class MultiserviceTrafficHappySimulation extends Simulation{
     scn
   ).protocols(httpProtocol)
 
-  after {
-    dogWireMockServer.stop()
-    catsWireMockServer.stop()
-  }
 }

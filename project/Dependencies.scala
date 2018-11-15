@@ -13,7 +13,6 @@ object Dependencies {
     val akkaHttp = "10.1.5"
     val monix = "3.0.0-RC2"
     val gatling = "3.0.0"
-    val wiremock = "1.33"
   }
 
   object libraries {
@@ -58,12 +57,6 @@ object Dependencies {
       val core = "com.github.pureconfig" %% "pureconfig" % versions.pureconfig
     }
 
-    object Wiremock {
-      val dispatch = "net.databinder.dispatch" %% "dispatch-core" % "0.13.4"
-      val wiremock = "com.github.tomakehurst" % "wiremock" % versions.wiremock
-
-      val all = Seq(wiremock % Test, wiremock % IntegrationTest, dispatch % Test, dispatch % IntegrationTest)
-    }
     object Gatling {
       val charts = "io.gatling.highcharts" % "gatling-charts-highcharts" % versions.gatling % IntegrationTest
       val framework = "io.gatling"            % "gatling-test-framework"    % versions.gatling % IntegrationTest

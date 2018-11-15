@@ -8,13 +8,9 @@ import scala.concurrent.duration._
 class ContinuousTrafficHappySimulation extends Simulation{
   import BasicSimulation._
 
-  before {
-    dogServiceStub
-    Bootstrap.main(Array())
-  }
 
   val trafficRepeat = repeat(10) {
-    exec(http("dog-service").get("/dogs")).pause(50 millis)
+    exec(http("dog-service").get("/animals/dogs")).pause(50 millis)
   }
 
   val scn = scenario("ContinuousTrafficHappySimulation")
@@ -26,7 +22,4 @@ class ContinuousTrafficHappySimulation extends Simulation{
     scn
   ).protocols(httpProtocol)
 
-  after {
-    dogWireMockServer.stop()
-  }
 }
