@@ -5,6 +5,7 @@ import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 object config {
 
@@ -25,7 +26,8 @@ object config {
     port: Int,
     mappings: List[Mapping],
     maxInflightRequests: Int,
-    callTimeout: FiniteDuration
+    callTimeout: FiniteDuration,
+    importance: ServiceImportance
   )
 
   case class Mapping(
@@ -33,6 +35,25 @@ object config {
     methods: List[HttpMethod],
     targetPath: String
   )
+
+  sealed trait ServiceImportance {
+    def consecutiveFailuresThreshold: Int
+    def resetTimeout: FiniteDuration
+  }
+
+  object High extends ServiceImportance {
+    override val consecutiveFailuresThreshold = 50
+
+    override val resetTimeout: FiniteDuration = 15 seconds
+  }
+  object Medium extends ServiceImportance {
+    override val consecutiveFailuresThreshold = 10
+    override val resetTimeout = 30 seconds
+  }
+  object Low extends ServiceImportance {
+    override val consecutiveFailuresThreshold = 5
+    override val resetTimeout = 60 seconds
+  }
 
   case class GatewayPath(value: String) {
     require({
@@ -70,6 +91,15 @@ object config {
       path => Either.catchNonFatal(GatewayPath(path)).left.map(
         _ => CannotConvert(path, "GatewayPath", "/* are only allowed at the end")
       )
+    )
+
+    implicit val importanceReader: ConfigReader[ServiceImportance] = ConfigReader[String].emap(
+      _ match {
+        case "High" => Right(High)
+        case "Low" => Right(Low)
+        case "Medium" => Right(Medium)
+        case unrecognised => Left(CannotConvert(unrecognised, "ServiceImportance", "Accepts only High/Medium/Low"))
+      }
     )
   }
 

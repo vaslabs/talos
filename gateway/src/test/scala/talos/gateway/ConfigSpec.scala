@@ -40,7 +40,8 @@ class ConfigSpec extends FlatSpec with Matchers {
               )
             ),
             8,
-            5 seconds
+            5 seconds,
+            High
           ),
           ServiceConfig(
             true,
@@ -59,13 +60,43 @@ class ConfigSpec extends FlatSpec with Matchers {
               )
             ),
             4,
-            15 seconds
+            15 seconds,
+            Low
           )
         ),
         "0.0.0.0",
         8080
       )
     )
+  }
+
+  it must "accept all valid service importance values" in {
+    case class Adhoc(importanceList: List[ServiceImportance])
+    val valid: String =
+      """{
+          importance-list = [
+            High, Medium, Low
+         ]
+        }
+      """.stripMargin
+
+    loadConfig[Adhoc](ConfigFactory.parseString(valid)) should matchPattern {
+      case Right(_) =>
+    }
+  }
+
+  it must "not accept invalid service importance" in {
+    case class Adhoc(importance: ServiceImportance)
+    val invalidConfig: String =
+      """
+        |{
+        |   importance = WOW
+        |}
+      """.stripMargin
+
+    loadConfig[Adhoc](ConfigFactory.parseString(invalidConfig)) should matchPattern {
+      case Left(ConfigReaderFailures(ConvertFailure(CannotConvert("WOW", "ServiceImportance", _), _, _), _)) =>
+    }
   }
 
   it must "not accept invalid http verbs" in {

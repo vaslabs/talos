@@ -28,9 +28,9 @@ class ServiceExecutionApi private[gateway](gatewayConfig: GatewayConfig, httpExe
       serviceConfig =>
         val circuitBreaker = CircuitBreaker(
           actorSystem.scheduler,
-          5,
+          30,
           serviceConfig.callTimeout,
-          1 minute
+          10 seconds
         )
         serviceConfig.host -> AkkaCircuitBreaker(serviceConfig.host, circuitBreaker)
     }.toMap

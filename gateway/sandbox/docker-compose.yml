@@ -21,3 +21,10 @@ services:
       - "9000:8080"
     volumes:
       - ./services/dogs/mockdata/stubs:/home/wiremock:z
+
+  hystrix-dasboard:
+    image: kennedyoliveira/hystrix-dashboard:1.5.6
+    ports:
+    - "7979:7979"
+    stdin_open: true
+    entrypoint: ["java", "-Dvertx.disableDnsResolver=true", "-jar", "/opt/standalone-hystrix-dashboard/standalone-hystrix-dashboard-1.5.6-all.jar"]

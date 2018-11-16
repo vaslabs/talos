@@ -12,8 +12,8 @@ class MultiserviceTrafficHappySimulation extends Simulation{
 
   val callCats1In5 =  {
     Iterator.continually {
-      val rndIdx = Random.nextInt(5)
-      val path = if (rndIdx % 10 == 0)
+      val rndIdx = Random.nextInt(2)
+      val path = if (rndIdx % 2 == 0)
         "/animals/cats"
       else
         "/animals/dogs"

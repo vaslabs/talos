@@ -14,7 +14,7 @@ object Dependencies {
     val monix = "3.0.0-RC2"
     val gatling = "3.0.0"
     val wiremock = "1.33"
-    val log4j = "2.11.1"
+    val log4j = "2.10.0"
   }
 
   object libraries {

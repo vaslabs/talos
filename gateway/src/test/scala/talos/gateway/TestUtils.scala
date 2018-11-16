@@ -1,7 +1,8 @@
 package talos.gateway
 
 import akka.http.scaladsl.model.HttpMethods
-import talos.gateway.config.{GatewayConfig, Mapping, ServiceConfig}
+import talos.gateway.config._
+
 import scala.concurrent.duration._
 
 object TestUtils {
@@ -25,7 +26,8 @@ object TestUtils {
           )
         ),
         8,
-        1 second
+        1 second,
+        High
       ),
       ServiceConfig(
         false,
@@ -44,7 +46,8 @@ object TestUtils {
           )
         ),
         8,
-        1 second
+        1 second,
+        Medium
       )
     ),
     "0.0.0.0",
