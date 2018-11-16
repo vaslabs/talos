@@ -9,7 +9,8 @@ import talos.gateway.config._
 
 import scala.concurrent.duration._
 
-
+import config.pureconfigExt._
+import pureconfig.generic.auto._
 class ConfigSpec extends FlatSpec with Matchers {
 
   "basic configuration with multiple services" should "be deserialised" in {
@@ -63,8 +64,6 @@ class ConfigSpec extends FlatSpec with Matchers {
   }
 
   it must "not accept invalid http verbs" in {
-    import config.pureconfigExt._
-    import pureconfig.generic.auto._
     val configString =
       """
       {
@@ -76,6 +75,34 @@ class ConfigSpec extends FlatSpec with Matchers {
 
     loadConfig[Mapping](ConfigFactory.parseString(configString)) should matchPattern {
       case Left(ConfigReaderFailures(ConvertFailure(CannotConvert("WHAT", "HttpMethod", _), _, _), _)) =>
+    }
+  }
+
+  it must "accept wildcard * only at the end of the path" in {
+    val configString =
+      """
+      {
+        gateway-path = "s/*/a",
+        methods: [PUT],
+        target-path = "b"
+      }
+      """.stripMargin
+
+    loadConfig[Mapping](ConfigFactory.parseString(configString)) should matchPattern {
+      case Left(ConfigReaderFailures(ConvertFailure(CannotConvert("s/*/a", "GatewayPath", _), _, _), _)) =>
+    }
+
+    val validConfigString =
+      """
+      {
+        gateway-path = "s/*",
+        methods: [PUT],
+        target-path = "b"
+      }
+      """.stripMargin
+
+    loadConfig[Mapping](ConfigFactory.parseString(validConfigString)) should matchPattern {
+      case Right(_) =>
     }
   }
 

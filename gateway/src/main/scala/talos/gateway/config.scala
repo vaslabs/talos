@@ -29,10 +29,21 @@ object config {
   )
 
   case class Mapping(
-    gatewayPath: String,
+    gatewayPath: GatewayPath,
     methods: List[HttpMethod],
     targetPath: String
   )
+
+  case class GatewayPath(value: String) {
+    require({
+      val starIndex = value.lastIndexOf("/*")
+      starIndex == -1 || starIndex == value.length - 2
+    })
+  }
+
+  object GatewayPath {
+    implicit def fromString(value: String): GatewayPath = GatewayPath(value)
+  }
 
   private[gateway] object pureconfigExt {
     implicit val httpMethodReader: ConfigReader[HttpMethod] = ConfigReader[String].emap {
@@ -52,5 +63,14 @@ object config {
           )
       }
     }
+
+    import cats.syntax.either._
+
+    implicit val gatewayPathReader: ConfigReader[GatewayPath] = ConfigReader[String].emap(
+      path => Either.catchNonFatal(GatewayPath(path)).left.map(
+        _ => CannotConvert(path, "GatewayPath", "/* are only allowed at the end")
+      )
+    )
   }
+
 }

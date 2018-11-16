@@ -25,18 +25,18 @@ object EndpointResolver {
     case _ => Left("Unsupported http method")
   }
 
-  def resolve(pathFragment: String): Directive0 = {
+  def resolve(pathFragment: String): Directive1[Option[String]] = {
     val removeTrailingSlash =
       if (pathFragment.charAt(0) == '/')
         pathFragment.substring(1)
       else
         pathFragment
-    if (pathFragment.endsWith("*")) {
-      val withoutStar = removeTrailingSlash.substring(0, removeTrailingSlash.length - 1)
-      pathPrefix(separateOnSlashes(withoutStar))
+    if (pathFragment.endsWith("/*")) {
+      val withoutStar = removeTrailingSlash.substring(0, removeTrailingSlash.length - 2)
+      pathPrefix(separateOnSlashes(withoutStar) / Remaining).map(remainingPath => Option(remainingPath))
     }
     else
-      path(separateOnSlashes(removeTrailingSlash))
+      path(separateOnSlashes(removeTrailingSlash)).tmap(_ => Option.empty[String])
   }
 
   private[gateway] def mergeEitherDirectives[F](
@@ -54,10 +54,12 @@ object EndpointResolver {
 
         val httpMethodRouteAggregation = methodsRoute.reduce(mergeEitherDirectives(_, _))
 
-        val pathDirective: Directive0 = resolve(gatewayPath)
+        val pathDirective: Directive1[Option[String]] = resolve(gatewayPath.value)
         httpMethodRouteAggregation.map(_ & pathDirective).map {
-          _.tmap {
-            _ => Tuple1(HitEndpoint(serviceConfig.host, serviceConfig.port, targetPath))
+          _.map {
+            remainingPathOpt =>
+              val pathRemained = remainingPathOpt.getOrElse("")
+              HitEndpoint(serviceConfig.host, serviceConfig.port, s"$targetPath$pathRemained")
           }
         }
 
