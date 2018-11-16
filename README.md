@@ -12,7 +12,7 @@ libraryDependencies += "org.vaslabs.talos" %% "talosakkasupport" % "0.3.0"
 libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.3.0"
 libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.3.0"
 ```
-This library provides a way to stream events on what's happening in the circuit breakers. You can do:
+The events library provides a way to stream events on what's happening in the circuit breakers. E.g. combining with the talosakkasupport you can do:
 ```scala
 
 import akka.pattern.CircuitBreaker
@@ -33,7 +33,7 @@ val talosCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] = AkkaCircuitBr
 ```
 
 
-If you are using this library on an existing solution and you need to extract the akka circuit breaker you can do
+If you have an existing solution based on Akka circuit breaker and you can extract the circuit breaker like this.
 ```scala
     val akkaCB: CircuitBreaker = talosCircuitBreaker.circuitBreaker.unsafeRunSync()
 ```
@@ -45,6 +45,8 @@ Otherwise you can use the TalosCircuitBreaker typeclass directly
 ```
 
 Talos also supports the CircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
+
+### Shipping circuit breaker events with hystrix reporter
 
 Get an akka directive
 ```scala
