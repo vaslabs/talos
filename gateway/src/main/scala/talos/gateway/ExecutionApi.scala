@@ -13,7 +13,6 @@ import talos.gateway.Gateway.{HttpCall, ServiceCall}
 import talos.gateway.config.GatewayConfig
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 
 trait ExecutionApi[F[_]] {
   def executeCall(httpCommand: HttpCall): F[HttpResponse]
@@ -28,9 +27,9 @@ class ServiceExecutionApi private[gateway](gatewayConfig: GatewayConfig, httpExe
       serviceConfig =>
         val circuitBreaker = CircuitBreaker(
           actorSystem.scheduler,
-          30,
+          serviceConfig.importance.consecutiveFailuresThreshold,
           serviceConfig.callTimeout,
-          10 seconds
+          serviceConfig.importance.resetTimeout
         )
         serviceConfig.host -> AkkaCircuitBreaker(serviceConfig.host, circuitBreaker)
     }.toMap
