@@ -42,7 +42,7 @@ object config {
   }
 
   object High extends ServiceImportance {
-    override val consecutiveFailuresThreshold = 50
+    override val consecutiveFailuresThreshold = 20
 
     override val resetTimeout: FiniteDuration = 15 seconds
   }

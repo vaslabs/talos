@@ -11,14 +11,9 @@ options:
   url: dashboard/hystrixDashboard.html
   section: dashboard
 
-- title: Talos gateway
-  url: gateway/talosgateway.html
+- title: API Gateway
+  url: gateway/
   menu_section: gateway
-
-  nested_options:
-    - title: Benchmarks
-      url: benchmarks/TalosGatewayMultiserviceBenchmark.html
-      menu_section: gateway
 
 - title: Advanced
   url: advanced/
