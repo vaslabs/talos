@@ -93,7 +93,7 @@ ENV JAVA_OPTS="-Dconfig.file=/conf/application.conf"
 ## Sandbox example
 
 You can also fork the source code and do
-```bash
+```sh
 cd gateway/sandbox
 docker-compose up
 ```
@@ -101,5 +101,12 @@ docker-compose up
 And you get 2 wiremock services, the talos gateway hitting them and a hystrix dashboard.
 
 The sandbox is configured in a way to demonstrate recovery of backend services protected by the circuit breakers via the hystrix dashboard.
+
+Run the integration tests with
+```sh
+sbt gatling-it:testOnly *MultiserviceTrafficHappySimulation
+```
+
+On the hystrix dashboard you should see something like the below
 
 ![alt text](/talos/img/hystrix_dashboard_sandbox.gif)
