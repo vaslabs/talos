@@ -15,3 +15,4 @@ script:
 - sbt reportTestCov
 - sbt talosMicrosite/tut
 - snyk test
+- snyk monitor
