@@ -61,7 +61,8 @@ lazy val compilerSettings = {
 
 
 lazy val talosCore =
-  (project in file("core")).settings(
+  (project in file("core"))
+  .settings(
     libraryDependencies ++= libraries.ScalaTest.all
   ).settings(
     compilerSettings
@@ -99,20 +100,23 @@ lazy val hystrixReporter =
     .settings(publishSettings)
   .dependsOn(talosKamon)
 
+lazy val dockerCommonSettings = Seq(
+  version in Docker := version.value,
+  maintainer in Docker := "Vasilis Nicolaou",
+  dockerBaseImage := "openjdk:8-alpine",
+  dockerExposedPorts := Seq(8080),
+  maintainer := "vaslabsco@gmail.com",
+  dockerUsername := Some("vaslabs"),
+)
+
+lazy val dockerPlugins = Seq(DockerPlugin, AshScriptPlugin, JavaAppPackaging, UniversalPlugin)
+
 lazy val talosExamples =
   (project in file("examples"))
-  .enablePlugins(DockerPlugin)
-  .enablePlugins(UniversalPlugin)
-  .enablePlugins(AshScriptPlugin)
-  .enablePlugins(JavaAppPackaging)
+  .enablePlugins(dockerPlugins: _*)
+  .settings(dockerCommonSettings)
   .settings(
     packageName in Docker := "talos-demo",
-    version in Docker := version.value,
-    maintainer in Docker := "Vasilis Nicolaou",
-    dockerBaseImage := "openjdk:8-alpine",
-    dockerExposedPorts := Seq(8080),
-    maintainer := "vaslabsco@gmail.com",
-    dockerUsername := Some("vaslabs"),
   )
   .settings(
     libraryDependencies ++=
@@ -170,13 +174,35 @@ lazy val talosMicrosite = (project in file("site"))
   )
   .dependsOn(talosCore, talosKamon, hystrixReporter, talosAkkaSupport, talosMonixSupport)
 
+lazy val talosGateway =
+  (project in file("gateway"))
+  .enablePlugins(dockerPlugins: _*)
+  .enablePlugins(GatlingPlugin)
+  .settings(
+    libraryDependencies ++=
+      libraries.Akka.allHttp ++ libraries.ScalaTest.all ++
+        libraries.Gatling.all ++ libraries.Wiremock.all ++ libraries.Log4j.required :+ libraries.PureConf.core
+  )
+  .settings(
+    packageName in Docker := "talos-gateway",
+  )
+  .settings(
+    compilerSettings
+  )
+  .settings(
+    noPublishSettings
+  ).settings(
+    dockerCommonSettings
+  ).dependsOn(
+    hystrixReporter, talosKamon, talosAkkaSupport, talosCore
+  )
 
 lazy val talos =
   (project in file("."))
   .settings(noPublishSettings)
   .aggregate(
     talosCore, talosKamon, hystrixReporter,
-    talosExamples, talosAkkaSupport, talosMonixSupport
+    talosExamples, talosAkkaSupport, talosMonixSupport, talosGateway
   )
 
 addCommandAlias("release", ";project talos ;reload ;+publishSigned ;sonatypeReleaseAll; talosMicrosite/publishMicrosite")

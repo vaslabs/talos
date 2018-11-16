@@ -11,6 +11,10 @@ options:
   url: dashboard/hystrixDashboard.html
   section: dashboard
 
+- title: API Gateway
+  url: gateway/
+  menu_section: gateway
+
 - title: Advanced
   url: advanced/
   menu_section: advanced

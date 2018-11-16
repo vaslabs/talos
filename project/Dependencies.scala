@@ -2,6 +2,8 @@ import sbt._
 object Dependencies {
 
   object versions {
+    val pureconfig: String = "0.10.0"
+
     val catsEffect: String = "1.0.0"
 
     val akka = "2.5.17"
@@ -10,6 +12,9 @@ object Dependencies {
     val scalatest = "3.0.5"
     val akkaHttp = "10.1.5"
     val monix = "3.0.0-RC2"
+    val gatling = "3.0.0"
+    val wiremock = "1.33"
+    val log4j = "2.10.0"
   }
 
   object libraries {
@@ -30,6 +35,14 @@ object Dependencies {
       val all = Seq(core, catnip)
     }
 
+    object Log4j {
+      private val api       = "org.apache.logging.log4j"  % "log4j-api"        % versions.log4j
+      private val core      = "org.apache.logging.log4j"  % "log4j-core"       % versions.log4j
+      private val slf4j = "org.apache.logging.log4j"  % "log4j-slf4j-impl" % versions.log4j
+
+      val required = Seq(api, core, slf4j)
+    }
+
     object Kamon {
       val core = "io.kamon" %% "kamon-core" % versions.kamon
       val all = Seq(core)
@@ -48,6 +61,22 @@ object Dependencies {
     }
     object ScalaTest {
       val all = Seq("org.scalatest" %% "scalatest" % versions.scalatest % Test)
+    }
+
+    object PureConf {
+      val core = "com.github.pureconfig" %% "pureconfig" % versions.pureconfig
+    }
+
+    object Wiremock {
+      val dispatch = "net.databinder.dispatch" %% "dispatch-core" % "0.13.4"
+      val wiremock = "com.github.tomakehurst" % "wiremock" % versions.wiremock
+
+      val all = Seq(wiremock % Test, dispatch % Test)
+    }
+    object Gatling {
+      val charts = "io.gatling.highcharts" % "gatling-charts-highcharts" % versions.gatling % IntegrationTest
+      val framework = "io.gatling"            % "gatling-test-framework"    % versions.gatling % IntegrationTest
+      val all = Seq(charts, framework)
     }
   }
 
