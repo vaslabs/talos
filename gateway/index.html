@@ -87,7 +87,7 @@ ENV JAVA_OPTS="-Dconfig.file=/conf/application.conf"
 <h2 id="sandbox-example">Sandbox example</h2>
 
 <p>You can also fork the source code and do</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">cd </span>gateway/sandbox
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="nb">cd </span>gateway/sandbox
 docker-compose up
 </code></pre>
 </div>
@@ -95,6 +95,13 @@ docker-compose up
 <p>And you get 2 wiremock services, the talos gateway hitting them and a hystrix dashboard.</p>
 
 <p>The sandbox is configured in a way to demonstrate recovery of backend services protected by the circuit breakers via the hystrix dashboard.</p>
+
+<p>Run the integration tests with</p>
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>sbt gatling-it:testOnly <span class="k">*</span>MultiserviceTrafficHappySimulation
+</code></pre>
+</div>
+
+<p>On the hystrix dashboard you should see something like the below</p>
 
 <p><img src="/talos/img/hystrix_dashboard_sandbox.gif" alt="alt text" /></p>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/talos/highlight/highlight.pack.js"></script><script>hljs.configure({languages:['scala','java','bash']});
