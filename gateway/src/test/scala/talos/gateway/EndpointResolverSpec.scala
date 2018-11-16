@@ -42,6 +42,26 @@ class EndpointResolverSpec extends WordSpec with Matchers with ScalatestRouteTes
       }
     }
 
+    "resolve wildcard paths" in {
+      val catPath = EndpointResolver.resolve(HttpMethods.GET).map {
+        getR => EndpointResolver.resolve("/cat/*") {
+          getR {
+            complete(StatusCodes.OK)
+          }
+        }
+      }
+      catPath should matchPattern {
+        case Right(_) =>
+      }
+
+      catPath.map {
+        catsRoute: Route =>
+          Get("/cat/1") ~> catsRoute ~> check {
+            response.status shouldBe StatusCodes.OK
+          }
+      }
+    }
+
     "rewrite http request" in {
       val transformedRequest = EndpointResolver.transformRequest(
         HttpRequest(uri = Uri("/dogs/").withHost("vaslabs.org")), HitEndpoint("localhost", 8080, "/cats/")

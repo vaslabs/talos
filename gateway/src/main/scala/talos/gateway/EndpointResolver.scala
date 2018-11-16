@@ -31,7 +31,12 @@ object EndpointResolver {
         pathFragment.substring(1)
       else
         pathFragment
-    path(separateOnSlashes(removeTrailingSlash))
+    if (pathFragment.endsWith("*")) {
+      val withoutStar = removeTrailingSlash.substring(0, removeTrailingSlash.length - 1)
+      pathPrefix(separateOnSlashes(withoutStar))
+    }
+    else
+      path(separateOnSlashes(removeTrailingSlash))
   }
 
   private[gateway] def mergeEitherDirectives[F](
