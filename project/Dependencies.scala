@@ -14,6 +14,7 @@ object Dependencies {
     val monix = "3.0.0-RC2"
     val gatling = "3.0.0"
     val wiremock = "1.33"
+    val log4j = "2.11.1"
   }
 
   object libraries {
@@ -32,6 +33,14 @@ object Dependencies {
       val core = "io.monix" %% "monix" % versions.monix
       val catnip = "io.monix" %% "monix" % versions.monix
       val all = Seq(core, catnip)
+    }
+
+    object Log4j {
+      private val api       = "org.apache.logging.log4j"  % "log4j-api"        % versions.log4j
+      private val core      = "org.apache.logging.log4j"  % "log4j-core"       % versions.log4j
+      private val slf4j = "org.apache.logging.log4j"  % "log4j-slf4j-impl" % versions.log4j
+
+      val required = Seq(api, core, slf4j)
     }
 
     object Kamon {

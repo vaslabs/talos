@@ -32,6 +32,11 @@ class ConfigSpec extends FlatSpec with Matchers {
                 "/cats",
                 List(HttpMethods.PUT, HttpMethods.DELETE),
                 "/animals/cats/"
+              ),
+              Mapping(
+                "/cat/*",
+                List(HttpMethods.GET),
+                "/animals/cat/"
               )
             ),
             8,

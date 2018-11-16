@@ -181,7 +181,7 @@ lazy val talosGateway =
   .settings(
     libraryDependencies ++=
       libraries.Akka.allHttp ++ libraries.ScalaTest.all ++
-        libraries.Gatling.all ++ libraries.Wiremock.all :+ libraries.PureConf.core
+        libraries.Gatling.all ++ libraries.Wiremock.all ++ libraries.Log4j.required :+ libraries.PureConf.core
   )
   .settings(
     packageName in Docker := "talos-gateway",
