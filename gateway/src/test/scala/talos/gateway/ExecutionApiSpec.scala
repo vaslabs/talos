@@ -16,7 +16,7 @@ class ExecutionApiSpec extends
     (IO.fromFuture(IO(system.terminate())) *> IO.unit).unsafeRunSync()
   }
 
-  val config: GatewayConfig = TestUtils.gatewayConfiguration
+  val config: GatewayConfig = TestUtils.gatewayConfiguration()
 
   "http execution api" can {
     val executionApi = ExecutionApi.apply(
