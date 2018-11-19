@@ -58,7 +58,7 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
       |          }
       |        ]
       |        max-inflight-requests: 4,
-      |        call-timeout: 1 second,
+      |        call-timeout: 2 seconds,
       |        importance: Low
       |      }
       |    ],
@@ -107,7 +107,7 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
     Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
     val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/vehicles/bikes")))
 
-    println(Await.result(awaitableResult, 1 second))
+    println(Await.result(awaitableResult, 2 seconds))
   }
 
   "overflowing one queue" must "not affect another" in {
@@ -116,7 +116,7 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
     }
     val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/vehicles/bikes")))
 
-    println(Await.result(awaitableResult, 1 second))
+    println(Await.result(awaitableResult, 2 seconds))
   }
 
 
