@@ -107,12 +107,12 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
   }
 
   "overflowing one queue" must "not affect another" in {
-    for (_ <- 1 to 100) {
+    for (_ <- 1 to 32) {
       Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/animals/dogs")))
-      val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/vehicles/bikes")))
-
-      println(Await.result(awaitableResult, 1 second))
     }
+    val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/vehicles/bikes")))
+
+    println(Await.result(awaitableResult, 1 second))
   }
 
 
