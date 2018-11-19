@@ -14,8 +14,12 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+
 import pureconfig.generic.auto._
 import config.pureconfigExt._
+
+import cats.implicits._
+
 import talos.gateway.config.GatewayConfig
 
 class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
@@ -30,7 +34,7 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
       |      {
       |        secure: false,
       |        host: "localhost",
-      |        port: 9000,
+      |        port: 9002,
       |        mappings: [
       |          {
       |            gateway-path: "/animals/dogs",
@@ -45,7 +49,7 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
       |      {
       |        secure: false,
       |        host: "localhost",
-      |        port: 9001,
+      |        port: 9003,
       |        mappings: [
       |          {
       |            gateway-path: "/vehicles/bikes",
@@ -58,7 +62,7 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
       |        importance: Low
       |      }
       |    ],
-      |    port: 8080,
+      |    port: 18080,
       |    interface: "0.0.0.0"
       |}
     """.stripMargin
@@ -66,8 +70,8 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
   val gatewayServer = GatewayServer(pureconfig.loadConfigOrThrow[GatewayConfig]
     (ConfigFactory.parseString(configString)))
 
-  val dogsWireMockServer = new WireMockServer(wireMockConfig().port(9000))
-  val vehiclesWireMockServer = new WireMockServer(wireMockConfig().port(9001))
+  val dogsWireMockServer = new WireMockServer(wireMockConfig().port(9002))
+  val vehiclesWireMockServer = new WireMockServer(wireMockConfig().port(9003))
 
   def initialiseMockServer(port: Int, path: String, mockServer: WireMockServer, delay: FiniteDuration) = {
     mockServer.start()
@@ -82,11 +86,11 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
     WireMock.configureFor("localhost", port)
   }
   override def beforeAll(): Unit = {
-    initialiseMockServer(9000, "/dogs/", dogsWireMockServer, 5 seconds)
-    initialiseMockServer(9001, "/bikes/", vehiclesWireMockServer, 100 millis)
+    initialiseMockServer(9002, "/dogs/", dogsWireMockServer, 5 seconds)
+    initialiseMockServer(9003, "/bikes/", vehiclesWireMockServer, 100 millis)
   }
 
-  import cats.implicits._
+
   override def afterAll(): Unit = {
     import scala.concurrent.ExecutionContext.Implicits._
     dogsWireMockServer.stop()
@@ -97,20 +101,20 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
   }
 
   "services" must "be isolated" in {
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/animals/dogs")))
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/animals/dogs")))
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/animals/dogs")))
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/animals/dogs")))
-    val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/vehicles/bikes")))
+    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
+    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
+    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
+    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
+    val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/vehicles/bikes")))
 
     println(Await.result(awaitableResult, 1 second))
   }
 
   "overflowing one queue" must "not affect another" in {
     for (_ <- 1 to 32) {
-      Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/animals/dogs")))
+      Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
     }
-    val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/vehicles/bikes")))
+    val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/vehicles/bikes")))
 
     println(Await.result(awaitableResult, 1 second))
   }
