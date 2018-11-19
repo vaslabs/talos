@@ -5,7 +5,7 @@ import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.pattern.CircuitBreaker
-import akka.stream.javadsl.SourceQueueWithComplete
+import akka.stream.scaladsl.SourceQueueWithComplete
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import cats.effect.IO
@@ -60,7 +60,7 @@ object ExecutionApi {
   private type QUEUE = SourceQueueWithComplete[(HttpRequest, Promise[HttpResponse])]
   def http(gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem) = {
     implicit val actorMaterializer = ActorMaterializer()
-    val executionContexts: Map[String, QUEUE] = {
+    val queuesPerService: Map[String, QUEUE] = {
       val fromServices = gatewayConfig.services.map {
         service =>
            val bulkeadingConfigString = s"""
@@ -87,10 +87,11 @@ object ExecutionApi {
 
           service.host -> queue
       }
-      fromServices.toMap
+      Map(fromServices: _*)
     }
 
     def queueRequest(request: HttpRequest, queue: QUEUE): Future[HttpResponse] = {
+      import actorSystem.dispatcher
       val responsePromise = Promise[HttpResponse]()
       queue.offer(request -> responsePromise).flatMap {
         case QueueOfferResult.Enqueued    => responsePromise.future
@@ -104,7 +105,7 @@ object ExecutionApi {
       gatewayConfig,
       serviceCall => IO.fromFuture {
         IO {
-          val queue = executionContexts(serviceCall.hitEndpoint.service)
+          val queue = queuesPerService(serviceCall.hitEndpoint.service)
           queueRequest(serviceCall.request, queue)
         }
       }

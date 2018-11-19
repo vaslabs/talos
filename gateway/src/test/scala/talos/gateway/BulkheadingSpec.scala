@@ -69,21 +69,21 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
   val dogsWireMockServer = new WireMockServer(wireMockConfig().port(9000))
   val vehiclesWireMockServer = new WireMockServer(wireMockConfig().port(9001))
 
-  def initialiseMockServer(port: Int, path: String, mockServer: WireMockServer) = {
+  def initialiseMockServer(port: Int, path: String, mockServer: WireMockServer, delay: FiniteDuration) = {
     mockServer.start()
 
     val wireMock = new WireMock("localhost", port)
     wireMock.register(
       get(urlEqualTo(path))
         .willReturn(
-          aResponse().withFixedDelay(5000)
+          aResponse().withFixedDelay(delay.toMillis.intValue())
             .withStatus(200))
     )
     WireMock.configureFor("localhost", port)
   }
   override def beforeAll(): Unit = {
-    initialiseMockServer(9000, "/dogs/", dogsWireMockServer)
-    initialiseMockServer(9001, "/bikes/", vehiclesWireMockServer)
+    initialiseMockServer(9000, "/dogs/", dogsWireMockServer, 5 seconds)
+    initialiseMockServer(9001, "/bikes/", vehiclesWireMockServer, 100 millis)
   }
 
   import cats.implicits._
