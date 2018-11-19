@@ -36,7 +36,10 @@ class GatewayServer private(gatewayConfig: GatewayConfig)(implicit actorSystem: 
 object GatewayServer {
   def apply()(implicit actorSystem: ActorSystem): Future[Http.ServerBinding] =
     GatewayConfig.load match {
-      case Right(config) => new GatewayServer(config).start
+      case Right(config) => GatewayServer(config)
       case Left(throwable) => Future.failed(new RuntimeException(throwable.toList.mkString("\n")))
     }
+
+  def apply(config: GatewayConfig)(implicit actorSystem: ActorSystem): Future[Http.ServerBinding] =
+    new GatewayServer(config).start
 }

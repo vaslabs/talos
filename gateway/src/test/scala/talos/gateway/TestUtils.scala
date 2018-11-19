@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 
 object TestUtils {
 
-  def gatewayConfiguration = GatewayConfig(
+  def gatewayConfiguration(maxInFlightRequests: Int = 8, timeout: FiniteDuration = 1 second) = GatewayConfig(
     List(
       ServiceConfig(
         false,
@@ -25,8 +25,8 @@ object TestUtils {
             "/bar"
           )
         ),
-        8,
-        1 second,
+        maxInFlightRequests,
+        timeout,
         High
       ),
       ServiceConfig(
@@ -45,8 +45,8 @@ object TestUtils {
             "/bar"
           )
         ),
-        8,
-        1 second,
+        maxInFlightRequests,
+        timeout,
         Medium
       )
     ),

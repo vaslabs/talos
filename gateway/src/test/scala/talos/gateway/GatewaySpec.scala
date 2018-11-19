@@ -11,7 +11,7 @@ class GatewaySpec extends WordSpec with Matchers with ScalatestRouteTest{
 
   "talos gateway" can {
 
-    val talosGateway = Gateway(TestUtils.gatewayConfiguration, (httpCommand: Gateway.HttpCall) =>
+    val talosGateway = Gateway(TestUtils.gatewayConfiguration(), (httpCommand: Gateway.HttpCall) =>
       httpCommand match {
         case ServiceCall(hit, request) =>
           Future.successful(HttpResponse(entity = s"${hit.service} ${hit.targetPath} ${request.method.value}"))

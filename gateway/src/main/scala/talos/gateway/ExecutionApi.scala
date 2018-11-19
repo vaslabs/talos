@@ -3,8 +3,11 @@ package talos.gateway
 import akka.actor.ActorSystem
 import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.pattern.CircuitBreaker
+import akka.stream.javadsl.SourceQueueWithComplete
+import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
+import akka.stream.scaladsl.{Keep, Sink, Source}
 import cats.effect.IO
 import com.typesafe.config.ConfigFactory
 import talos.circuitbreakers.TalosCircuitBreaker
@@ -12,7 +15,11 @@ import talos.circuitbreakers.akka._
 import talos.gateway.Gateway.{HttpCall, ServiceCall}
 import talos.gateway.config.GatewayConfig
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
+
+import akka.http.scaladsl.model._
+
 
 trait ExecutionApi[F[_]] {
   def executeCall(httpCommand: HttpCall): F[HttpResponse]
@@ -50,8 +57,10 @@ class ServiceExecutionApi private[gateway](gatewayConfig: GatewayConfig, httpExe
 }
 
 object ExecutionApi {
+  private type QUEUE = SourceQueueWithComplete[(HttpRequest, Promise[HttpResponse])]
   def http(gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem) = {
-    val executionContexts: Map[String, ConnectionPoolSettings] = {
+    implicit val actorMaterializer = ActorMaterializer()
+    val executionContexts: Map[String, QUEUE] = {
       val fromServices = gatewayConfig.services.map {
         service =>
            val bulkeadingConfigString = s"""
@@ -61,17 +70,42 @@ object ExecutionApi {
             max-open-requests = ${service.maxInflightRequests * 2},
             }
           """
+          val QueueSize = service.maxInflightRequests * 4
+
           val bulkeadingConfig =
             actorSystem.settings.config.resolveWith(ConfigFactory.parseString(bulkeadingConfigString))
           service.host -> ConnectionPoolSettings(bulkeadingConfig)
+          val poolClientFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](service.host, service.port)
+
+          val queue =
+            Source.queue[(HttpRequest, Promise[HttpResponse])](QueueSize, OverflowStrategy.dropNew)
+              .via(poolClientFlow)
+              .toMat(Sink.foreach({
+                case ((Success(resp), p)) => p.success(resp)
+                case ((Failure(e), p))    => p.failure(e)
+              }))(Keep.left).run()
+
+          service.host -> queue
       }
       fromServices.toMap
     }
+
+    def queueRequest(request: HttpRequest, queue: QUEUE): Future[HttpResponse] = {
+      val responsePromise = Promise[HttpResponse]()
+      queue.offer(request -> responsePromise).flatMap {
+        case QueueOfferResult.Enqueued    => responsePromise.future
+        case QueueOfferResult.Dropped     => Future.failed(new RuntimeException("Queue overflowed. Try again later."))
+        case QueueOfferResult.Failure(ex) => Future.failed(ex)
+        case QueueOfferResult.QueueClosed => Future.failed(new RuntimeException("Queue was closed (pool shut down) while running the request. Try again later."))
+      }
+    }
+
     apply(
       gatewayConfig,
       serviceCall => IO.fromFuture {
         IO {
-          Http().singleRequest(serviceCall.request, settings = executionContexts(serviceCall.hitEndpoint.service))
+          val queue = executionContexts(serviceCall.hitEndpoint.service)
+          queueRequest(serviceCall.request, queue)
         }
       }
     )
