@@ -8,12 +8,15 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import talos.gateway.EndpointResolver.HitEndpoint
 import talos.gateway.Gateway.ServiceCall
 import talos.gateway.config.GatewayConfig
-import cats.implicits._
+import scala.concurrent.duration._
+
+import scala.concurrent.Await
 class ExecutionApiSpec extends
-    TestKit(ActorSystem("HttpExecutionApiSpec")) with WordSpecLike with BeforeAndAfterAll with Matchers{
+    TestKit(ActorSystem("ExecutionApiSpec")) with WordSpecLike with BeforeAndAfterAll with Matchers{
 
   override def afterAll() {
-    (IO.fromFuture(IO(system.terminate())) *> IO.unit).unsafeRunSync()
+    Await.result(system.terminate(), 3 seconds)
+    ()
   }
 
   val config: GatewayConfig = TestUtils.gatewayConfiguration()

@@ -13,53 +13,13 @@ number: 2
 libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.3.0"
 ```
 
-A typed actor is used to register to the event stream and record stats in Kamon. Thus there are 
-two ways to start the actor. 
-
-## Using the untyped actor system
-
-The most common use case is that you are still using the untyped actor system. You can spawn 
-an actor in the following ways
-
-### With an actor context
-```tut:silent
-  import akka.actor.ActorContext
-  import akka.actor.typed.ActorRef
-  import akka.actor.typed.scaladsl.adapter._
-
-  import talos.events.TalosEvents.model.CircuitBreakerEvent
-  import talos.kamon.StatsAggregator
-  
-  def recordKamonMetrics(ctx: ActorContext): ActorRef[CircuitBreakerEvent] =
-    ctx.spawn(StatsAggregator.behavior(), "KamonStatsAggregator")
-```
-
-### From the actor system directly
-
 ```tut:silent
   import akka.actor.ActorSystem
-  
-  import akka.actor.typed.ActorRef
-  import akka.actor.typed.scaladsl.adapter._
-  
-  import scala.concurrent.duration._
-  import scala.concurrent.Future
-  
-  import talos.events.TalosEvents.model.CircuitBreakerEvent
+
   import talos.kamon.StatsAggregator
-
-  def recordKamonMetrics(implicit actorSystem: ActorSystem): Future[ActorRef[CircuitBreakerEvent]] =
-    actorSystem.toTyped.systemActorOf(StatsAggregator.behavior(), "KamonStatsAggregator")(2 seconds)
+  
+  def recordKamonMetrics(implicit actorSystem: ActorSystem) = StatsAggregator.kamon()
 ```
-
-## Using the typed actor system
-
-There is no need for implicit resolution, you can start the actor from any of your behaviours following 
-the Akka typed documentation.
-
-The actor is adding metrics to Kamon directly. 
-
-In the future the underlying actor will be encapsulated better.
 
 ## Metrics format
 

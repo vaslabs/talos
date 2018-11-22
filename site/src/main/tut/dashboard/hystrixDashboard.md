@@ -24,14 +24,13 @@ import java.time.Clock
 
 import akka.http.scaladsl.server.Route
 import akka.actor.ActorSystem
-import akka.util.Timeout
 
 import scala.concurrent.Future
 
 import talos.http.HystrixReporterDirective
 
-def hystrixReporterDirective(implicit actorSystem: ActorSystem, timeout: Timeout): Future[Route]  = 
-    new HystrixReporterDirective().hystrixStreamHttpRoute.run(Clock.systemUTC())
+def hystrixReporterDirective(implicit actorSystem: ActorSystem, clock: Clock): Route  =
+    new HystrixReporterDirective().hystrixStreamHttpRoute
 ```
 
-So far Talos is opinionated over Akka but the plan is to make it more generic in the future.
+So far Talos is opinionated over hystrixStreamHttpRouteAkka but the plan is to make it more generic in the future.
