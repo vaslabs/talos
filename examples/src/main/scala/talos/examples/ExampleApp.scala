@@ -16,15 +16,16 @@ object ExampleApp extends App {
 
     implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
 
-    val clock: Clock = Clock.systemUTC()
+    implicit val TestClock: Clock = Clock.systemUTC()
 
-    implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
+
     import actorSystem.dispatcher
+
 
     val hystrixReporterDirective = new HystrixReporterDirective().hystrixStreamHttpRoute
     val server = new StartServer("0.0.0.0", 8080)
 
-    val startingServer = (hystrixReporterDirective andThen server.startHttpServer).run(Clock.systemUTC())
+    val startingServer = server.startHttpServer.run(hystrixReporterDirective)
 
 
     sys.addShutdownHook {

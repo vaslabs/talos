@@ -1,15 +1,34 @@
 package talos.kamon
 
-import akka.actor.typed.{Behavior, PostStop, PreRestart}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter._
-
+import akka.actor.typed.{Behavior, PostStop, PreRestart, ActorRef => TypedActorRef}
+import akka.actor.{ActorSystem, TypedActor}
+import akka.util.Timeout
+import cats.effect.{CancelToken, IO}
 import kamon.Kamon
 import kamon.metric.{Counter, Histogram}
-
 import talos.events.TalosEvents.model._
 
+import scala.concurrent.duration._
+
 object StatsAggregator {
+  def kamon()(implicit actorSystem: ActorSystem): CancelToken[IO] = IO.fromFuture {
+    IO
+    {
+      actorSystem.toTyped.systemActorOf(behavior(), "TalosStatsAggregator")(Timeout(3 seconds))
+    }
+  }.unsafeRunCancelable(stop)
+
+  private def stop(cancellationState: Either[Throwable, TypedActorRef[CircuitBreakerEvent]])(implicit actorSystem: ActorSystem) =
+    cancellationState match {
+      case Right(typedActorRef) =>
+        TypedActor(actorSystem).stop(typedActorRef)
+        ()
+      case Left(throwable) =>
+        actorSystem.log.error(throwable, "Can't cancel kamon monitoring for circuit breakers")
+    }
+
 
   object Keys {
     val CounterPrefix = "circuit-breaker-"
@@ -53,7 +72,7 @@ object StatsAggregator {
     histogram.refine(refinedTag)
   }
 
-  def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.setup {
+  private[kamon] def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.setup {
     ctx => {
       ctx.system.toUntyped.eventStream.subscribe(ctx.self.toUntyped, classOf[CircuitBreakerEvent])
       Behaviors.receive[CircuitBreakerEvent] {

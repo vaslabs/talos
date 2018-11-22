@@ -1,5 +1,6 @@
 package talos.kamon
 
+import akka.actor.ActorSystem
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.scaladsl.adapter._
 import com.typesafe.config.Config
@@ -39,12 +40,11 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
   "circuit breaker" should "integrate with kamon" in {
 
 
+    implicit val untypedActorSystem: ActorSystem = testKit.system.toUntyped
+
     val circuitBreakerName = "myCircuitBreaker"
 
-    testKit.spawn(StatsAggregator.behavior()).toUntyped
-
-    val untypedActorSystem = testKit.system.toUntyped
-
+    val cancellableStatsAggregation = StatsAggregator.kamon()
 
 
     for (i <- 1 to 10) yield untypedActorSystem.eventStream.publish(SuccessfulCall(circuitBreakerName, i seconds))
@@ -62,6 +62,9 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
       "circuit-breaker-myCircuitBreaker-short-circuited" -> 5,
       "circuit-breaker-myCircuitBreaker-circuit-open" -> 1
     )
+
+    cancellableStatsAggregation.unsafeRunSync()
+
   }
 
 }
