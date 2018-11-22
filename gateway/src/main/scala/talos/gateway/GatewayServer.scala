@@ -18,7 +18,7 @@ class GatewayServer private(gatewayConfig: GatewayConfig)(implicit actorSystem: 
     implicit val actorMaterializer = ActorMaterializer()
     import scala.concurrent.ExecutionContext.Implicits._
 
-    implicit val TestClock = Clock.systemUTC()
+    implicit val testClock = Clock.systemUTC()
     val hystrixDirective =
       new HystrixReporterDirective().hystrixStreamHttpRoute
 

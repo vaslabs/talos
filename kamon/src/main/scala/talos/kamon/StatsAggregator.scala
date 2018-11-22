@@ -18,9 +18,9 @@ object StatsAggregator {
     {
       actorSystem.toTyped.systemActorOf(behavior(), "TalosStatsAggregator")(Timeout(3 seconds))
     }
-  }.unsafeRunCancelable(stopStatsAggregator)
+  }.unsafeRunCancelable(stop)
 
-  private def stopStatsAggregator(cancellationState: Either[Throwable, TypedActorRef[CircuitBreakerEvent]])(implicit actorSystem: ActorSystem) =
+  private def stop(cancellationState: Either[Throwable, TypedActorRef[CircuitBreakerEvent]])(implicit actorSystem: ActorSystem) =
     cancellationState match {
       case Right(typedActorRef) =>
         TypedActor(actorSystem).stop(typedActorRef)
