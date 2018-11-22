@@ -6,7 +6,7 @@ deliver fine grained visualisations.</p>
 
 <h3 id="usage">Usage</h3>
 
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"hystrixreporter"</span> <span class="o">%</span> <span class="s">"0.3.0"</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"hystrixreporter"</span> <span class="o">%</span> <span class="s">"0.4.0"</span>
 </code></pre>
 </div>
 
@@ -16,18 +16,15 @@ deliver fine grained visualisations.</p>
 
 <span class="k">import</span> <span class="nn">akka.http.scaladsl.server.Route</span>
 <span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-<span class="k">import</span> <span class="nn">akka.util.Timeout</span>
-
-<span class="k">import</span> <span class="nn">scala.concurrent.Future</span>
 
 <span class="k">import</span> <span class="nn">talos.http.HystrixReporterDirective</span>
 
-<span class="k">def</span> <span class="n">hystrixReporterDirective</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">,</span> <span class="n">timeout</span><span class="k">:</span> <span class="kt">Timeout</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Route</span><span class="o">]</span>  <span class="k">=</span> 
-    <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="n">hystrixStreamHttpRoute</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="nc">Clock</span><span class="o">.</span><span class="n">systemUTC</span><span class="o">())</span>
+<span class="k">def</span> <span class="n">hystrixReporterDirective</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">,</span> <span class="n">clock</span><span class="k">:</span> <span class="kt">Clock</span><span class="o">)</span><span class="k">:</span> <span class="kt">Route</span>  <span class="o">=</span>
+    <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="n">hystrixStreamHttpRoute</span>
 </code></pre>
 </div>
 
-<p>So far Talos is opinionated over Akka but the plan is to make it more generic in the future.</p>
+<p>So far Talos is opinionated over hystrixStreamHttpRouteAkka but the plan is to make it more generic in the future.</p>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/talos/highlight/highlight.pack.js"></script><script>hljs.configure({languages:['scala','java','bash']});
 hljs.initHighlighting();
               </script><script>((window.gitter = {}).chat = {}).options = {

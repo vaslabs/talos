@@ -2,57 +2,17 @@
 
 <h2 id="dependency">Dependency</h2>
 
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloskamon"</span> <span class="o">%</span> <span class="s">"0.3.0"</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloskamon"</span> <span class="o">%</span> <span class="s">"0.4.0"</span>
 </code></pre>
 </div>
-
-<p>A typed actor is used to register to the event stream and record stats in Kamon. Thus there are 
-two ways to start the actor.</p>
-
-<h2 id="using-the-untyped-actor-system">Using the untyped actor system</h2>
-
-<p>The most common use case is that you are still using the untyped actor system. You can spawn 
-an actor in the following ways</p>
-
-<h3 id="with-an-actor-context">With an actor context</h3>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>  <span class="k">import</span> <span class="nn">akka.actor.ActorContext</span>
-  <span class="k">import</span> <span class="nn">akka.actor.typed.ActorRef</span>
-  <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
-
-  <span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
-  <span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
-  
-  <span class="k">def</span> <span class="n">recordKamonMetrics</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">ActorContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span>
-    <span class="n">ctx</span><span class="o">.</span><span class="n">spawn</span><span class="o">(</span><span class="nc">StatsAggregator</span><span class="o">.</span><span class="n">behavior</span><span class="o">(),</span> <span class="s">"KamonStatsAggregator"</span><span class="o">)</span>
-</code></pre>
-</div>
-
-<h3 id="from-the-actor-system-directly">From the actor system directly</h3>
 
 <div class="language-scala highlighter-rouge"><pre class="highlight"><code>  <span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-  
-  <span class="k">import</span> <span class="nn">akka.actor.typed.ActorRef</span>
-  <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
-  
-  <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-  <span class="k">import</span> <span class="nn">scala.concurrent.Future</span>
-  
-  <span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
-  <span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
 
-  <span class="k">def</span> <span class="n">recordKamonMetrics</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]]</span> <span class="k">=</span>
-    <span class="n">actorSystem</span><span class="o">.</span><span class="n">toTyped</span><span class="o">.</span><span class="n">systemActorOf</span><span class="o">(</span><span class="nc">StatsAggregator</span><span class="o">.</span><span class="n">behavior</span><span class="o">(),</span> <span class="s">"KamonStatsAggregator"</span><span class="o">)(</span><span class="mi">2</span> <span class="n">seconds</span><span class="o">)</span>
+  <span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
+  
+  <span class="k">def</span> <span class="n">recordKamonMetrics</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span> <span class="k">=</span> <span class="nc">StatsAggregator</span><span class="o">.</span><span class="n">kamon</span><span class="o">()</span>
 </code></pre>
 </div>
-
-<h2 id="using-the-typed-actor-system">Using the typed actor system</h2>
-
-<p>There is no need for implicit resolution, you can start the actor from any of your behaviours following 
-the Akka typed documentation.</p>
-
-<p>The actor is adding metrics to Kamon directly.</p>
-
-<p>In the future the underlying actor will be encapsulated better.</p>
 
 <h2 id="metrics-format">Metrics format</h2>
 
