@@ -25,8 +25,6 @@ import java.time.Clock
 import akka.http.scaladsl.server.Route
 import akka.actor.ActorSystem
 
-import scala.concurrent.Future
-
 import talos.http.HystrixReporterDirective
 
 def hystrixReporterDirective(implicit actorSystem: ActorSystem, clock: Clock): Route  =
