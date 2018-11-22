@@ -6,7 +6,7 @@ object Dependencies {
 
     val catsEffect: String = "1.0.0"
 
-    val akka = "2.5.17"
+    val akka = "2.5.18"
     val circe = "0.10.0"
     val kamon = "1.1.0"
     val scalatest = "3.0.5"
