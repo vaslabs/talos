@@ -97,6 +97,7 @@ lazy val hystrixReporter =
   (project in file("hystrix-reporter")).settings(
     libraryDependencies ++=
       libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
+        ++ libraries.Log4j.required.map(_ % Test)
   ).settings(compilerSettings)
     .settings(publishSettings)
   .dependsOn(talosKamon)
