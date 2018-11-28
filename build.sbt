@@ -63,10 +63,19 @@ lazy val compilerSettings = {
 lazy val talosCore =
   (project in file("core"))
   .settings(
-    libraryDependencies ++= libraries.ScalaTest.all
+    libraryDependencies ++= Seq(libraries.ScalaTest.scalatest, libraries.Cats.effect, libraries.ScalaTest.scalacheck)
   ).settings(
     compilerSettings
   ).settings(publishSettings)
+
+lazy val talosLaws = (project in file("laws"))
+  .settings(
+    libraryDependencies ++= libraries.ScalaTest.all
+  ).settings(
+  compilerSettings
+).settings(
+  publishSettings
+).dependsOn(talosCore)
 
 lazy val talosMonixSupport = (project in file("monix"))
   .settings(

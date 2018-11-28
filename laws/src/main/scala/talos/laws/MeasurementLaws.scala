@@ -1,0 +1,44 @@
+package talos.laws
+
+import java.util.concurrent.Executors
+
+import cats.effect._
+import talos.events.TalosEvents.model.{CallFailure, CallTimeout, SuccessfulCall}
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+import scala.util.Try
+import cats.implicits._
+
+trait MeasurementLaws[C, F[_]] extends EventBusLaws with Typeclasses[C, F] {
+  implicit val timer = IO.timer(ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor()))
+
+
+
+  private[laws] def measuresElapsedTimeInSuccessfulCalls(implicit F: Effect[F]) = {
+   run(F.liftIO(IO.sleep(1 second)))
+    val event = acceptMsg.asInstanceOf[SuccessfulCall]
+    event.copy(elapsedTime = event.elapsedTime.toSeconds seconds) shouldBe
+      SuccessfulCall(talosCircuitBreaker.name, 1 second)
+  }
+
+  private[laws] def measuresElapsedTimeInFailedCalls(implicit F: Effect[F]) = {
+    val unsafeCall = IO.sleep(1 second) <* IO.suspend(IO.raiseError(new RuntimeException))
+
+    Try(run(F.liftIO(unsafeCall)))
+
+    val event = acceptMsg.asInstanceOf[CallFailure]
+    event.copy(elapsedTime = event.elapsedTime.toSeconds seconds)  shouldBe
+      CallFailure(talosCircuitBreaker.name, 1 second)
+
+  }
+
+  private[laws] def measuresElapsedTimeInTimeouts(implicit F: Effect[F]) = {
+    Try(run(F.liftIO(IO.never)))
+    val event = acceptMsg.asInstanceOf[CallTimeout]
+    event.copy(elapsedTime = event.elapsedTime.toSeconds seconds) shouldBe
+      CallTimeout(talosCircuitBreaker.name, 1 second)
+  }
+
+
+}

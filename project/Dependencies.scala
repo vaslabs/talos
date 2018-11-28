@@ -3,6 +3,8 @@ import sbt._
 object Dependencies {
 
   object versions {
+    val scalcheck: String = "1.14.0"
+
     val pureconfig: String = "0.10.0"
 
     val catsEffect: String = "1.0.0"
@@ -63,7 +65,9 @@ object Dependencies {
     }
 
     object ScalaTest {
-      val all = Seq("org.scalatest" %% "scalatest" % versions.scalatest % Test)
+      val scalatest = "org.scalatest" %% "scalatest" % versions.scalatest
+      val scalacheck = "org.scalacheck" %% "scalacheck" % versions.scalcheck
+      val all = Seq(scalatest % Test)
     }
 
     object PureConf {
