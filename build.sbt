@@ -85,14 +85,14 @@ lazy val talosMonixSupport = (project in file("monix"))
   )
   .settings(compilerSettings)
   .settings(publishSettings)
-  .dependsOn(talosCore)
+  .dependsOn(talosCore, talosLaws % Test)
 
 lazy val talosAkkaSupport = (project in file("akka"))
   .settings(
     libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all :+ libraries.Cats.effect
   ).settings(compilerSettings)
   .settings(publishSettings)
-  .dependsOn(talosCore)
+  .dependsOn(talosCore, talosLaws % Test)
 
 lazy val talosKamon =
   (project in file("kamon")).settings(

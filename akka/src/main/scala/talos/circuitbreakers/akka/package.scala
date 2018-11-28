@@ -3,10 +3,10 @@ package talos.circuitbreakers
 import _root_.akka.event.EventStream
 import _root_.akka.pattern.{CircuitBreaker => AkkaCB}
 import _root_.akka.actor.{ActorRef, ActorSystem}
-
 import cats.effect.IO
 import talos.events.TalosEvents.model._
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 package object akka {
@@ -29,8 +29,8 @@ package object akka {
          (implicit eventBus: EventBus[ActorRef]) extends TalosCircuitBreaker[AkkaCB, IO] {
 
     override def protect[A](task: IO[A]): IO[A] =
-      IO {
-        protectUnsafe(task)
+      IO.fromFuture {
+        IO(protectUnsafe(task))
       }
 
 
@@ -61,8 +61,8 @@ package object akka {
 
     override val circuitBreaker: IO[AkkaCB] = IO.pure(circuitBreakerInstance)
 
-    private def protectUnsafe[A](task: IO[A]): A =
-      circuitBreakerInstance.callWithSyncCircuitBreaker(() => task.unsafeRunSync())
+    private def protectUnsafe[A](task: IO[A]): Future[A] =
+      circuitBreakerInstance.callWithCircuitBreaker(() => task.unsafeToFuture())
   }
 
   object AkkaCircuitBreaker {

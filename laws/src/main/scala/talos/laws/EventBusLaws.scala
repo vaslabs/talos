@@ -6,10 +6,10 @@ import Gen._
 import org.scalatest.Matchers
 import talos.events.TalosEvents.model.{CircuitBreakerEvent, SuccessfulCall}
 
-trait EventBusLaws extends Matchers{
+trait EventBusLaws[S] extends Matchers{
   def acceptMsg: CircuitBreakerEvent
 
-  implicit def eventBus[S]: EventBus[S]
+  implicit def eventBus: EventBus[S]
 
   private def genSuccessfulCall: Gen[SuccessfulCall] = for {
     elapsedTime <- finiteDuration

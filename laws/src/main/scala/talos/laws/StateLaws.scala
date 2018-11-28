@@ -6,7 +6,7 @@ import talos.events.TalosEvents.model._
 
 import scala.util.Try
 
-trait StateLaws[C, F[_]] extends Typeclasses[C, F] with EventBusLaws with Matchers {
+trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S] with Matchers {
 
   private[laws] def exposesCircuitOpenEvent(implicit F: Effect[F]) = {
     val failure = F.liftIO {
@@ -49,14 +49,13 @@ trait StateLaws[C, F[_]] extends Typeclasses[C, F] with EventBusLaws with Matche
     eventualSuccess match {
       case Some(c: CircuitHalfOpen) =>
         c shouldBe CircuitHalfOpen(talosCircuitBreaker.name)
-        run(success)
         matchClosing(acceptMsg)
       case Some(SuccessfulCall(circuitBreakerName, _)) =>
         circuitBreakerName shouldBe talosCircuitBreaker.name
         acceptMsg shouldBe CircuitHalfOpen(talosCircuitBreaker.name)
         matchClosing(acceptMsg)
-      case _ =>
-        fail("Circuit breaker should have eventually been closed")
+      case other =>
+        fail(s"Circuit breaker should have eventually been closed, instead it was $other")
     }
   }
 
@@ -68,7 +67,7 @@ trait StateLaws[C, F[_]] extends Typeclasses[C, F] with EventBusLaws with Matche
     case SuccessfulCall(name, _) =>
       name shouldBe acceptMsg.circuitBreakerName
       acceptMsg shouldBe CircuitClosed(talosCircuitBreaker.name)
-    case _ =>
-      fail("Circuit breaker should have eventually been closed")
+    case other =>
+      fail(s"Circuit breaker should have eventually been closed but it was $other")
   }
 }
