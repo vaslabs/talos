@@ -41,8 +41,6 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, Ci
 
   override val callTimeout: FiniteDuration = 2 seconds
 
-  implicit val ioTimer: Timer[IO] = IO.timer(system.dispatcher)
-
   implicit val contextShift = IO.contextShift(system.dispatcher)
 
   override val talosCircuitBreaker: circuitbreakers.TalosCircuitBreaker[CircuitBreaker[IO], IO] =

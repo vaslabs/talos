@@ -1,7 +1,7 @@
 package talos.circuitbreakers.monix
 
 import akka.actor.ActorSystem
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.{ContextShift, IO}
 import monix.catnap.CircuitBreaker
 import talos.circuitbreakers.TalosCircuitBreaker
 
@@ -12,7 +12,6 @@ class SyntaxSpec {
   def implicitResolution: TalosCircuitBreaker[CircuitBreaker[IO], IO] = {
     implicit def actorSystem: ActorSystem = ???
     implicit def contextShift: ContextShift[IO] = ???
-    implicit def timer: Timer[IO] = ???
     def circuitBreaker: CircuitBreaker[IO] = ???
     MonixCircuitBreaker(
       "testCircuitBreaker",
