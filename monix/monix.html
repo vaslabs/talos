@@ -5,13 +5,14 @@
 <p>To use monix declare the talos monix support dependency.</p>
 
 <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span>
-          <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloscore"</span> <span class="o">%</span> <span class="s">"0.4.0"</span><span class="o">,</span>
-          <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"talosmonixsupport"</span> <span class="o">%</span> <span class="s">"0.4.0"</span>
+          <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloscore"</span> <span class="o">%</span> <span class="s">"0.5.0"</span><span class="o">,</span>
+          <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"talosmonixsupport"</span> <span class="o">%</span> <span class="s">"0.5.0"</span>
 <span class="o">)</span>
 </code></pre>
 </div>
 
-<p>The difference between the two is that if you are already using monix you can continue composing the Async typeclass of your choice.</p>
+<p>The difference between the two is that if you are already using monix you can
+continue composing the Async typeclass of your choice.</p>
 
 <p>You can do something like this.</p>
 
@@ -28,17 +29,25 @@
 <span class="k">import</span> <span class="nn">talos.circuitbreakers.monix._</span>
 
 
-<span class="k">def</span> <span class="n">usage</span><span class="o">[</span><span class="kt">F</span><span class="o">[</span><span class="k">_</span><span class="o">]](</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">,</span> <span class="n">F</span><span class="k">:</span> <span class="kt">Async</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span>, <span class="kt">F</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+<span class="k">def</span> <span class="n">usage</span><span class="o">[</span><span class="kt">F</span><span class="o">[</span><span class="k">_</span><span class="o">]](</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">,</span> <span class="n">F</span><span class="k">:</span> <span class="kt">Concurrent</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span>, <span class="kt">F</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">implicit</span> <span class="k">val</span> <span class="n">effectClock</span> <span class="k">=</span> <span class="nc">Clock</span><span class="o">.</span><span class="n">create</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span>
 
     <span class="k">val</span> <span class="n">circuitBreaker</span><span class="k">:</span> <span class="kt">CircuitBreaker</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CircuitBreaker</span><span class="o">.</span><span class="n">unsafe</span><span class="o">[</span><span class="kt">F</span><span class="o">](</span><span class="mi">5</span><span class="o">,</span> <span class="mi">5</span> <span class="n">seconds</span><span class="o">)</span>
 
-    <span class="nc">MonixCircuitBreaker</span><span class="o">(</span><span class="s">"testCircuitBreaker"</span><span class="o">,</span> <span class="n">circuitBreaker</span><span class="o">)</span>
+    <span class="nc">MonixCircuitBreaker</span><span class="o">(</span><span class="s">"testCircuitBreaker"</span><span class="o">,</span> <span class="n">circuitBreaker</span><span class="o">,</span> <span class="n">callTimeout</span> <span class="k">=</span> <span class="mi">2</span> <span class="n">seconds</span><span class="o">)</span>
 <span class="o">}</span>
 </code></pre>
 </div>
 <p>E.g. for IO you can then do</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="n">usageWithIO</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.concurrent.Executors</span>
+
+<span class="k">import</span> <span class="nn">scala.concurrent.ExecutionContext</span>
+
+<span class="k">def</span> <span class="n">usageWithIO</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">implicit</span> <span class="k">val</span> <span class="n">timeoutContextShift</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">.</span><span class="n">contextShift</span><span class="o">(</span>
+        <span class="nc">ExecutionContext</span><span class="o">.</span><span class="n">fromExecutor</span><span class="o">(</span><span class="nc">Executors</span><span class="o">.</span><span class="n">newSingleThreadExecutor</span><span class="o">())</span>
+    <span class="o">)</span>
+
     <span class="k">val</span> <span class="n">unprotectedTask</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="s">"I'm running in the circuit breaker"</span><span class="o">))</span>
     <span class="k">val</span> <span class="n">ioCircuitBreaker</span> <span class="k">=</span> <span class="n">usage</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
     <span class="n">ioCircuitBreaker</span><span class="o">.</span><span class="n">protect</span><span class="o">(</span><span class="n">unprotectedTask</span><span class="o">)</span>
