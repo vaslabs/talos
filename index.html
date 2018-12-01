@@ -5,10 +5,10 @@
 <h2 id="usage">Usage</h2>
 <p>Talos is modularised. You can twist it and pick the dependencies that fit your need. But let’s go step by step.</p>
 
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloscore"</span> <span class="o">%</span> <span class="s">"0.5.0"</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"talosakkasupport"</span> <span class="o">%</span> <span class="s">"0.5.0"</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloskamon"</span> <span class="o">%</span> <span class="s">"0.5.0"</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"hystrixreporter"</span> <span class="o">%</span> <span class="s">"0.5.0"</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloscore"</span> <span class="o">%</span> <span class="s">"0.5.1"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"talosakkasupport"</span> <span class="o">%</span> <span class="s">"0.5.1"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloskamon"</span> <span class="o">%</span> <span class="s">"0.5.1"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"hystrixreporter"</span> <span class="o">%</span> <span class="s">"0.5.1"</span>
 </code></pre>
 </div>
 <p>The events library provides a way to stream events on what’s happening in the circuit breakers. E.g. combining with the talosakkasupport you can do:</p>
@@ -74,19 +74,18 @@
 
 </code></pre>
 </div>
-
-<h3 id="laws">Laws</h3>
-<p>If you wish to implement your own TalosCircuitBreaker typeclasses you can test them against the laws library:</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloslaws"</span> <span class="o">%</span> <span class="s">"0.5.0"</span>
-</code></pre>
-</div>
-
 <p>Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.</p>
 
 <h3 id="complete-usage-example">Complete usage example</h3>
 
 <p>How to code can be found here:
 https://github.com/vaslabs/talos/blob/master/examples/src/main/scala/talos/examples/ExampleApp.scala</p>
+
+<h3 id="laws">Laws</h3>
+<p>If you wish to implement your own TalosCircuitBreaker typeclasses you can test them against the laws library:</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloslaws"</span> <span class="o">%</span> <span class="s">"0.5.1"</span> <span class="o">%</span> <span class="nc">Test</span>
+</code></pre>
+</div>
 
 <h2 id="run-the-demo">Run the demo</h2>
 
