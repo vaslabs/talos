@@ -17,7 +17,8 @@ libraryDependencies ++= Seq(
 )
 ```
 
-The difference between the two is that if you are already using monix you can continue composing the Async typeclass of your choice.
+The difference between the two is that if you are already using monix you can
+continue composing the Async typeclass of your choice.
 
 You can do something like this.
 
@@ -35,17 +36,25 @@ import talos.circuitbreakers._
 import talos.circuitbreakers.monix._
 
 
-def usage[F[_]](implicit actorSystem: ActorSystem, F: Async[F]): TalosCircuitBreaker[CircuitBreaker[F], F] = {
+def usage[F[_]](implicit actorSystem: ActorSystem, F: Concurrent[F]): TalosCircuitBreaker[CircuitBreaker[F], F] = {
     implicit val effectClock = Clock.create[F]
 
     val circuitBreaker: CircuitBreaker[F] = CircuitBreaker.unsafe[F](5, 5 seconds)
 
-    MonixCircuitBreaker("testCircuitBreaker", circuitBreaker)
+    MonixCircuitBreaker("testCircuitBreaker", circuitBreaker, callTimeout = 2 seconds)
 }
 ```
 E.g. for IO you can then do
 ```tut:silent
+import java.util.concurrent.Executors
+
+import scala.concurrent.ExecutionContext
+
 def usageWithIO(implicit actorSystem: ActorSystem): IO[Unit] = {
+    implicit val timeoutContextShift = IO.contextShift(
+        ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
+    )
+
     val unprotectedTask: IO[Unit] = IO(println("I'm running in the circuit breaker"))
     val ioCircuitBreaker = usage[IO]
     ioCircuitBreaker.protect(unprotectedTask)
