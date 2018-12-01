@@ -9,8 +9,10 @@ import scala.util.Try
 trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S] with Matchers {
 
   private[laws] def exposesCircuitOpenEvent(implicit F: Effect[F]) = {
+    var failures = 0
     val failure = F.liftIO {
       IO {
+        failures+=1
         throw new RuntimeException
       }
     }
@@ -18,7 +20,14 @@ trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S
     val event = Stream.iterate(failure)(identity).map(
       unsafeCall => Try(run(unsafeCall))
     ).map(_ => acceptMsg)
-      .dropWhile(_.isInstanceOf[CallFailure])
+      .dropWhile{ event =>
+        if (event.isInstanceOf[CallFailure]) {
+          failures -= 1
+          true
+        }
+        else
+          false
+      }
       .headOption
 
     event match {
@@ -28,6 +37,11 @@ trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S
         acceptMsg shouldBe CircuitOpen(talosCircuitBreaker.name)
       case Some(c: CircuitOpen) =>
         c shouldBe CircuitOpen(talosCircuitBreaker.name)
+        if (failures == 1) {
+          acceptMsg.asInstanceOf[CallFailure]
+        } else if (failures > 1)
+          fail("Circuit breaker missed a lot of failure events")
+
         Try(run(failure))
         acceptMsg shouldBe ShortCircuitedCall(talosCircuitBreaker.name)
       case _ =>
@@ -39,35 +53,26 @@ trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S
   private[laws] def exposesCircuitClosedTransition(implicit F: Effect[F]) = {
     val success = F.unit
 
+    Try(run(success))
+    acceptMsg shouldBe ShortCircuitedCall(talosCircuitBreaker.name)
+
     val eventualSuccess = Stream.iterate(success)(identity).map(
       unsafeCall => Try(run(unsafeCall))
     ).dropWhile(_.isFailure)
-    .map(_ => acceptMsg)
+      .map(_ => acceptMsg)
       .dropWhile(_.isInstanceOf[ShortCircuitedCall])
       .headOption
 
-    eventualSuccess match {
-      case Some(c: CircuitHalfOpen) =>
-        c shouldBe CircuitHalfOpen(talosCircuitBreaker.name)
-        matchClosing(acceptMsg)
-      case Some(SuccessfulCall(circuitBreakerName, _)) =>
-        circuitBreakerName shouldBe talosCircuitBreaker.name
-        acceptMsg shouldBe CircuitHalfOpen(talosCircuitBreaker.name)
-        matchClosing(acceptMsg)
-      case other =>
-        fail(s"Circuit breaker should have eventually been closed, instead it was $other")
+    val nextEvents: List[CircuitBreakerEvent] = List(eventualSuccess.get, acceptMsg, acceptMsg)
+
+    nextEvents.find(_.isInstanceOf[SuccessfulCall]) match {
+      case None => fail ("A successful call event was expected")
+      case _ =>
+        nextEvents should contain(CircuitClosed(talosCircuitBreaker.name))
+        nextEvents should contain(CircuitHalfOpen(talosCircuitBreaker.name))
     }
+
+
   }
 
-  private[this] def matchClosing(event: CircuitBreakerEvent) = event match {
-    case c: CircuitClosed =>
-      c shouldBe CircuitClosed(talosCircuitBreaker.name)
-      acceptMsg.circuitBreakerName shouldBe talosCircuitBreaker.name
-      acceptMsg.asInstanceOf[SuccessfulCall]
-    case SuccessfulCall(name, _) =>
-      name shouldBe acceptMsg.circuitBreakerName
-      acceptMsg shouldBe CircuitClosed(talosCircuitBreaker.name)
-    case other =>
-      fail(s"Circuit breaker should have eventually been closed but it was $other")
-  }
 }

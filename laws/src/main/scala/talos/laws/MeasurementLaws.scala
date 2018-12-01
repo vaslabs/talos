@@ -4,9 +4,9 @@ import cats.effect._
 import cats.implicits._
 import talos.events.TalosEvents.model.{CallFailure, CallTimeout, SuccessfulCall}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, TimeoutException}
 import scala.concurrent.duration._
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 trait MeasurementLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C, F] {
   implicit val timer = IO.timer(ExecutionContext.global)
@@ -32,7 +32,9 @@ trait MeasurementLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpe
   }
 
   private[laws] def measuresElapsedTimeInTimeouts(implicit F: Effect[F]) = {
-    Try(run(F.liftIO(IO.never)))
+    Try(run(F.liftIO(IO.sleep(callTimeout + (1 second))))) should matchPattern {
+      case Failure(a) if a.isInstanceOf[TimeoutException] =>
+    }
     val event = acceptMsg.asInstanceOf[CallTimeout]
     event.copy(elapsedTime = event.elapsedTime.toSeconds seconds) shouldBe
       CallTimeout(talosCircuitBreaker.name, callTimeout)

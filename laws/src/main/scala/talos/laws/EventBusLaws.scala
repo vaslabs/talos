@@ -18,7 +18,9 @@ trait EventBusLaws[S] extends Matchers{
 
   private[laws] def canConsumeMessagesPublishedToTheEventBus = {
     val successfulCall = genSuccessfulCall.sample.get
-    eventBus.publish(successfulCall)
+
+    eventBus publish successfulCall
+
     acceptMsg shouldBe successfulCall
   }
 }
