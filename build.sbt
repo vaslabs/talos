@@ -212,8 +212,11 @@ lazy val talos =
   (project in file("."))
   .settings(noPublishSettings)
   .aggregate(
-    talosCore, talosKamon, hystrixReporter,
-    talosExamples, talosAkkaSupport, talosMonixSupport, talosGateway
+    talosCore, talosKamon,
+    talosAkkaSupport, talosMonixSupport, talosLaws,
+    hystrixReporter,
+    talosGateway,
+    talosExamples
   )
 
 addCommandAlias("release", ";project talos ;reload ;+publishSigned ;sonatypeReleaseAll; talosMicrosite/publishMicrosite")
