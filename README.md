@@ -7,10 +7,10 @@ Talos is a set of tools for enabling fine grained monitoring of the Akka and mon
 Talos is modularised. You can twist it and pick the dependencies that fit your need. But let's go step by step.
 
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "taloscore" % "0.4.0"
-libraryDependencies += "org.vaslabs.talos" %% "talosakkasupport" % "0.4.0"
-libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.4.0"
-libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.4.0"
+libraryDependencies += "org.vaslabs.talos" %% "taloscore" % "0.5.0"
+libraryDependencies += "org.vaslabs.talos" %% "talosakkasupport" % "0.5.0"
+libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.5.0"
+libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.5.0"
 ```
 The events library provides a way to stream events on what's happening in the circuit breakers. E.g. combining with the talosakkasupport you can do:
 ```scala
@@ -75,6 +75,12 @@ val server = new StartServer("0.0.0.0", 8080)
 
 val startingServer = server.startHttpServer.run(hystrixReporterDirective)
 
+```
+
+### Laws
+If you wish to implement your own TalosCircuitBreaker typeclasses you can test them against the laws library:
+```scala
+libraryDependencies += "org.vaslabs.talos" %% "taloslaws" % "0.5.0"
 ```
 
 Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.
