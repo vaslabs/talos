@@ -3,6 +3,8 @@ import sbt._
 object Dependencies {
 
   object versions {
+    val scalacheckshapeless: String = "1.2.0"
+
     val scalcheck: String = "1.14.0"
 
     val pureconfig: String = "0.10.0"
@@ -66,8 +68,13 @@ object Dependencies {
 
     object ScalaTest {
       val scalatest = "org.scalatest" %% "scalatest" % versions.scalatest
-      val scalacheck = "org.scalacheck" %% "scalacheck" % versions.scalcheck
       val all = Seq(scalatest % Test)
+    }
+
+    object ScalaCheck {
+      val scalacheck = "org.scalacheck" %% "scalacheck" % versions.scalcheck
+      val scalacheckshapeless = "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % versions.scalacheckshapeless
+      val all = Seq(scalacheck, scalacheckshapeless, ScalaTest.scalatest)
     }
 
     object PureConf {

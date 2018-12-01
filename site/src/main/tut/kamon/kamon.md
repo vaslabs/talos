@@ -10,7 +10,7 @@ number: 2
 ## Dependency
 
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.5.0"
+libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "0.5.1"
 ```
 
 ```tut:silent

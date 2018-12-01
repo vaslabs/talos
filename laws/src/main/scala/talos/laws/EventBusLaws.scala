@@ -1,23 +1,23 @@
 package talos.laws
 
-import talos.circuitbreakers.EventBus
 import org.scalacheck._
-import Gen._
 import org.scalatest.Matchers
-import talos.events.TalosEvents.model.{CircuitBreakerEvent, SuccessfulCall}
+import talos.circuitbreakers.EventBus
+import talos.events.TalosEvents.model.CircuitBreakerEvent
+import org.scalacheck.ScalacheckShapeless._
 
 trait EventBusLaws[S] extends Matchers{
   def acceptMsg: CircuitBreakerEvent
 
   implicit def eventBus: EventBus[S]
 
-  private def genSuccessfulCall: Gen[SuccessfulCall] = for {
-    elapsedTime <- finiteDuration
-    name <- alphaNumStr
-  } yield SuccessfulCall(name, elapsedTime)
+
 
   private[laws] def canConsumeMessagesPublishedToTheEventBus = {
-    val successfulCall = genSuccessfulCall.sample.get
+
+    val circuitBreakerEvent = implicitly[Arbitrary[CircuitBreakerEvent]]
+
+    val successfulCall = circuitBreakerEvent.arbitrary.sample.get
 
     eventBus publish successfulCall
 
