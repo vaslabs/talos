@@ -1,10 +1,10 @@
 package talos.gateway
 
 import akka.http.scaladsl.model.{HttpMethod, HttpMethods}
+
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 
 object config {

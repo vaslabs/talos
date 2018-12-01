@@ -17,10 +17,13 @@ trait EventBusLaws[S] extends Matchers{
 
     val circuitBreakerEvent = implicitly[Arbitrary[CircuitBreakerEvent]]
 
-    val successfulCall = circuitBreakerEvent.arbitrary.sample.get
+    circuitBreakerEvent.arbitrary.sample match {
+      case Some(event) =>
+        eventBus publish event
+        acceptMsg shouldBe event
+      case None =>
+        fail("Event bus events seem broken: could not autogenerate circuit breaker event")
+    }
 
-    eventBus publish successfulCall
-
-    acceptMsg shouldBe successfulCall
   }
 }
