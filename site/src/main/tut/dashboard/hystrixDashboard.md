@@ -31,4 +31,4 @@ def hystrixReporterDirective(implicit actorSystem: ActorSystem, clock: Clock): R
     new HystrixReporterDirective().hystrixStreamHttpRoute
 ```
 
-So far Talos is opinionated over hystrixStreamHttpRouteAkka but the plan is to make it more generic in the future.
+So far Talos is opinionated over Akka but the plan is to make it more generic in the future.
