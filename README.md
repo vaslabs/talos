@@ -76,14 +76,14 @@ val server = new StartServer("0.0.0.0", 8080)
 val startingServer = server.startHttpServer.run(hystrixReporterDirective)
 
 ```
+Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.
+
 
 ### Laws
 If you wish to implement your own TalosCircuitBreaker typeclasses you can test them against the laws library:
 ```scala
 libraryDependencies += "org.vaslabs.talos" %% "taloslaws" % "0.5.0"
 ```
-
-Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.
 
 ### Complete usage example
 
