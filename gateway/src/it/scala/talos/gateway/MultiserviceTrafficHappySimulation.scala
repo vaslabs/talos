@@ -12,24 +12,36 @@ class MultiserviceTrafficHappySimulation extends Simulation{
 
   val callCats1In5 =  {
     Iterator.continually {
-      val rndIdx = Random.nextInt(2)
-      val path = if (rndIdx % 2 == 0)
-        "/animals/cats"
-      else
-        "/animals/dogs"
+      val distribution = 10
+      val rndIdx = Random.nextInt(distribution*10)
+      val path = (rndIdx % distribution) match {
+        case 0 =>
+          "/animals/cats"
+        case 1 =>
+          "/animals/cats"
+        case 2 =>
+          "/animals/cats"
+        case 3 =>
+          "/animals/dogs"
+        case 4 =>
+          "/animals/dogsb"
+        case _ =>
+          "/animals/catsb"
+      }
+
       Map("service" -> path)
     }
   }
 
-  val trafficRepeat = repeat(30) {
+  val trafficRepeat = repeat(10) {
     feed(callCats1In5)
-      .exec(http("multi-service").get(f"$${service}")).pause(50 milli)
+      .exec(http("multi-service").get(f"$${service}")).pause(100 milli)
 
   }
 
   val scn = scenario("MultiserviceTrafficHappySimulation")
     .exec(trafficRepeat)
-    .inject(rampUsersPerSec(10).to(32).during(2 minutes))
+    .inject(rampUsersPerSec(20).to(70).during(2 minutes))
 
 
   setUp(

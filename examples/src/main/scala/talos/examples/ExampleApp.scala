@@ -4,14 +4,11 @@ import java.time.Clock
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
-import akka.util.Timeout
 import cats.effect.IO
 import talos.http._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Random, Try}
-import scala.concurrent.duration._
-import cats.implicits._
 object ExampleApp extends App {
 
     implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")

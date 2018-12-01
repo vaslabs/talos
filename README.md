@@ -58,13 +58,22 @@ And you can mix the Akka directive with the rest of your application.
 
 The example below shows a complete server start 
 ```scala
+import java.time.Clock
+import akka.actor.ActorSystem
+
+import talos.http._
+
+implicit val TestClock: Clock = Clock.systemUTC()
+
 implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
 
-implicit val actorSystemTimeout: Timeout = Timeout(2 seconds)
-import talos.http._
-val hystrixStreamRoute = new HystrixReporterDirective().hystrixStreamHttpRoute
+
+
+val hystrixReporterDirective = new HystrixReporterDirective().hystrixStreamHttpRoute
+
 val server = new StartServer("0.0.0.0", 8080)
-val startingServer = (hystrixReporterDirective andThen server.startHttpServer).run(Clock.systemUTC())
+
+val startingServer = server.startHttpServer.run(hystrixReporterDirective)
 
 ```
 

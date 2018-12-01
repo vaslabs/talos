@@ -6,21 +6,37 @@ services:
     ports:
       - "8080:8080"
 
-  cats-service:
+  cats-service-a:
     image: rodolpheche/wiremock
-    container_name: cats-service
+    container_name: cats-service-a
     ports:
-      - "9001:8080"
+      - "9002:8080"
     volumes:
       - ./services/cats/mockdata/stubs:/home/wiremock:z
 
-  dogs-service:
-    container_name: dogs-service
+  cats-service-b:
+    image: rodolpheche/wiremock
+    container_name: cats-service-b
+    ports:
+    - "9003:8080"
+    volumes:
+    - ./services/cats/mockdata/stubs:/home/wiremock:z
+
+  dogs-service-a:
+    container_name: dogs-service-a
     image: rodolpheche/wiremock
     ports:
-      - "9000:8080"
+      - "9001:8080"
     volumes:
       - ./services/dogs/mockdata/stubs:/home/wiremock:z
+
+  dogs-service-b:
+    container_name: dogs-service-b
+    image: rodolpheche/wiremock
+    ports:
+    - "9000:8080"
+    volumes:
+    - ./services/dogs/mockdata/stubs:/home/wiremock:z
 
   hystrix-dasboard:
     image: kennedyoliveira/hystrix-dashboard:1.5.6

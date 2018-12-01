@@ -63,10 +63,19 @@ lazy val compilerSettings = {
 lazy val talosCore =
   (project in file("core"))
   .settings(
-    libraryDependencies ++= libraries.ScalaTest.all
+    libraryDependencies ++= Seq(libraries.ScalaTest.scalatest, libraries.Cats.effect, libraries.ScalaTest.scalacheck)
   ).settings(
     compilerSettings
   ).settings(publishSettings)
+
+lazy val talosLaws = (project in file("laws"))
+  .settings(
+    libraryDependencies ++= libraries.ScalaTest.all
+  ).settings(
+  compilerSettings
+).settings(
+  publishSettings
+).dependsOn(talosCore)
 
 lazy val talosMonixSupport = (project in file("monix"))
   .settings(
@@ -76,14 +85,14 @@ lazy val talosMonixSupport = (project in file("monix"))
   )
   .settings(compilerSettings)
   .settings(publishSettings)
-  .dependsOn(talosCore)
+  .dependsOn(talosCore, talosLaws % Test)
 
 lazy val talosAkkaSupport = (project in file("akka"))
   .settings(
     libraryDependencies ++= libraries.Akka.all ++ libraries.ScalaTest.all :+ libraries.Cats.effect
   ).settings(compilerSettings)
   .settings(publishSettings)
-  .dependsOn(talosCore)
+  .dependsOn(talosCore, talosLaws % Test)
 
 lazy val talosKamon =
   (project in file("kamon")).settings(
@@ -97,6 +106,7 @@ lazy val hystrixReporter =
   (project in file("hystrix-reporter")).settings(
     libraryDependencies ++=
       libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
+        ++ libraries.Log4j.required.map(_ % Test)
   ).settings(compilerSettings)
     .settings(publishSettings)
   .dependsOn(talosKamon)
@@ -202,8 +212,11 @@ lazy val talos =
   (project in file("."))
   .settings(noPublishSettings)
   .aggregate(
-    talosCore, talosKamon, hystrixReporter,
-    talosExamples, talosAkkaSupport, talosMonixSupport, talosGateway
+    talosCore, talosKamon,
+    talosAkkaSupport, talosMonixSupport, talosLaws,
+    hystrixReporter,
+    talosGateway,
+    talosExamples
   )
 
 addCommandAlias("release", ";project talos ;reload ;+publishSigned ;sonatypeReleaseAll; talosMicrosite/publishMicrosite")

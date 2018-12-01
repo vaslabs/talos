@@ -1,7 +1,10 @@
 import sbt._
+
 object Dependencies {
 
   object versions {
+    val scalcheck: String = "1.14.0"
+
     val pureconfig: String = "0.10.0"
 
     val catsEffect: String = "1.0.0"
@@ -15,13 +18,15 @@ object Dependencies {
     val gatling = "3.0.0"
     val wiremock = "1.33"
     val log4j = "2.10.0"
+    val scalalogging = "3.9.0"
   }
 
   object libraries {
+
     object Akka {
       val actorTyped = "com.typesafe.akka" %% "akka-actor-typed" % versions.akka
       val actorTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % versions.akka % Test
-      val http = "com.typesafe.akka" %% "akka-http"   % versions.akkaHttp
+      val http = "com.typesafe.akka" %% "akka-http" % versions.akkaHttp
       val httpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % versions.akkaHttp
       val streamTestKit = "com.typesafe.akka" %% "akka-stream-testkit" % versions.akka
       val stream = "com.typesafe.akka" %% "akka-stream" % versions.akka
@@ -36,11 +41,9 @@ object Dependencies {
     }
 
     object Log4j {
-      private val api       = "org.apache.logging.log4j"  % "log4j-api"        % versions.log4j
-      private val core      = "org.apache.logging.log4j"  % "log4j-core"       % versions.log4j
-      private val slf4j = "org.apache.logging.log4j"  % "log4j-slf4j-impl" % versions.log4j
-
-      val required = Seq(api, core, slf4j)
+      private val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
+      private val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % versions.scalalogging
+      val required = Seq(logback, scalaLogging)
     }
 
     object Kamon {
@@ -56,11 +59,15 @@ object Dependencies {
         "io.circe" %% "circe-java8"
       ).map(_ % versions.circe)
     }
+
     object Cats {
       val effect = "org.typelevel" %% "cats-effect" % versions.catsEffect
     }
+
     object ScalaTest {
-      val all = Seq("org.scalatest" %% "scalatest" % versions.scalatest % Test)
+      val scalatest = "org.scalatest" %% "scalatest" % versions.scalatest
+      val scalacheck = "org.scalacheck" %% "scalacheck" % versions.scalcheck
+      val all = Seq(scalatest % Test)
     }
 
     object PureConf {
@@ -73,13 +80,14 @@ object Dependencies {
 
       val all = Seq(wiremock % Test, dispatch % Test)
     }
+
     object Gatling {
       val charts = "io.gatling.highcharts" % "gatling-charts-highcharts" % versions.gatling % IntegrationTest
-      val framework = "io.gatling"            % "gatling-test-framework"    % versions.gatling % IntegrationTest
+      val framework = "io.gatling" % "gatling-test-framework" % versions.gatling % IntegrationTest
       val all = Seq(charts, framework)
     }
-  }
 
+  }
 
 
 }

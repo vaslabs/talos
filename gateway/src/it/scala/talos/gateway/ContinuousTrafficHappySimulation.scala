@@ -1,10 +1,11 @@
 package talos.gateway
 
-import io.gatling.core.Predef.scenario
-import io.gatling.core.scenario.Simulation
-import io.gatling.http.Predef.http
 import io.gatling.core.Predef._
+import io.gatling.core.scenario.Simulation
+
+import io.gatling.http.Predef.http
 import scala.concurrent.duration._
+
 class ContinuousTrafficHappySimulation extends Simulation{
   import BasicSimulation._
 
