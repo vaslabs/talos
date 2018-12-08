@@ -147,7 +147,7 @@ lazy val noPublishSettings = Seq(
 
 lazy val micrositeSettings = Seq(
   micrositeName := "Talos",
-  micrositeDescription := "Monitoring tools for Akka circuit breakers",
+  micrositeDescription := "Lawful circuit breakers in Scala",
   micrositeAuthor := "Vasilis Nicolaou",
   micrositeTwitterCreator := "@vaslabs",
   micrositeGithubOwner := "vaslabs",
