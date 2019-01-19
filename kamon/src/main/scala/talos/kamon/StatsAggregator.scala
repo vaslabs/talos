@@ -34,33 +34,34 @@ object StatsAggregator {
     val CounterPrefix = "circuit-breaker-"
     val HistrogramPrefix = "circuit-breaker-elapsed-time-"
 
-    val Success = "success-call"
-    val Failure = "failed-call"
-    val Open = "circuit-open"
-    val Closed = "circuit-closed"
-    val HalfOpen = "circuit-half-open"
-    val Timeout = "call-timeout"
-    val ShortCircuit = "short-circuited"
-    val fallbackActivated = "fallback-activated"
+    val SUCCESS = "success-call"
+    val FAILURE = "failed-call"
+    val CIRCUIT_OPEN = "circuit-open"
+    val CIRCUIT_CLOSED = "circuit-closed"
+    val HALF_OPEN = "circuit-half-open"
+    val TIMEOUT = "call-timeout"
+    val SHORT_CIRCUITED = "short-circuited"
+    val FALLBACK_SUCCESS = "fallback-success"
 
     def extractName(circuitBreakerEvent: CircuitBreakerEvent): String =
       circuitBreakerEvent match {
         case SuccessfulCall(_, _) =>
-          Success
+          SUCCESS
         case ShortCircuitedCall(_) =>
-          ShortCircuit
+          SHORT_CIRCUITED
         case CallFailure(_, _) =>
-          Failure
+          FAILURE
         case CircuitOpen(_) =>
-          Open
+          CIRCUIT_OPEN
         case CircuitClosed(_) =>
-          Closed
+          CIRCUIT_CLOSED
         case CircuitHalfOpen(_) =>
-          HalfOpen
+          HALF_OPEN
         case CallTimeout(_, _) =>
-          Timeout
-        case FallbackActivated(_) =>
-          fallbackActivated
+          TIMEOUT
+        case FallbackSuccess(_) =>
+          println("Giving fallback success")
+          FALLBACK_SUCCESS
       }
   }
 

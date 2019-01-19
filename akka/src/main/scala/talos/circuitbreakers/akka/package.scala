@@ -35,7 +35,7 @@ package object akka {
     override def protectWithFallback[A, E](task: IO[A], fallback: IO[E]): IO[Either[E, A]] =
       protect(task).map[Either[E, A]](Right(_)).handleErrorWith {
         _ =>
-          eventBus.publish(FallbackActivated(name))
+          eventBus.publish(FallbackSuccess(name))
           fallback.map(Left(_))
       }
 

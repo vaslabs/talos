@@ -24,6 +24,7 @@ object CircuitBreakerStatsActor {
       rollingCountTimeout: Long,
       rollingCountShortCircuited: Long,
       rollingCountSuccess: Long,
+      rollingCountFallbackSuccess: Long,
       latencyExecute_mean: FiniteDuration,
       latencyExecute: Map[String, FiniteDuration],
       latencyTotal_mean: FiniteDuration,
