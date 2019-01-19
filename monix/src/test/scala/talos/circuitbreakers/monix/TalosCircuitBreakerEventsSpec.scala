@@ -10,8 +10,6 @@ import talos.circuitbreakers
 import talos.events.TalosEvents.model._
 import talos.laws.TalosCircuitBreakerLaws
 
-import scala.concurrent.duration._
-
 class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, CircuitBreaker[IO], IO]
   with Matchers with BeforeAndAfterAll {
 
@@ -34,7 +32,7 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, Ci
   implicit val effectClock = Clock.create[IO]
 
   val circuitBreaker: CircuitBreaker[IO] =
-    CircuitBreaker.of[IO](5, 5 seconds).unsafeRunSync()
+    CircuitBreaker.of[IO](5, resetTimeout).unsafeRunSync()
 
   override def acceptMsg: CircuitBreakerEvent = eventListener.expectMsgType[CircuitBreakerEvent]
 

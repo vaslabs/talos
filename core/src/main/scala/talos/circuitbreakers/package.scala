@@ -17,6 +17,11 @@ package object circuitbreakers {
     def eventBus[S](implicit eventBus: EventBus[S]): EventBus[S] = eventBus
   }
 
+  object TalosCircuitBreaker {
+    import scala.concurrent.duration._
+    final val FAST_FALLBACK_DURATION = 10 milli
+  }
+
   trait EventBus[S] {
     def subscribe[T](subscriber: S, topic: Class[T]): Option[S]
 

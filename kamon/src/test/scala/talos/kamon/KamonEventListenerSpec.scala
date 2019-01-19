@@ -56,6 +56,7 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
     untypedActorSystem.eventStream.publish(FallbackSuccess(circuitBreakerName))
     untypedActorSystem.eventStream.publish(FallbackFailure(circuitBreakerName))
+    untypedActorSystem.eventStream.publish(FallbackRejected(circuitBreakerName))
 
     Thread.sleep(2000)
 
@@ -65,7 +66,8 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
       "circuit-breaker-myCircuitBreaker-short-circuited" -> 5,
       "circuit-breaker-myCircuitBreaker-circuit-open" -> 1,
       "circuit-breaker-myCircuitBreaker-fallback-success" -> 1,
-      "circuit-breaker-myCircuitBreaker-fallback-failure" -> 1
+      "circuit-breaker-myCircuitBreaker-fallback-failure" -> 1,
+      "circuit-breaker-myCircuitBreaker-fallback-rejected" -> 1
     )
 
     cancellableStatsAggregation.unsafeRunSync()

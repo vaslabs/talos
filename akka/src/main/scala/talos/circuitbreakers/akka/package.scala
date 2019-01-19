@@ -42,7 +42,7 @@ package object akka {
     override def protectWithFallback[A, E](task: IO[A], fallback: IO[E]): IO[Either[E, A]] = {
       protect(task).map[Either[E, A]](Right(_)).handleErrorWith {
         _ =>
-          fallback.timeout(10 milli).map { v =>
+          fallback.timeout(TalosCircuitBreaker.FAST_FALLBACK_DURATION).map { v =>
             eventBus.publish(FallbackSuccess(name))
             Left(v)
           }.handleErrorWith {
