@@ -22,6 +22,11 @@ abstract class TalosCircuitBreakerLaws[S, C, F[_]](implicit F: Effect[F]) extend
       fallbackFailureIsLogged
     }
 
+    "fallbacks are not allowed to run heavy operations" in {
+      fallbackSlownessIsNotAllowed
+      resetCB
+    }
+
     "expose measurements for failed calls" in {
       measuresElapsedTimeInFailedCalls
     }

@@ -20,6 +20,7 @@ object TalosEvents {
 
     case class FallbackSuccess(circuitBreakerName: String) extends CircuitBreakerEvent
     case class FallbackFailure(circuitBreakerName: String) extends CircuitBreakerEvent
+    case class FallbackRejected(circuitBreakerName: String) extends CircuitBreakerEvent
   }
 
 }

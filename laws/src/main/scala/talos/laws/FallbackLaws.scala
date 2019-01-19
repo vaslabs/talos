@@ -1,10 +1,12 @@
 package talos.laws
 
-import cats.effect.Effect
+import cats.effect.{Effect, IO}
 import org.scalatest.Matchers
 import talos.events.TalosEvents.model._
 import org.scalacheck.Gen
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 import scala.util.Try
 
 trait FallbackLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C, F] with Matchers {
@@ -37,5 +39,13 @@ trait FallbackLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C
       case other => fail(s"Unexpected circuit breaker event $other")
     }
 
+  }
+
+
+  private[laws] def fallbackSlownessIsNotAllowed(implicit F: Effect[F]) = {
+    implicit val timerIO = IO.timer(ExecutionContext.global)
+    Try(runWithFallback(F.raiseError(new RuntimeException), F.liftIO(IO.sleep(2 seconds))))
+    acceptMsg.isInstanceOf[CallFailure]
+    acceptMsg shouldBe FallbackRejected(talosCircuitBreaker.name)
   }
 }

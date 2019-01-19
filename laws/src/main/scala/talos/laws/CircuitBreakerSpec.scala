@@ -1,6 +1,6 @@
 package talos.laws
 
-import cats.effect.Effect
+import cats.effect.{Effect}
 import org.scalacheck.Gen
 import talos.circuitbreakers.TalosCircuitBreaker
 
@@ -19,4 +19,5 @@ private[laws] trait CircuitBreakerSpec[C, F[_]] {
     F.toIO(talosCircuitBreaker
       .protectWithFallback(unprotectedCall, fallback))
     .unsafeRunSync()
+
 }

@@ -26,7 +26,10 @@ package object circuitbreakers {
   }
 
 
-  class FallbackTimeoutError private[circuitbreakers]() extends TimeoutException
+  class FallbackTimeoutError private[circuitbreakers](circuitBreakerName: String) extends TimeoutException {
+    override def getMessage: String =
+      s"Fallback in $circuitBreakerName was not completed on time. Are you doing IO in fallbacks?"
+  }
 
   object Talos {
     def circuitBreaker[C, F[_]](implicit F: TalosCircuitBreaker[C, F]): TalosCircuitBreaker[C, F] = F

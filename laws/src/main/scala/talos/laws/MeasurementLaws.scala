@@ -40,5 +40,9 @@ trait MeasurementLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpe
       CallTimeout(talosCircuitBreaker.name, callTimeout)
   }
 
+  private[laws] def resetCB()(implicit F: Effect[F]) = {
+    run(F.pure(()))
+    acceptMsg.asInstanceOf[SuccessfulCall]
+  }
 
 }
