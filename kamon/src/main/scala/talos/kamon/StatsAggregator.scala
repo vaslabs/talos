@@ -42,6 +42,7 @@ object StatsAggregator {
     val TIMEOUT = "call-timeout"
     val SHORT_CIRCUITED = "short-circuited"
     val FALLBACK_SUCCESS = "fallback-success"
+    val FALLBACK_FAILURE = "fallback-failure"
 
     def extractName(circuitBreakerEvent: CircuitBreakerEvent): String =
       circuitBreakerEvent match {
@@ -61,6 +62,8 @@ object StatsAggregator {
           TIMEOUT
         case FallbackSuccess(_) =>
           FALLBACK_SUCCESS
+        case FallbackFailure(_) =>
+          FALLBACK_FAILURE
       }
   }
 
