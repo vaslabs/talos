@@ -18,6 +18,10 @@ abstract class TalosCircuitBreakerLaws[S, C, F[_]](implicit F: Effect[F]) extend
       fallbackActivatedOnError
     }
 
+    "fallback failures are recorded" in {
+      fallbackFailureIsLogged
+    }
+
     "expose measurements for failed calls" in {
       measuresElapsedTimeInFailedCalls
     }

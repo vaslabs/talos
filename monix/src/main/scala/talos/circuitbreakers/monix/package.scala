@@ -60,10 +60,15 @@ package object monix {
     }
 
     override def protectWithFallback[A, E](task: F[A], fallback: F[E]): F[Either[E, A]] =
-      protect(task).map[Either[E, A]](Right(_)).handleErrorWith {
-        _ =>
-          eventBus.publish(FallbackSuccess(name))
-          fallback.map(Left(_))
+      protect(task).map[Either[E, A]](Right(_)) orElse F.suspend[Either[E, A]] {
+          fallback.map { v =>
+            eventBus.publish(FallbackSuccess(name))
+            Left(v)
+          }
+      }.handleErrorWith {
+        t =>
+          eventBus.publish(FallbackFailure(name))
+          F.raiseError(t)
       }
 
 

@@ -2,8 +2,10 @@ package talos.laws
 
 import cats.effect.Effect
 import org.scalatest.Matchers
-import talos.events.TalosEvents.model.{CallFailure, FallbackSuccess, ShortCircuitedCall}
+import talos.events.TalosEvents.model._
 import org.scalacheck.Gen
+
+import scala.util.Try
 
 trait FallbackLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C, F] with Matchers {
 
@@ -14,6 +16,12 @@ trait FallbackLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C
     }
     acceptMsg.isInstanceOf[CallFailure]
     acceptMsg shouldBe FallbackSuccess(talosCircuitBreaker.name)
+  }
+
+  private[laws] def fallbackFailureIsLogged(implicit F: Effect[F]) = {
+    Try(runWithFallback(F.raiseError(new RuntimeException), F.raiseError(new IllegalStateException)))
+    acceptMsg.isInstanceOf[CallFailure]
+    acceptMsg shouldBe FallbackFailure(talosCircuitBreaker.name)
   }
 
   private[laws] def fallbackExpected(implicit F: Effect[F]) = {

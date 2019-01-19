@@ -60,7 +60,6 @@ object StatsAggregator {
         case CallTimeout(_, _) =>
           TIMEOUT
         case FallbackSuccess(_) =>
-          println("Giving fallback success")
           FALLBACK_SUCCESS
       }
   }
