@@ -1,5 +1,7 @@
 package talos
 
+import java.util.concurrent.TimeoutException
+
 package object circuitbreakers {
 
   trait TalosCircuitBreaker[C, F[_]] {
@@ -7,6 +9,8 @@ package object circuitbreakers {
     def name: String
 
     def protect[A](task: F[A]): F[A]
+
+    def protectWithFallback[A, E](task: F[A], fallback: F[E]): F[Either[E, A]]
 
     def circuitBreaker: F[C]
 
@@ -20,6 +24,9 @@ package object circuitbreakers {
 
     def publish[A <: AnyRef](a: A): Unit
   }
+
+
+  class FallbackTimeoutError private[circuitbreakers]() extends TimeoutException
 
   object Talos {
     def circuitBreaker[C, F[_]](implicit F: TalosCircuitBreaker[C, F]): TalosCircuitBreaker[C, F] = F

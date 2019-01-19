@@ -8,12 +8,17 @@ import scala.util.Try
 
 trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S] with Matchers {
 
+  def callsAreShortCircuitedFromNowOn(implicit F: Effect[F]) = {
+    Try(run(F.pure(())))
+    acceptMsg shouldBe ShortCircuitedCall(talosCircuitBreaker.name)
+  }
+
   private[laws] def exposesCircuitOpenEvent(implicit F: Effect[F]) = {
     var failures = 0
     val failure = F.liftIO {
-      IO {
+      IO.suspend {
         failures+=1
-        throw new RuntimeException
+        IO.raiseError(new RuntimeException)
       }
     }
 
@@ -37,18 +42,25 @@ trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S
         acceptMsg shouldBe CircuitOpen(talosCircuitBreaker.name)
       case Some(c: CircuitOpen) =>
         c shouldBe CircuitOpen(talosCircuitBreaker.name)
-        if (failures == 1) {
-          acceptMsg.asInstanceOf[CallFailure]
-        } else if (failures > 1)
-          fail("Circuit breaker missed a lot of failure events")
+        acceptMsg match {
+          case ShortCircuitedCall(_) =>
+          case CallFailure(_, _) =>
+            maybeAccept(ShortCircuitedCall(talosCircuitBreaker.name))
+          case _ => fail("Missing an event to indicate that the call was short circuited")
+        }
 
-        Try(run(failure))
-        acceptMsg shouldBe ShortCircuitedCall(talosCircuitBreaker.name)
       case _ =>
         fail("Circuit breaker should have eventually been opened")
     }
-
   }
+
+  private def maybeAccept(call: ShortCircuitedCall) =
+    Try {acceptMsg shouldBe call}.toEither.left.map {
+      _ should matchPattern {
+        case ae: AssertionError if ae.getMessage.contains("assertion failed: timeout (3 seconds) during expectMsgClass")=>
+      }
+    }.merge
+
 
   private[laws] def exposesCircuitClosedTransition(implicit F: Effect[F]) = {
     val success = F.unit
@@ -63,7 +75,7 @@ trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S
       .dropWhile(_.isInstanceOf[ShortCircuitedCall])
       .headOption
 
-    val nextEvents: List[CircuitBreakerEvent] = List(eventualSuccess.get, acceptMsg, acceptMsg)
+    val nextEvents: List[CircuitBreakerEvent] = List(eventualSuccess.get, acceptMsg, acceptMsg, acceptMsg)
 
     nextEvents.find(_.isInstanceOf[SuccessfulCall]) match {
       case None => fail ("A successful call event was expected")
@@ -71,7 +83,6 @@ trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S
         nextEvents should contain(CircuitClosed(talosCircuitBreaker.name))
         nextEvents should contain(CircuitHalfOpen(talosCircuitBreaker.name))
     }
-
 
   }
 

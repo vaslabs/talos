@@ -41,6 +41,7 @@ object StatsAggregator {
     val HalfOpen = "circuit-half-open"
     val Timeout = "call-timeout"
     val ShortCircuit = "short-circuited"
+    val fallbackActivated = "fallback-activated"
 
     def extractName(circuitBreakerEvent: CircuitBreakerEvent): String =
       circuitBreakerEvent match {
@@ -56,7 +57,10 @@ object StatsAggregator {
           Closed
         case CircuitHalfOpen(_) =>
           HalfOpen
-        case CallTimeout(_, _) => Timeout
+        case CallTimeout(_, _) =>
+          Timeout
+        case FallbackActivated(_) =>
+          fallbackActivated
       }
   }
 

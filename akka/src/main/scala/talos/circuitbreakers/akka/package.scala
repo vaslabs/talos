@@ -1,6 +1,5 @@
 package talos.circuitbreakers
 
-import _root_.akka.event.EventStream
 import _root_.akka.pattern.{CircuitBreaker => AkkaCB}
 import _root_.akka.actor.{ActorRef, ActorSystem}
 import cats.effect.IO
@@ -33,6 +32,13 @@ package object akka {
         IO(protectUnsafe(task))
       }
 
+    override def protectWithFallback[A, E](task: IO[A], fallback: IO[E]): IO[Either[E, A]] =
+      protect(task).map[Either[E, A]](Right(_)).handleErrorWith {
+        _ =>
+          eventBus.publish(FallbackActivated(name))
+          fallback.map(Left(_))
+      }
+
 
     private val circuitBreakerInstance = wrap(
       cbInstance,
@@ -41,7 +47,7 @@ package object akka {
 
 
     private def wrap(circuitBreaker: AkkaCB, identifier: String): AkkaCB = {
-      def publish(event: EventStream#Event): Unit = eventBus.publish(event)
+      def publish[A <: AnyRef](event: A): Unit = eventBus.publish(event)
       circuitBreaker.addOnCallSuccessListener(
         elapsedTime => publish(SuccessfulCall(identifier, elapsedTime nanoseconds))
       ).addOnCallFailureListener(
@@ -63,6 +69,7 @@ package object akka {
 
     private def protectUnsafe[A](task: IO[A]): Future[A] =
       circuitBreakerInstance.callWithCircuitBreaker(() => task.unsafeToFuture())
+
   }
 
   object AkkaCircuitBreaker {

@@ -18,12 +18,13 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, Ci
   val testKit = new TestKit(ActorSystem("TalosCircuitBreakerEventsSpec"))
   import testKit._
 
-  val eventListener = TestProbe("talosEventsListener")
+  private val eventListener = TestProbe("talosMonixEventsListener")
   system.eventStream.subscribe(eventListener.ref, classOf[CircuitBreakerEvent])
 
   import testKit._
 
   override def afterAll(): Unit = {
+    system.eventStream.unsubscribe(eventListener.ref)
     system.terminate()
     ()
   }
@@ -38,8 +39,6 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, Ci
   override def acceptMsg: CircuitBreakerEvent = eventListener.expectMsgType[CircuitBreakerEvent]
 
   override implicit val eventBus: circuitbreakers.EventBus[ActorRef] = new AkkaEventBus()
-
-  override val callTimeout: FiniteDuration = 2 seconds
 
   implicit val contextShift = IO.contextShift(system.dispatcher)
 

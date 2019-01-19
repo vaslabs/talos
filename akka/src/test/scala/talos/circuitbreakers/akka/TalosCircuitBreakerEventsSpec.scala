@@ -31,8 +31,6 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, Ci
     ()
   }
 
-  override val callTimeout: FiniteDuration = 2 seconds
-
   override val talosCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] =  AkkaCircuitBreaker(
     circuitBreakerName,
     maxFailures = 5,
