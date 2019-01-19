@@ -70,7 +70,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
           "testCircuitBreaker", 10L, _, false,
-          0f, 0L, 0L, 0L, 0L, 0L, 10L, 0L,
+          0f, 0L, 0L, 0L, 0L, 0L, 10L, 0L, 0L,
           latencyExecute_mean, _, _, _, _
         ) if latencyExecute_mean.toSeconds == 5L =>
       }
@@ -97,7 +97,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 10L, _, false,
-        0f, 0L, 0L, 0L, 0L, 0L, 10L, 0L,
+        0f, 0L, 0L, 0L, 0L, 0L, 10L, 0L, 0L,
         _, _, _, _, _
         ) =>
       }
@@ -112,7 +112,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 10L, _, false,
-        20f, 2L, 2L, 2L, 0L, 0L, 8L, 0L,
+        20f, 2L, 2L, 2L, 0L, 0L, 8L, 0L, 0L,
         _, _, _, _, _
         ) =>
       }
@@ -129,7 +129,7 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 3L, _, true,
-        100f, 3L, 3L, 3L, 0L, 0L, 0L, 0L,
+        100f, 3L, 3L, 3L, 0L, 0L, 0L, 0L, 0L,
         _, _, _, _, _
         ) =>
       }
@@ -141,20 +141,21 @@ class HystrixReporterSpec
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 1L, _, true,
-        100f, 1L, 0L, 0L, 0L, 1L, 0L, _, _, _,
+        100f, 1L, 0L, 0L, 0L, 1L, 0L, 0L,_, _, _,
         _, _, _
         ) =>
       }
     }
 
-    "count fallbacks" in {
+    "count fallback events" in {
       system.eventStream.publish(CallFailure(circuitBreaker, 3 seconds))
       system.eventStream.publish(FallbackSuccess(circuitBreaker))
+      system.eventStream.publish(FallbackFailure(circuitBreaker))
       val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 1L, _, false,
-        100f, 1L, 1L, 1L, 0L, 0L, 0L, 1L, _, _,
+        100f, 1L, 1L, 1L, 0L, 0L, 0L, 1L, 1L,_, _,
         _, _, _
         ) =>
       }
@@ -179,14 +180,14 @@ class HystrixReporterSpec
       barStats should matchPattern {
         case CircuitBreakerStats(
         "bar", 5L, _, false,
-        20f, 1L, 1L, 1L, 0L, 0L, 4L, 0L,
+        20f, 1L, 1L, 1L, 0L, 0L, 4L, 0L, 0L,
         _, _, _, _, _
         ) =>
       }
       fooStats should matchPattern {
         case CircuitBreakerStats(
         "foo", 10L, _, false,
-        30f, 3L, 3L, 3L, 0L, 0L, 7L, 0L,
+        30f, 3L, 3L, 3L, 0L, 0L, 7L, 0L, 0L,
         _, _,
         _, _, _
         ) =>

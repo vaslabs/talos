@@ -42,6 +42,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
         fromCounters.rollingCountShortCircuited,
         fromCounters.rollingCountSuccess,
         fromCounters.rollingCountFallbackSuccess,
+        fromCounters.rollingCountFallbackFailure,
         fromHistograms.latencyExecute_mean,
         fromHistograms.latencyExecute,
         fromHistograms.latencyTotal_mean,
@@ -66,6 +67,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
     val failedCalls = stats.getOrElse(Keys.FAILURE, 0L)
     val shortCircuited = stats.getOrElse(Keys.SHORT_CIRCUITED, 0L)
     val fallbackSuccess = stats.getOrElse(Keys.FALLBACK_SUCCESS, 0L)
+    val fallbackFailure = stats.getOrElse(Keys.FALLBACK_FAILURE, 0L)
     val timeouts = stats.getOrElse(Keys.TIMEOUT, 0L)
     val allErrors = failedCalls + shortCircuited
     val totalCalls = successCalls + failedCalls + shortCircuited
@@ -84,6 +86,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       shortCircuited,
       successCalls,
       fallbackSuccess,
+      fallbackFailure,
       0 millis,
       Map.empty,
       0 millis,
@@ -148,7 +151,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       name,
       0L,
       ZonedDateTime.now(clock),
-      false, 0, 0,0,0,0,0,0, 0,
+      false, 0, 0,0,0,0,0,0, 0, 0,
       latencyExecuteMean nanos,
       latencyExecute,
       latencyExecuteMean nanos,
