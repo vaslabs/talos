@@ -51,6 +51,7 @@ the user how their implementations will expose such events.</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="n">protectedCall</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="n">circuitBreaker</span><span class="o">.</span><span class="n">protect</span><span class="o">(</span><span class="n">timingOut</span><span class="o">)</span>
 <span class="n">protectedCall</span><span class="o">.</span><span class="n">unsafeRunSync</span><span class="o">()</span>
+<span class="nc">SuccessfulCall</span><span class="o">(</span><span class="n">my_circuit_breaker</span><span class="o">,</span><span class="mi">32079765</span> <span class="n">nanoseconds</span><span class="o">)</span>
 
 <span class="n">actorSystem</span><span class="o">.</span><span class="n">terminate</span><span class="o">()</span>
 
