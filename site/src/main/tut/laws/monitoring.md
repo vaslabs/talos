@@ -17,7 +17,7 @@ Every successful call generates a success event with the elapsed time that it to
 
 Subscription to such events can be done via the provided event bus.
 
-```tut
+```tut:silent
 import akka.actor.ActorSystem
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
@@ -55,7 +55,9 @@ circuitBreaker.eventBus.subscribe(eventListener.toUntyped, classOf[CircuitBreake
 
 implicit val timerIO = IO.timer(ExecutionContext.global)
 val timingOut = IO.unit
+```
 
+```tut:silent
 val protectedCall: IO[Unit] = circuitBreaker.protect(timingOut)
 protectedCall.unsafeRunSync()
 
