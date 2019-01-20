@@ -10,81 +10,50 @@ the user how their implementations will expose such events.</p>
 
 <p>Subscription to such events can be done via the provided event bus.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">akka.actor.typed.Behavior</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
 <span class="k">import</span> <span class="nn">akka.actor.typed.Behavior</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.Behaviors</span>
 <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.Behaviors</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
 <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">akka.util.Timeout</span>
 <span class="k">import</span> <span class="nn">akka.util.Timeout</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">cats.effect._</span>
 <span class="k">import</span> <span class="nn">cats.effect._</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
 <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">talos.circuitbreakers.akka._</span>
 <span class="k">import</span> <span class="nn">talos.circuitbreakers.akka._</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">talos.events.TalosEvents.model._</span>
 <span class="k">import</span> <span class="nn">talos.events.TalosEvents.model._</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">scala.concurrent.ExecutionContext</span>
 <span class="k">import</span> <span class="nn">scala.concurrent.ExecutionContext</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">scala.concurrent.Await</span>
 <span class="k">import</span> <span class="nn">scala.concurrent.Await</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span> <span class="o">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"ConsoleTest"</span><span class="o">)</span>
-<span class="n">actorSystem</span><span class="k">:</span> <span class="kt">akka.actor.ActorSystem</span> <span class="o">=</span> <span class="n">akka</span><span class="o">://</span><span class="nc">ConsoleTest</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span> <span class="o">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"ConsoleTest"</span><span class="o">)</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">eventListenerBehavior</span><span class="k">:</span> <span class="kt">Behavior</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Behaviors</span><span class="o">.</span><span class="n">receiveMessage</span> <span class="o">{</span>
-     <span class="o">|</span>   <span class="n">event</span> <span class="k">=&gt;</span>
-     <span class="o">|</span>     <span class="n">println</span><span class="o">(</span><span class="n">event</span><span class="o">)</span>
-     <span class="o">|</span>     <span class="nc">Behaviors</span><span class="o">.</span><span class="n">same</span>
-     <span class="o">|</span> <span class="o">}</span>
-<span class="n">eventListenerBehavior</span><span class="k">:</span> <span class="kt">akka.actor.typed.Behavior</span><span class="o">[</span><span class="kt">talos.events.TalosEvents.model.CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span> <span class="nc">ReceiveMessage</span><span class="o">(&lt;</span><span class="n">console</span><span class="k">&gt;:</span><span class="mi">36</span><span class="o">-</span><span class="mi">37</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">eventListenerBehavior</span><span class="k">:</span> <span class="kt">Behavior</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Behaviors</span><span class="o">.</span><span class="n">receiveMessage</span> <span class="o">{</span>
+  <span class="n">event</span> <span class="k">=&gt;</span>
+    <span class="n">println</span><span class="o">(</span><span class="n">event</span><span class="o">)</span>
+    <span class="nc">Behaviors</span><span class="o">.</span><span class="n">same</span>
+<span class="o">}</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">eventListener</span> <span class="k">=</span>
-     <span class="o">|</span>   <span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span>
-     <span class="o">|</span>     <span class="n">actorSystem</span><span class="o">.</span><span class="n">toTyped</span><span class="o">.</span><span class="n">systemActorOf</span><span class="o">(</span><span class="n">eventListenerBehavior</span><span class="o">,</span> <span class="s">"eventListener"</span><span class="o">)(</span><span class="nc">Timeout</span><span class="o">(</span><span class="mi">3</span> <span class="n">seconds</span><span class="o">)),</span>
-     <span class="o">|</span>     <span class="mi">3</span> <span class="n">seconds</span>
-     <span class="o">|</span> <span class="o">)</span>
-<span class="n">warning</span><span class="k">:</span> <span class="kt">there</span> <span class="kt">were</span> <span class="kt">two</span> <span class="kt">feature</span> <span class="kt">warnings</span><span class="o">;</span> <span class="k">for</span> <span class="n">details</span><span class="o">,</span> <span class="n">enable</span> <span class="n">`:setting -feature' or `</span><span class="k">:</span><span class="kt">replay</span> <span class="kt">-feature'</span>
-<span class="kt">eventListener:</span> <span class="kt">akka.actor.typed.ActorRef</span><span class="o">[</span><span class="kt">talos.events.TalosEvents.model.CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">[</span><span class="kt">akka://ConsoleTest/system/eventListener</span><span class="k">#</span><span class="err">1728367871</span><span class="o">]</span>
+<span class="k">val</span> <span class="n">eventListener</span> <span class="k">=</span>
+  <span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span>
+    <span class="n">actorSystem</span><span class="o">.</span><span class="n">toTyped</span><span class="o">.</span><span class="n">systemActorOf</span><span class="o">(</span><span class="n">eventListenerBehavior</span><span class="o">,</span> <span class="s">"eventListener"</span><span class="o">)(</span><span class="nc">Timeout</span><span class="o">(</span><span class="mi">3</span> <span class="n">seconds</span><span class="o">)),</span>
+    <span class="mi">3</span> <span class="n">seconds</span>
+<span class="o">)</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">circuitBreaker</span> <span class="k">=</span> <span class="nc">AkkaCircuitBreaker</span><span class="o">(</span><span class="s">"my_circuit_breaker"</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">2</span> <span class="n">seconds</span><span class="o">,</span> <span class="mi">5</span> <span class="n">seconds</span><span class="o">)</span>
-<span class="n">warning</span><span class="k">:</span> <span class="kt">there</span> <span class="kt">were</span> <span class="kt">two</span> <span class="kt">feature</span> <span class="kt">warnings</span><span class="o">;</span> <span class="k">for</span> <span class="n">details</span><span class="o">,</span> <span class="n">enable</span> <span class="n">`:setting -feature' or `</span><span class="k">:</span><span class="kt">replay</span> <span class="kt">-feature'</span>
-<span class="kt">circuitBreaker:</span> <span class="kt">talos.circuitbreakers.TalosCircuitBreaker</span><span class="o">[</span><span class="kt">akka.pattern.CircuitBreaker</span>,<span class="kt">cats.effect.IO</span><span class="o">]</span> <span class="k">=</span> <span class="n">talos</span><span class="o">.</span><span class="n">circuitbreakers</span><span class="o">.</span><span class="n">akka</span><span class="o">.</span><span class="n">package$AkkaCircuitBreaker</span><span class="k">@</span><span class="mf">52f</span><span class="mi">65241</span>
+<span class="k">val</span> <span class="n">circuitBreaker</span> <span class="k">=</span> <span class="nc">AkkaCircuitBreaker</span><span class="o">(</span><span class="s">"my_circuit_breaker"</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">2</span> <span class="n">seconds</span><span class="o">,</span> <span class="mi">5</span> <span class="n">seconds</span><span class="o">)</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">implicit</span> <span class="k">val</span> <span class="n">akkaEventBus</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AkkaEventBus</span><span class="o">()</span>
-<span class="n">akkaEventBus</span><span class="k">:</span> <span class="kt">talos.circuitbreakers.akka.AkkaEventBus</span> <span class="o">=</span> <span class="n">talos</span><span class="o">.</span><span class="n">circuitbreakers</span><span class="o">.</span><span class="n">akka</span><span class="o">.</span><span class="n">package$AkkaEventBus</span><span class="k">@</span><span class="mi">1</span><span class="n">b000cbd</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">akkaEventBus</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AkkaEventBus</span><span class="o">()</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="n">circuitBreaker</span><span class="o">.</span><span class="n">eventBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">eventListener</span><span class="o">.</span><span class="n">toUntyped</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">])</span>
-<span class="n">res0</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">akka.actor.ActorRef</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="nc">Actor</span><span class="o">[</span><span class="kt">akka://ConsoleTest/system/eventListener</span><span class="k">#</span><span class="err">1728367871</span><span class="o">])</span>
+<span class="n">circuitBreaker</span><span class="o">.</span><span class="n">eventBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">eventListener</span><span class="o">.</span><span class="n">toUntyped</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">])</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">implicit</span> <span class="k">val</span> <span class="n">timerIO</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">.</span><span class="n">timer</span><span class="o">(</span><span class="nc">ExecutionContext</span><span class="o">.</span><span class="n">global</span><span class="o">)</span>
-<span class="n">timerIO</span><span class="k">:</span> <span class="kt">cats.effect.Timer</span><span class="o">[</span><span class="kt">cats.effect.IO</span><span class="o">]</span> <span class="k">=</span> <span class="n">cats</span><span class="o">.</span><span class="n">effect</span><span class="o">.</span><span class="n">internals</span><span class="o">.</span><span class="nc">IOTimer</span><span class="k">@</span><span class="mi">4329422</span><span class="n">a</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">timerIO</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">.</span><span class="n">timer</span><span class="o">(</span><span class="nc">ExecutionContext</span><span class="o">.</span><span class="n">global</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">timingOut</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">.</span><span class="n">unit</span>
+</code></pre></div></div>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">timingOut</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">.</span><span class="n">unit</span>
-<span class="n">timingOut</span><span class="k">:</span> <span class="kt">cats.effect.IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">(())</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="n">protectedCall</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="n">circuitBreaker</span><span class="o">.</span><span class="n">protect</span><span class="o">(</span><span class="n">timingOut</span><span class="o">)</span>
+<span class="n">protectedCall</span><span class="o">.</span><span class="n">unsafeRunSync</span><span class="o">()</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">protectedCall</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="n">circuitBreaker</span><span class="o">.</span><span class="n">protect</span><span class="o">(</span><span class="n">timingOut</span><span class="o">)</span>
-<span class="n">protectedCall</span><span class="k">:</span> <span class="kt">cats.effect.IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nc">IO$1359796299</span>
+<span class="n">actorSystem</span><span class="o">.</span><span class="n">terminate</span><span class="o">()</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="n">protectedCall</span><span class="o">.</span><span class="n">unsafeRunSync</span><span class="o">()</span>
-<span class="nc">SuccessfulCall</span><span class="o">(</span><span class="n">my_circuit_breaker</span><span class="o">,</span><span class="mi">5122176</span> <span class="n">nanoseconds</span><span class="o">)</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="n">actorSystem</span><span class="o">.</span><span class="n">terminate</span><span class="o">()</span>
-<span class="n">res2</span><span class="k">:</span> <span class="kt">scala.concurrent.Future</span><span class="o">[</span><span class="kt">akka.actor.Terminated</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Future</span><span class="o">(&lt;</span><span class="n">not</span> <span class="n">completed</span><span class="o">&gt;)</span>
 </code></pre></div></div>
 
 <p>The events that expose the circuit breaker activity and state changes are the following:</p>
