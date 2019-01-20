@@ -28,3 +28,18 @@ options:
     - title: Generic solution
       url: talostypeclass/generic.html
       menu_section: advanced
+
+- title: Talos Laws
+  url: laws/
+  menu_section: laws
+
+  nested_options:
+    - title: Timeout laws
+      url: laws/timeouts.html
+      menu_section: laws
+    - title: Monitoring laws
+      url: laws/monitoring.html
+      menu_section: laws
+    - title: Fallback laws
+      url: laws/fallbacks.html
+      menu_section: laws

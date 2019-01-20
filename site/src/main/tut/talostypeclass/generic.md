@@ -12,23 +12,22 @@ TalosCircuitBreaker definition.
 More or less you can do
 
 ```tut:silent
-  import cats._
-  import cats.data._
-  import cats.implicits._
+    import talos.events.TalosEvents
+    import talos.circuitbreakers._
 
-  import talos.circuitbreakers._
+    type Id[A] = A
 
-  val dummyCircuitBreaker: Unit = ()
+    val dummyCircuitBreaker = ()
 
-  implicit val dummyTalosCircuitBreaker = new TalosCircuitBreaker[Unit, Id] {
-    override def name: String = "dummy"
+    implicit val dummyTalosCircuitBreaker = new TalosCircuitBreaker[Unit, Id] {
+      override def name: String = "dummy"
 
-    override def protect[A](task: Id[A]): Id[A] = task
+      override def protect[A](task: Id[A]): Id[A] = task
 
-    override def circuitBreaker: Id[Unit] = ()
-  }
+      override def circuitBreaker: Id[Unit] = ()
 
-  import talos.events.TalosEvents
+      override def protectWithFallback[A, E](task: Id[A], fallback: Id[E]): Id[Either[E, A]] = Right(task)
+    }
 
   val circuitBreaker: TalosCircuitBreaker[Unit, Id] = Talos.circuitBreaker[Unit, Id]
 ```

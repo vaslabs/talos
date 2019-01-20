@@ -17,6 +17,10 @@ object TalosEvents {
     case class CircuitHalfOpen(circuitBreakerName: String) extends CircuitBreakerEvent
     case class CircuitClosed(circuitBreakerName: String) extends CircuitBreakerEvent
     case class ShortCircuitedCall(circuitBreakerName: String) extends CircuitBreakerEvent
+
+    case class FallbackSuccess(circuitBreakerName: String) extends CircuitBreakerEvent
+    case class FallbackFailure(circuitBreakerName: String) extends CircuitBreakerEvent
+    case class FallbackRejected(circuitBreakerName: String) extends CircuitBreakerEvent
   }
 
 }

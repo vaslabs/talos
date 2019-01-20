@@ -9,13 +9,13 @@ object Dependencies {
 
     val pureconfig: String = "0.10.0"
 
-    val catsEffect: String = "1.0.0"
+    val catsEffect: String = "1.1.0"
 
-    val akka = "2.5.18"
+    val akka = "2.5.19"
     val circe = "0.10.0"
     val kamon = "1.1.0"
     val scalatest = "3.0.5"
-    val akkaHttp = "10.1.5"
+    val akkaHttp = "10.1.7"
     val monix = "3.0.0-RC2"
     val gatling = "3.0.0"
     val wiremock = "1.33"

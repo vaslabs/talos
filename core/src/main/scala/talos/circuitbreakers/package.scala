@@ -1,5 +1,7 @@
 package talos
 
+import java.util.concurrent.TimeoutException
+
 package object circuitbreakers {
 
   trait TalosCircuitBreaker[C, F[_]] {
@@ -8,9 +10,16 @@ package object circuitbreakers {
 
     def protect[A](task: F[A]): F[A]
 
+    def protectWithFallback[A, E](task: F[A], fallback: F[E]): F[Either[E, A]]
+
     def circuitBreaker: F[C]
 
     def eventBus[S](implicit eventBus: EventBus[S]): EventBus[S] = eventBus
+  }
+
+  object TalosCircuitBreaker {
+    import scala.concurrent.duration._
+    final val FAST_FALLBACK_DURATION = 10 milli
   }
 
   trait EventBus[S] {
@@ -19,6 +28,12 @@ package object circuitbreakers {
     def unsubsribe(a: S): Unit
 
     def publish[A <: AnyRef](a: A): Unit
+  }
+
+
+  class FallbackTimeoutError private[circuitbreakers](circuitBreakerName: String) extends TimeoutException {
+    override def getMessage: String =
+      s"Fallback in $circuitBreakerName was not completed on time. Are you doing IO in fallbacks?"
   }
 
   object Talos {

@@ -50,14 +50,30 @@ package object monix {
     override def protect[A](task: F[A]): F[A] = {
       for {
         startTimer <- fClock.monotonic(TimeUnit.NANOSECONDS)
-        protectedTask <- internalCb.protect(task.timeout(callTimeout)).onError {
+        protectedTask <- internalCb.protect(task.timeout(callTimeout)).handleErrorWith {
           case t: Throwable =>
-            publishError(t, startTimer)
+            publishError(t, startTimer) *> F.raiseError(t)
         }
         endTimer <- fClock.monotonic(TimeUnit.NANOSECONDS)
         _ = publishSuccess((endTimer - startTimer) nanos)
       } yield (protectedTask)
     }
+
+    override def protectWithFallback[A, E](task: F[A], fallback: F[E]): F[Either[E, A]] =
+      protect(task).map[Either[E, A]](Right(_)) orElse F.suspend[Either[E, A]] {
+          fallback.timeout(TalosCircuitBreaker.FAST_FALLBACK_DURATION).map { v =>
+            eventBus.publish(FallbackSuccess(name))
+            Left(v)
+          }
+      }.handleErrorWith {
+        case _: TimeoutException =>
+            eventBus.publish(FallbackRejected(name))
+            F.raiseError(new FallbackTimeoutError(name))
+        case t =>
+          eventBus.publish(FallbackFailure(name))
+          F.raiseError(t)
+      }
+
 
     private def publishError(throwable: Throwable, started: Long): F[Unit] = {
       for {
@@ -83,7 +99,6 @@ package object monix {
 
     private val internalCb = internalCircuitBreaker.doOnClosed(F.delay(eventBus.publish(CircuitClosed(name))))
       .doOnHalfOpen(F.delay(eventBus.publish(CircuitHalfOpen(name))))
-      .doOnRejectedTask(F.delay(eventBus.publish(ShortCircuitedCall(name))))
       .doOnOpen(F.delay(eventBus.publish(CircuitOpen(name))))
 
     override val circuitBreaker: F[CircuitBreaker[F]] = F.pure {

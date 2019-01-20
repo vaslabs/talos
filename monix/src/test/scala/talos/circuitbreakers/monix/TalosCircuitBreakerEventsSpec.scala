@@ -10,20 +10,19 @@ import talos.circuitbreakers
 import talos.events.TalosEvents.model._
 import talos.laws.TalosCircuitBreakerLaws
 
-import scala.concurrent.duration._
-
 class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, CircuitBreaker[IO], IO]
   with Matchers with BeforeAndAfterAll {
 
   val testKit = new TestKit(ActorSystem("TalosCircuitBreakerEventsSpec"))
   import testKit._
 
-  val eventListener = TestProbe("talosEventsListener")
+  private val eventListener = TestProbe("talosMonixEventsListener")
   system.eventStream.subscribe(eventListener.ref, classOf[CircuitBreakerEvent])
 
   import testKit._
 
   override def afterAll(): Unit = {
+    system.eventStream.unsubscribe(eventListener.ref)
     system.terminate()
     ()
   }
@@ -33,13 +32,11 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, Ci
   implicit val effectClock = Clock.create[IO]
 
   val circuitBreaker: CircuitBreaker[IO] =
-    CircuitBreaker.of[IO](5, 5 seconds).unsafeRunSync()
+    CircuitBreaker.of[IO](5, resetTimeout).unsafeRunSync()
 
   override def acceptMsg: CircuitBreakerEvent = eventListener.expectMsgType[CircuitBreakerEvent]
 
   override implicit val eventBus: circuitbreakers.EventBus[ActorRef] = new AkkaEventBus()
-
-  override val callTimeout: FiniteDuration = 2 seconds
 
   implicit val contextShift = IO.contextShift(system.dispatcher)
 

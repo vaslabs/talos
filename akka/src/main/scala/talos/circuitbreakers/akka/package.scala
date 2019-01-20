@@ -1,13 +1,14 @@
 package talos.circuitbreakers
 
-import _root_.akka.event.EventStream
-import _root_.akka.pattern.{CircuitBreaker => AkkaCB}
+import java.util.concurrent.Executors
+
 import _root_.akka.actor.{ActorRef, ActorSystem}
+import _root_.akka.pattern.{CircuitBreaker => AkkaCB}
 import cats.effect.IO
 import talos.events.TalosEvents.model._
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future, TimeoutException}
 
 package object akka {
 
@@ -25,13 +26,35 @@ package object akka {
     override def publish[A <: AnyRef](a: A): Unit = actorSystem.eventStream.publish(a)
   }
 
+
   class AkkaCircuitBreaker[Subscriber] private (val name: String, cbInstance: AkkaCB)
          (implicit eventBus: EventBus[ActorRef]) extends TalosCircuitBreaker[AkkaCB, IO] {
+
 
     override def protect[A](task: IO[A]): IO[A] =
       IO.fromFuture {
         IO(protectUnsafe(task))
       }
+
+    private[AkkaCircuitBreaker] implicit val timer = IO.timer(AkkaCircuitBreaker.fallbackTimeoutExecutionContext)
+    private[AkkaCircuitBreaker] implicit val contextShift = IO.contextShift(AkkaCircuitBreaker.forkIOExecutionContext)
+
+    override def protectWithFallback[A, E](task: IO[A], fallback: IO[E]): IO[Either[E, A]] = {
+      protect(task).map[Either[E, A]](Right(_)).handleErrorWith {
+        _ =>
+          fallback.timeout(TalosCircuitBreaker.FAST_FALLBACK_DURATION).map { v =>
+            eventBus.publish(FallbackSuccess(name))
+            Left(v)
+          }.handleErrorWith {
+            case _: TimeoutException =>
+              eventBus.publish(FallbackRejected(name))
+              IO.raiseError(new FallbackTimeoutError(name))
+            case t =>
+              eventBus.publish(FallbackFailure(name))
+              IO.raiseError(t)
+          }
+      }
+    }
 
 
     private val circuitBreakerInstance = wrap(
@@ -41,7 +64,7 @@ package object akka {
 
 
     private def wrap(circuitBreaker: AkkaCB, identifier: String): AkkaCB = {
-      def publish(event: EventStream#Event): Unit = eventBus.publish(event)
+      def publish[A <: AnyRef](event: A): Unit = eventBus.publish(event)
       circuitBreaker.addOnCallSuccessListener(
         elapsedTime => publish(SuccessfulCall(identifier, elapsedTime nanoseconds))
       ).addOnCallFailureListener(
@@ -63,6 +86,7 @@ package object akka {
 
     private def protectUnsafe[A](task: IO[A]): Future[A] =
       circuitBreakerInstance.callWithCircuitBreaker(() => task.unsafeToFuture())
+
   }
 
   object AkkaCircuitBreaker {
@@ -81,6 +105,10 @@ package object akka {
         new AkkaCircuitBreaker[ActorRef](name, circuitBreaker)
       Talos.circuitBreaker
     }
+
+    private[akka] val fallbackTimeoutExecutionContext = ExecutionContext.fromExecutor(Executors.newScheduledThreadPool(2))
+    private[akka] val forkIOExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+
   }
 
   final implicit class AkkaCircuitBreakerSyntax(val circuitBreaker: AkkaCB) extends AnyVal {
@@ -88,4 +116,5 @@ package object akka {
       AkkaCircuitBreaker(name, circuitBreaker)
     }
   }
+
 }

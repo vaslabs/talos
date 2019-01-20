@@ -1,7 +1,11 @@
 # talos [![Build Status](https://travis-ci.com/vaslabs/talos.svg?branch=master)](https://travis-ci.com/vaslabs/talos) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloscore_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.vaslabs.talos/taloscore_2.12) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d0dbf73a127c4eff9a5e62d9fa628cbd)](https://app.codacy.com/app/vaslabs/talos?utm_source=github.com&utm_medium=referral&utm_content=vaslabs/talos&utm_campaign=Badge_Grade_Dashboard) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/ae86edbdde884633a0417d851e4fcc9a)](https://www.codacy.com/app/vaslabs/talos?utm_source=github.com&utm_medium=referral&utm_content=vaslabs/talos&utm_campaign=Badge_Coverage) [![Docker hub](https://img.shields.io/badge/Api%20gateway-0.4.2-blue.svg)](https://hub.docker.com/r/vaslabs/talos-gateway/) [![Known Vulnerabilities](https://snyk.io/test/github/vaslabs/talos/badge.svg?targetFile=build.sbt)](https://snyk.io/test/github/vaslabs/talos?targetFile=build.sbt) [![Join the chat at https://gitter.im/vaslabs/talos](https://badges.gitter.im/vaslabs/talos.svg)](https://gitter.im/vaslabs/talos?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+Talos is enforcing some theory from literature concerning circuit breakers in the form of typeclasses and laws.
 
-Talos is a set of tools for enabling fine grained monitoring of the Akka and monix circuit breakers. For comprehensive [documentation](https://vaslabs.github.io/talos/events/events.html)
+Read more around the theory [here]((https://vaslabs.github.io/talos/laws/index.html))
+
+
+The main deliverable of Talos is fine grained monitoring.
 
 ## Usage
 Talos is modularised. You can twist it and pick the dependencies that fit your need. But let's go step by step.

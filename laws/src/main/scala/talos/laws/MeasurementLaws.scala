@@ -21,7 +21,7 @@ trait MeasurementLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpe
   }
 
   private[laws] def measuresElapsedTimeInFailedCalls(implicit F: Effect[F]) = {
-    val unsafeCall = IO.sleep(1 second) <* IO.raiseError(new RuntimeException)
+    val unsafeCall = IO.sleep(1 second) *> IO.raiseError(new RuntimeException)
 
     Try(run(F.liftIO(unsafeCall)))
 
@@ -40,5 +40,9 @@ trait MeasurementLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpe
       CallTimeout(talosCircuitBreaker.name, callTimeout)
   }
 
+  private[laws] def resetCB()(implicit F: Effect[F]) = {
+    run(F.pure(()))
+    acceptMsg.asInstanceOf[SuccessfulCall]
+  }
 
 }

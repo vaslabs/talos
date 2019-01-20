@@ -41,6 +41,9 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
         rollingCountTimeout = fromCounters.rollingCountTimeout,
         fromCounters.rollingCountShortCircuited,
         fromCounters.rollingCountSuccess,
+        fromCounters.rollingCountFallbackSuccess,
+        fromCounters.rollingCountFallbackFailure,
+        fromCounters.rollingCountFallbackRejected,
         fromHistograms.latencyExecute_mean,
         fromHistograms.latencyExecute,
         fromHistograms.latencyTotal_mean,
@@ -61,10 +64,13 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
 
   private def asCircuitBreakerStats(circuitBreakerName: String, stats: Map[String, Long]): CircuitBreakerStats = {
     import StatsAggregator.Keys
-    val successCalls = stats.getOrElse(Keys.Success, 0L)
-    val failedCalls = stats.getOrElse(Keys.Failure, 0L)
-    val shortCircuited = stats.getOrElse(Keys.ShortCircuit, 0L)
-    val timeouts = stats.getOrElse(Keys.Timeout, 0L)
+    val successCalls = stats.getOrElse(Keys.SUCCESS, 0L)
+    val failedCalls = stats.getOrElse(Keys.FAILURE, 0L)
+    val shortCircuited = stats.getOrElse(Keys.SHORT_CIRCUITED, 0L)
+    val fallbackSuccess = stats.getOrElse(Keys.FALLBACK_SUCCESS, 0L)
+    val fallbackFailure = stats.getOrElse(Keys.FALLBACK_FAILURE, 0L)
+    val fallbackRejection = stats.getOrElse(Keys.FALLBACK_REJECTED, 0L)
+    val timeouts = stats.getOrElse(Keys.TIMEOUT, 0L)
     val allErrors = failedCalls + shortCircuited
     val totalCalls = successCalls + failedCalls + shortCircuited
     val errorPercentage: Float =
@@ -73,7 +79,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       circuitBreakerName,
       requestCount = totalCalls,
       currentTime = ZonedDateTime.now(clock),
-      isCircuitBreakerOpen = shortCircuited > 0 || stats.get(Keys.Open).map(_ > 0).getOrElse(false),
+      isCircuitBreakerOpen = shortCircuited > 0 || stats.get(Keys.CIRCUIT_OPEN).map(_ > 0).getOrElse(false),
       errorPercentage = errorPercentage,
       errorCount = allErrors,
       failedCalls + timeouts,
@@ -81,6 +87,9 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       rollingCountTimeout = timeouts,
       shortCircuited,
       successCalls,
+      fallbackSuccess,
+      fallbackFailure,
+      fallbackRejection,
       0 millis,
       Map.empty,
       0 millis,
@@ -145,7 +154,7 @@ class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends Me
       name,
       0L,
       ZonedDateTime.now(clock),
-      false, 0, 0,0,0,0,0,0,
+      false, 0, 0,0,0,0,0,0, 0, 0, 0,
       latencyExecuteMean nanos,
       latencyExecute,
       latencyExecuteMean nanos,

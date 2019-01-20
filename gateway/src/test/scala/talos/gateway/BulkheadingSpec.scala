@@ -116,7 +116,7 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
     }
     val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/vehicles/bikes")))
 
-    println(Await.result(awaitableResult, 2 seconds))
+    println(Await.result(awaitableResult, 3 seconds))
   }
 
 
