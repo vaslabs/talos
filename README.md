@@ -2,7 +2,7 @@
 
 Talos is enforcing some theory from literature concerning circuit breakers in the form of typeclasses and laws.
 
-Read more around the theory [here]((https://vaslabs.github.io/talos/laws/index.html))
+Read more around the theory [here](https://vaslabs.github.io/talos/laws/index.html)
 
 
 The main deliverable of Talos is fine grained monitoring.
