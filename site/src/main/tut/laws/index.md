@@ -8,7 +8,7 @@ title: "Laws"
 The laws are inspired from various sources:
 
 - [...]timeouts at the interfaces between remote systems to prevent the failure of a
-single component from bringing down all components.[...](https://doc.akka.io/docs/akka/2.5/common/circuitbreaker.html#why-are-they-used-)
+single component from bringing down all components[...][more](https://doc.akka.io/docs/akka/2.5/common/circuitbreaker.html#why-are-they-used-)
 - [...] it is essential to involve the system’s stakeholders when deciding how to handle calls made when the circuit is open.
     Michael T. Nygard. Release It!: Design and Deploy Production-Ready Software (Pragmatic Programmers). Pragmatic Bookshelf, 2007.
 - Circuit breakers are a valuable place for monitoring. Any change in breaker state should be logged and breakers should reveal details of their state for deeper monitoring. [Martin Fowler](https://martinfowler.com/bliki/CircuitBreaker.html
