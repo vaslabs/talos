@@ -4,9 +4,10 @@ import cats.effect.{Effect, IO}
 import org.scalatest.Matchers
 import talos.events.TalosEvents.model._
 
+import scala.concurrent.TimeoutException
 import scala.util.Try
 
-trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S] with Matchers {
+trait StateLaws[C, S, F[_]] extends CircuitBreakerSpec[C, S, F] with EventBusLaws[S] with Matchers {
 
   def callsAreShortCircuitedFromNowOn(implicit F: Effect[F]) = {
     Try(run(F.pure(())))
@@ -57,7 +58,7 @@ trait StateLaws[S, C, F[_]] extends CircuitBreakerSpec[C, F] with EventBusLaws[S
   private def maybeAccept(call: ShortCircuitedCall) =
     Try {acceptMsg shouldBe call}.toEither.left.map {
       _ should matchPattern {
-        case ae: AssertionError if ae.getMessage.contains("assertion failed: timeout (3 seconds) during expectMsgClass")=>
+        case _: TimeoutException =>
       }
     }.merge
 

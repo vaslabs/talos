@@ -6,11 +6,10 @@ import akka.testkit.{TestKit, TestProbe}
 import cats.effect.IO
 import org.scalatest.{BeforeAndAfterAll, Matchers}
 import talos.circuitbreakers
-import talos.circuitbreakers.TalosCircuitBreaker
 import talos.events.TalosEvents.model._
 import talos.laws.TalosCircuitBreakerLaws
 
-class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, CircuitBreaker, IO]
+class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreaker, ActorRef, IO]
       with Matchers
       with BeforeAndAfterAll{
 
@@ -30,7 +29,7 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, Ci
     ()
   }
 
-  override val talosCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] =  AkkaCircuitBreaker(
+  override val talosCircuitBreaker: AkkaCircuitBreaker.Instance =  AkkaCircuitBreaker(
     circuitBreakerName,
     maxFailures = 5,
     callTimeout = callTimeout,

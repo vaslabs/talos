@@ -9,7 +9,6 @@ import akka.stream.scaladsl.{Flow, Keep, Sink, Source, SourceQueueWithComplete}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import cats.effect.IO
 import com.typesafe.config.{Config, ConfigFactory}
-import talos.circuitbreakers.TalosCircuitBreaker
 import talos.circuitbreakers.akka._
 import talos.gateway.Gateway.{HttpCall, ServiceCall}
 import talos.gateway.config.GatewayConfig
@@ -26,7 +25,7 @@ class ServiceExecutionApi private[gateway](gatewayConfig: GatewayConfig, httpExe
 
 
 
-  lazy val circuitBreakers: Map[String, TalosCircuitBreaker[CircuitBreaker, IO]] = {
+  lazy val circuitBreakers: Map[String, AkkaCircuitBreaker.Instance] = {
     gatewayConfig.services.map {
       serviceConfig =>
         val circuitBreaker = CircuitBreaker(

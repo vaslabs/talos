@@ -5,8 +5,8 @@ import talos.circuitbreakers.TalosCircuitBreaker
 
 import scala.concurrent.duration._
 
-private[laws] trait CircuitBreakerSpec[C, F[_]] {
-  val talosCircuitBreaker: TalosCircuitBreaker[C, F]
+private[laws] trait CircuitBreakerSpec[C, S, F[_]] {
+  val talosCircuitBreaker: TalosCircuitBreaker[C, S, F]
 
   final val callTimeout: FiniteDuration = 2 seconds
   final val resetTimeout: FiniteDuration = callTimeout*3

@@ -4,7 +4,7 @@ import java.util.concurrent.TimeoutException
 
 package object circuitbreakers {
 
-  trait TalosCircuitBreaker[C, F[_]] {
+  trait TalosCircuitBreaker[C, S, F[_]] {
 
     def name: String
 
@@ -14,7 +14,7 @@ package object circuitbreakers {
 
     def circuitBreaker: F[C]
 
-    def eventBus[S](implicit eventBus: EventBus[S]): EventBus[S] = eventBus
+    def eventBus: EventBus[S]
   }
 
   object TalosCircuitBreaker {
@@ -37,6 +37,6 @@ package object circuitbreakers {
   }
 
   object Talos {
-    def circuitBreaker[C, F[_]](implicit F: TalosCircuitBreaker[C, F]): TalosCircuitBreaker[C, F] = F
+    def circuitBreaker[C, S, F[_]](implicit F: TalosCircuitBreaker[C, S, F]): TalosCircuitBreaker[C, S, F] = F
   }
 }
