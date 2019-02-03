@@ -23,45 +23,48 @@ continue composing the Async typeclass of your choice.
 You can do something like this.
 
 ```tut:silent
-import scala.concurrent.duration._
-
-import akka.actor.ActorSystem
-
 import cats.effect._
-
 import monix.catnap.CircuitBreaker
 
 import talos.circuitbreakers._
 
 import talos.circuitbreakers.monix._
 
+import scala.concurrent.duration._
 
-def usage[F[_]](implicit actorSystem: ActorSystem, F: Concurrent[F]): TalosCircuitBreaker[CircuitBreaker[F], F] = {
-    implicit val effectClock = Clock.create[F]
+def usage[F[_]](implicit F: Concurrent[F]): MonixCircuitBreaker.Instance[F] = {
+    implicit def contextShift: ContextShift[F] = ???
+    def circuitBreaker: CircuitBreaker[F] = ???
 
-    val circuitBreaker: CircuitBreaker[F] = CircuitBreaker.unsafe[F](5, 5 seconds)
-
-    MonixCircuitBreaker("testCircuitBreaker", circuitBreaker, callTimeout = 2 seconds)
-}
+    MonixCircuitBreaker(
+      "testCircuitBreaker",
+      circuitBreaker,
+      4 seconds
+    )
+  }
 ```
 E.g. for IO you can then do
 ```tut:silent
 import java.util.concurrent.Executors
 
 import scala.concurrent.ExecutionContext
+import cats.effect._
 
-def usageWithIO(implicit actorSystem: ActorSystem): IO[Unit] = {
-    implicit val timeoutContextShift = IO.contextShift(
-        ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
-    )
+def usageWithIO(): IO[Unit] = {
+    implicit val contextShift = IO.contextShift(ExecutionContext.global)
+
+    implicit val effectClock = Clock.create[IO]
+
+    val circuitBreaker: CircuitBreaker[IO] =
+        CircuitBreaker.of[IO](5, resetTimeout = 30 seconds).unsafeRunSync()
 
     val unprotectedTask: IO[Unit] = IO(println("I'm running in the circuit breaker"))
-    val ioCircuitBreaker = usage[IO]
+    val ioCircuitBreaker = MonixCircuitBreaker(
+         "testCircuitBreaker",
+         circuitBreaker,
+         4 seconds
+    )
+
     ioCircuitBreaker.protect(unprotectedTask)
 }
 ```
-
-Unfortunately you still depend on the actor system as the events are fired to the akka event stream which is the point of
-connection with other modules.
-
-Decoupling the event stream is being explored.

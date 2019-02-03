@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
 
 ```tut:silent
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, ActorRef}
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
@@ -30,7 +30,7 @@ import talos.circuitbreakers.TalosCircuitBreaker
 import talos.circuitbreakers.akka._
 
 import scala.concurrent.duration._
-  def circuitBreaker(implicit actorSystem: ActorSystem): TalosCircuitBreaker[CircuitBreaker, IO] = {
+  def circuitBreaker(implicit actorSystem: ActorSystem): TalosCircuitBreaker[CircuitBreaker, ActorRef, IO] = {
     AkkaCircuitBreaker(
       "testCircuitBreaker",
       5,
@@ -43,7 +43,7 @@ import scala.concurrent.duration._
 Now you can use the circuit breaker via the TalosCircuitBreaker type class.
 ```tut:silent
 def circuitBreakerUsage(implicit actorSystem: ActorSystem): Unit = {
-    val myCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] = circuitBreaker
+    val myCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, ActorRef, IO] = circuitBreaker
     val unsafeCall = IO(println("I'm running inside the circuit breaker"))
     myCircuitBreaker.protect(unsafeCall).unsafeRunSync()
 }
@@ -55,7 +55,7 @@ Now circuit breaker events arrive in the akka event stream.
 If you are working on a legacy code and you don't want to change every method call you can extract the underlying circuit breaker like this
 ```tut:silent
     def legacyUsage(implicit actorSystem: ActorSystem): Unit = {
-        val myCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] = circuitBreaker
+        val myCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, ActorRef, IO] = circuitBreaker
         val akkaCircuitBreaker: akka.pattern.CircuitBreaker = myCircuitBreaker.circuitBreaker.unsafeRunSync()
         akkaCircuitBreaker.callWithSyncCircuitBreaker(() => println("I'm running inside the circuit breaker"))
     }

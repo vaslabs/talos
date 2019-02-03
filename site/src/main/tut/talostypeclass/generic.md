@@ -18,8 +18,9 @@ More or less you can do
     type Id[A] = A
 
     val dummyCircuitBreaker = ()
+    val dummySubscriber = ()
 
-    implicit val dummyTalosCircuitBreaker = new TalosCircuitBreaker[Unit, Id] {
+    implicit val dummyTalosCircuitBreaker = new TalosCircuitBreaker[Unit, Unit, Id] {
       override def name: String = "dummy"
 
       override def protect[A](task: Id[A]): Id[A] = task
@@ -27,7 +28,9 @@ More or less you can do
       override def circuitBreaker: Id[Unit] = ()
 
       override def protectWithFallback[A, E](task: Id[A], fallback: Id[E]): Id[Either[E, A]] = Right(task)
+
+      override def eventBus: EventBus[Unit] = ???
     }
 
-  val circuitBreaker: TalosCircuitBreaker[Unit, Id] = Talos.circuitBreaker[Unit, Id]
+  val circuitBreaker: TalosCircuitBreaker[Unit, Unit, Id] = Talos.circuitBreaker[Unit, Unit, Id]
 ```
