@@ -1,7 +1,7 @@
 package talos.circuitbreakers.monix
 
 
-import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.{ArrayBlockingQueue, TimeUnit, TimeoutException}
 
 import cats.effect._
 import monix.catnap.CircuitBreaker
@@ -14,8 +14,6 @@ import talos.circuitbreakers.monix.MonixCircuitBreaker.EventSubscriber
 import talos.events.TalosEvents.model._
 import talos.laws.TalosCircuitBreakerLaws
 
-import scala.concurrent.duration._
-
 import scala.concurrent.{ExecutionContext, Future}
 
 class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreaker[IO], EventSubscriber, IO]
@@ -23,14 +21,13 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreak
 
   implicit val _scheduler = Scheduler(ExecutionContext.global)
 
-  val nextMessage = new LinkedBlockingQueue[CircuitBreakerEvent](10000)
+  val nextMessage = new ArrayBlockingQueue[CircuitBreakerEvent](100000)
 
   private val eventListener = new Subscriber[CircuitBreakerEvent] {
     override implicit def scheduler: Scheduler = _scheduler
 
     override def onNext(elem: CircuitBreakerEvent): Future[Ack] = {
       nextMessage.add(elem)
-      println(s"Got $elem")
       Future.successful(Continue)
     }
 
@@ -58,10 +55,13 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreak
 
   implicit val contextShift = IO.contextShift(ExecutionContext.global)
 
+
   override def acceptMsg: CircuitBreakerEvent = {
-    IO {
-        nextMessage.take()
-      }.timeout(5 seconds).unsafeRunSync()
+    val res = nextMessage.poll(3, TimeUnit.SECONDS)
+    if (res == null)
+      throw new TimeoutException()
+    else
+      res
   }
 
 

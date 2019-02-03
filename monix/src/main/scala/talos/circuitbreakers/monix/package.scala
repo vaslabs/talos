@@ -91,15 +91,15 @@ package object monix {
         ended <- fClock.monotonic(TimeUnit.NANOSECONDS)
         elapsedTime = (ended - started) nanos
 
-        errorEvent = throwable match {
+        publishAction = throwable match {
           case _: TimeoutException =>
-            CallTimeout(name, elapsedTime)
+            eventBus.publish(CallTimeout(name, elapsedTime))
           case _: ExecutionRejectedException =>
-            ShortCircuitedCall(name)
+            ()
           case _ =>
-            CallFailure(name, elapsedTime)
+            eventBus.publish(CallFailure(name, elapsedTime))
         }
-      } yield eventBus.publish(errorEvent)
+      } yield publishAction
 
     }
 
@@ -108,9 +108,11 @@ package object monix {
       eventBus.publish(SuccessfulCall(name, elapsedTime))
 
 
-    private val internalCb = internalCircuitBreaker.doOnClosed(F.delay(eventBus.publish(CircuitClosed(name))))
+    private val internalCb = internalCircuitBreaker
+      .doOnClosed(F.delay(eventBus.publish(CircuitClosed(name))))
       .doOnHalfOpen(F.delay(eventBus.publish(CircuitHalfOpen(name))))
       .doOnOpen(F.delay(eventBus.publish(CircuitOpen(name))))
+      .doOnRejectedTask(F.delay(eventBus.publish(ShortCircuitedCall(name))))
 
     override val circuitBreaker: F[CircuitBreaker[F]] = F.pure {
       internalCb
