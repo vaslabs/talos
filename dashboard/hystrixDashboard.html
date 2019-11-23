@@ -6,20 +6,20 @@ deliver fine grained visualisations.</p>
 
 <h3 id="usage">Usage</h3>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"hystrixreporter"</span> <span class="o">%</span> <span class="s">"0.6.0"</span>
-</code></pre></div></div>
+<pre><code class="language-sbt">libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.6.0"
+</code></pre>
 
 <p>Get an akka directive</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.time.Clock</span>
 
+<span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.ActorContext</span>
 <span class="k">import</span> <span class="nn">akka.http.scaladsl.server.Route</span>
-<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
 
 <span class="k">import</span> <span class="nn">talos.http.HystrixReporterDirective</span>
 
-<span class="k">def</span> <span class="n">hystrixReporterDirective</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">,</span> <span class="n">clock</span><span class="k">:</span> <span class="kt">Clock</span><span class="o">)</span><span class="k">:</span> <span class="kt">Route</span>  <span class="o">=</span>
-    <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="n">hystrixStreamHttpRoute</span>
+<span class="k">def</span> <span class="nf">hystrixReporterDirective</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorContext</span><span class="k">:</span> <span class="kt">ActorContext</span><span class="o">[</span><span class="k">_</span><span class="o">],</span> <span class="n">clock</span><span class="k">:</span> <span class="kt">Clock</span><span class="o">)</span><span class="k">:</span> <span class="kt">Route</span>  <span class="o">=</span>
+    <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="py">hystrixStreamHttpRoute</span>
 </code></pre></div></div>
 
 <p>So far Talos is opinionated over Akka but the plan is to make it more generic in the future.</p>

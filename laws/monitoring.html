@@ -10,8 +10,9 @@ the user how their implementations will expose such events.</p>
 
 <p>Subscription to such events can be done via the provided event bus.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.actor.typed.</span><span class="o">{</span><span class="nc">ActorSystem</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">}</span>
 <span class="k">import</span> <span class="nn">akka.actor.typed.Behavior</span>
+<span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.ActorContext</span>
 <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.Behaviors</span>
 <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
 <span class="k">import</span> <span class="nn">akka.util.Timeout</span>
@@ -25,55 +26,43 @@ the user how their implementations will expose such events.</p>
 <span class="k">import</span> <span class="nn">scala.concurrent.ExecutionContext</span>
 <span class="k">import</span> <span class="nn">scala.concurrent.Await</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span> <span class="o">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"ConsoleTest"</span><span class="o">)</span>
-
-<span class="k">val</span> <span class="n">eventListenerBehavior</span><span class="k">:</span> <span class="kt">Behavior</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Behaviors</span><span class="o">.</span><span class="n">receiveMessage</span> <span class="o">{</span>
+<span class="k">val</span> <span class="nv">eventListenerBehavior</span><span class="k">:</span> <span class="kt">Behavior</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span> <span class="nv">Behaviors</span><span class="o">.</span><span class="py">receiveMessage</span> <span class="o">{</span>
   <span class="n">event</span> <span class="k">=&gt;</span>
-    <span class="n">println</span><span class="o">(</span><span class="n">event</span><span class="o">)</span>
-    <span class="nc">Behaviors</span><span class="o">.</span><span class="n">same</span>
+    <span class="nf">println</span><span class="o">(</span><span class="n">event</span><span class="o">)</span>
+    <span class="nv">Behaviors</span><span class="o">.</span><span class="py">same</span>
 <span class="o">}</span>
 
-<span class="k">val</span> <span class="n">eventListener</span> <span class="k">=</span>
-  <span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span>
-    <span class="n">actorSystem</span><span class="o">.</span><span class="n">toTyped</span><span class="o">.</span><span class="n">systemActorOf</span><span class="o">(</span><span class="n">eventListenerBehavior</span><span class="o">,</span> <span class="s">"eventListener"</span><span class="o">)(</span><span class="nc">Timeout</span><span class="o">(</span><span class="mi">3</span> <span class="n">seconds</span><span class="o">)),</span>
-    <span class="mi">3</span> <span class="n">seconds</span>
-<span class="o">)</span>
+<span class="k">def</span> <span class="nf">eventListener</span><span class="o">(</span><span class="n">actorContext</span><span class="k">:</span> <span class="kt">ActorContext</span><span class="o">[</span><span class="k">_</span><span class="o">])</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span> <span class="k">=</span>
+  <span class="nv">actorContext</span><span class="o">.</span><span class="py">spawn</span><span class="o">(</span><span class="n">eventListenerBehavior</span><span class="o">,</span> <span class="s">"eventListener"</span><span class="o">)</span>
 
-<span class="k">val</span> <span class="n">circuitBreaker</span> <span class="k">=</span> <span class="nc">AkkaCircuitBreaker</span><span class="o">(</span><span class="s">"my_circuit_breaker"</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">2</span> <span class="n">seconds</span><span class="o">,</span> <span class="mi">5</span> <span class="n">seconds</span><span class="o">)</span>
+<span class="k">def</span> <span class="nf">circuitBreaker</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">[</span><span class="k">_</span><span class="o">])</span> <span class="k">=</span> 
+    <span class="nc">AkkaCircuitBreaker</span><span class="o">(</span><span class="s">"my_circuit_breaker"</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">2</span> <span class="n">seconds</span><span class="o">,</span> <span class="mi">5</span> <span class="n">seconds</span><span class="o">)</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">akkaEventBus</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AkkaEventBus</span><span class="o">()</span>
 
-<span class="n">circuitBreaker</span><span class="o">.</span><span class="n">eventBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">eventListener</span><span class="o">.</span><span class="n">toUntyped</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">])</span>
-
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">timerIO</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">.</span><span class="n">timer</span><span class="o">(</span><span class="nc">ExecutionContext</span><span class="o">.</span><span class="n">global</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">timingOut</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">.</span><span class="n">unit</span>
-</code></pre></div></div>
-
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="n">protectedCall</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="n">circuitBreaker</span><span class="o">.</span><span class="n">protect</span><span class="o">(</span><span class="n">timingOut</span><span class="o">)</span>
-<span class="n">protectedCall</span><span class="o">.</span><span class="n">unsafeRunSync</span><span class="o">()</span>
-<span class="nc">SuccessfulCall</span><span class="o">(</span><span class="n">my_circuit_breaker</span><span class="o">,</span><span class="mi">32079765</span> <span class="n">nanoseconds</span><span class="o">)</span>
-
-<span class="n">actorSystem</span><span class="o">.</span><span class="n">terminate</span><span class="o">()</span>
-
+<span class="k">def</span> <span class="nf">subscribe</span><span class="o">(</span><span class="n">eventListener</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">])(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">[</span><span class="k">_</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">implicit</span> <span class="k">val</span> <span class="nv">akkaEventBus</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AkkaEventBus</span><span class="o">()</span>
+    
+    <span class="nv">circuitBreaker</span><span class="o">.</span><span class="py">eventBus</span><span class="o">.</span><span class="py">subscribe</span><span class="o">(</span><span class="n">eventListener</span><span class="o">)</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>The events that expose the circuit breaker activity and state changes are the following:</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">CircuitBreakerEvent</span> <span class="o">{</span>
-      <span class="k">val</span> <span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span>
-    <span class="o">}</span>
+  <span class="k">val</span> <span class="nv">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span>
+<span class="o">}</span>
 
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">SuccessfulCall</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">CallFailure</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">CallTimeout</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitOpen</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitHalfOpen</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitClosed</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">ShortCircuitedCall</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">SuccessfulCall</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CallFailure</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CallTimeout</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">elapsedTime</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitOpen</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitHalfOpen</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CircuitClosed</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">ShortCircuitedCall</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
 
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">FallbackSuccess</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">FallbackFailure</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
-    <span class="k">case</span> <span class="k">class</span> <span class="nc">FallbackRejected</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">FallbackSuccess</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">FallbackFailure</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">FallbackRejected</span><span class="o">(</span><span class="n">circuitBreakerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">CircuitBreakerEvent</span>
 </code></pre></div></div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/talos/highlight/highlight.pack.js"></script><script>hljs.configure({languages:['scala','java','bash']});

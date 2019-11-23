@@ -5,11 +5,11 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloskamon"</span> <span class="o">%</span> <span class="s">"0.6.0"</span>
 </code></pre></div></div>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.ActorContext</span>
 
   <span class="k">import</span> <span class="nn">talos.kamon.StatsAggregator</span>
   
-  <span class="k">def</span> <span class="n">recordKamonMetrics</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span> <span class="k">=</span> <span class="nc">StatsAggregator</span><span class="o">.</span><span class="n">kamon</span><span class="o">()</span>
+  <span class="k">def</span> <span class="nf">recordKamonMetrics</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorContext</span><span class="k">:</span> <span class="kt">ActorContext</span><span class="o">[</span><span class="k">_</span><span class="o">])</span> <span class="k">=</span> <span class="nv">StatsAggregator</span><span class="o">.</span><span class="py">kamon</span><span class="o">()</span>
 </code></pre></div></div>
 
 <h2 id="metrics-format">Metrics format</h2>

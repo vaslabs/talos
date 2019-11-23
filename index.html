@@ -15,31 +15,38 @@
 <span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"hystrixreporter"</span> <span class="o">%</span> <span class="s">"0.6.0"</span>
 </code></pre></div></div>
 <p>The events library provides a way to stream events on what’s happening in the circuit breakers. E.g. combining with the talosakkasupport you can do:</p>
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.actor.typed.</span><span class="o">{</span><span class="nc">ActorSystem</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
 <span class="k">import</span> <span class="nn">akka.pattern.CircuitBreaker</span>
 <span class="k">import</span> <span class="nn">cats.effect.IO</span>
 <span class="k">import</span> <span class="nn">talos.circuitbreakers.TalosCircuitBreaker</span>
-<span class="k">import</span> <span class="nn">talos.circuitbreakers.akka.AkkaCircuitBreaker</span>
+<span class="k">import</span> <span class="nn">talos.circuitbreakers.akka._</span>
 
-<span class="k">val</span> <span class="n">talosCircuitBreaker</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span>, <span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="nc">AkkaCircuitBreaker</span><span class="o">(</span>
-  <span class="n">name</span><span class="o">,</span>
-  <span class="nc">CircuitBreaker</span><span class="o">(</span>
-    <span class="n">actorSystem</span><span class="o">.</span><span class="n">scheduler</span><span class="o">,</span>
-    <span class="mi">5</span><span class="o">,</span>
-    <span class="mi">2</span> <span class="n">seconds</span><span class="o">,</span>
-    <span class="mi">5</span> <span class="n">seconds</span>
-  <span class="o">)</span>
-<span class="o">)</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+
+<span class="k">def</span> <span class="nf">createCircuitBreaker</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"testCircuitBreaker"</span><span class="o">)</span>
+                      <span class="o">(</span><span class="k">implicit</span> <span class="n">system</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">[</span><span class="k">_</span><span class="o">])</span><span class="k">:</span> <span class="kt">AkkaCircuitBreaker.Instance</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="nc">AkkaCircuitBreaker</span><span class="o">(</span>
+      <span class="n">name</span><span class="o">,</span>
+      <span class="nc">CircuitBreaker</span><span class="o">(</span>
+        <span class="nv">system</span><span class="o">.</span><span class="py">scheduler</span><span class="o">.</span><span class="py">toClassic</span><span class="o">,</span>
+        <span class="mi">5</span><span class="o">,</span>
+        <span class="mi">2</span> <span class="n">seconds</span><span class="o">,</span>
+        <span class="mi">5</span> <span class="n">seconds</span>
+      <span class="o">)</span>
+    <span class="o">)</span>
+<span class="o">}</span>
+
 
 </code></pre></div></div>
 
 <p>If you have an existing solution based on Akka circuit breaker and you can extract the circuit breaker like this.</p>
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">val</span> <span class="n">akkaCB</span><span class="k">:</span> <span class="kt">CircuitBreaker</span> <span class="o">=</span> <span class="n">talosCircuitBreaker</span><span class="o">.</span><span class="n">circuitBreaker</span><span class="o">.</span><span class="n">unsafeRunSync</span><span class="o">()</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">val</span> <span class="nv">akkaCB</span><span class="k">:</span> <span class="kt">CircuitBreaker</span> <span class="o">=</span> <span class="nv">talosCircuitBreaker</span><span class="o">.</span><span class="py">circuitBreaker</span><span class="o">.</span><span class="py">unsafeRunSync</span><span class="o">()</span>
 </code></pre></div></div>
 
 <p>Otherwise you can use the TalosCircuitBreaker typeclass directly</p>
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">val</span> <span class="n">action</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="n">talosCircuitBreaker</span><span class="o">.</span><span class="n">protect</span><span class="o">(</span><span class="nc">IO</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="s">"Running inside the circuit breaker"</span><span class="o">)))</span>
-    <span class="n">action</span><span class="o">.</span><span class="n">unsafeRunSync</span><span class="o">()</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">val</span> <span class="nv">action</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nv">talosCircuitBreaker</span><span class="o">.</span><span class="py">protect</span><span class="o">(</span><span class="nc">IO</span><span class="o">(</span><span class="nf">println</span><span class="o">(</span><span class="s">"Running inside the circuit breaker"</span><span class="o">)))</span>
+    <span class="nv">action</span><span class="o">.</span><span class="py">unsafeRunSync</span><span class="o">()</span>
 </code></pre></div></div>
 
 <p>Talos also supports the CircuitBreaker from <a href="https://vaslabs.github.io/talos/monix/monix.html">monix</a></p>
@@ -49,30 +56,9 @@
 <p>Get an akka directive</p>
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.http.scaladsl.server.Route</span>
 
-<span class="k">val</span> <span class="n">hystrixReporterDirective</span><span class="k">:</span> <span class="kt">Route</span>  <span class="o">=</span> <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="n">hystrixStreamHttpRoute</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="nc">Clock</span><span class="o">.</span><span class="n">systemUTC</span><span class="o">())</span>
+<span class="k">val</span> <span class="nv">hystrixReporterDirective</span><span class="k">:</span> <span class="kt">Route</span>  <span class="o">=</span> <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="py">hystrixStreamHttpRoute</span><span class="o">.</span><span class="py">run</span><span class="o">(</span><span class="nv">Clock</span><span class="o">.</span><span class="py">systemUTC</span><span class="o">())</span>
 </code></pre></div></div>
 <p>And you can mix the Akka directive with the rest of your application.</p>
-
-<p>The example below shows a complete server start</p>
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.time.Clock</span>
-<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-
-<span class="k">import</span> <span class="nn">talos.http._</span>
-
-<span class="k">implicit</span> <span class="k">val</span> <span class="nc">TestClock</span><span class="k">:</span> <span class="kt">Clock</span> <span class="o">=</span> <span class="nc">Clock</span><span class="o">.</span><span class="n">systemUTC</span><span class="o">()</span>
-
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span> <span class="o">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"TalosExample"</span><span class="o">)</span>
-
-
-
-<span class="k">val</span> <span class="n">hystrixReporterDirective</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HystrixReporterDirective</span><span class="o">().</span><span class="n">hystrixStreamHttpRoute</span>
-
-<span class="k">val</span> <span class="n">server</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StartServer</span><span class="o">(</span><span class="s">"0.0.0.0"</span><span class="o">,</span> <span class="mi">8080</span><span class="o">)</span>
-
-<span class="k">val</span> <span class="n">startingServer</span> <span class="k">=</span> <span class="n">server</span><span class="o">.</span><span class="n">startHttpServer</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">hystrixReporterDirective</span><span class="o">)</span>
-
-</code></pre></div></div>
-<p>Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.</p>
 
 <h3 id="complete-usage-example">Complete usage example</h3>
 
@@ -112,6 +98,6 @@ You should see this
 
 <h2 id="architecture">Architecture</h2>
 
-<p><img src="https://docs.google.com/drawings/d/e/2PACX-1vRKebbVROyBITii1GHHigPvGbFt0QdEIzk5oT1mZa16VN30MYH4wvhqd14Qllp_1SIz3wcqDdAP5Kx6/pub?w=1440&amp;h=1080" alt="alt text" /></p>
+<p><img src="https://docs.google.com/drawings/d/e/2PACX-1vRKebbVROyBITii1GHHigPvGbFt0QdEIzk5oT1mZa16VN30MYH4wvhqd14Qllp_1SIz3wcqDdAP5Kx6/pub?w=960&amp;h=720" alt="alt text" /></p>
 
 </div></div></section><section class="technologies"><div class="container"><div class="row"></div></div></section></main><footer id="site-footer"><div class="container"><div class="row"><div class="col-xs-6"><p>Talos is designed and developed by <a href="" target="_blank">Vasilis Nicolaou</a></p></div><div class="col-xs-6"><p class="text-right"><a href="https://github.com/vaslabs/talos"><span class="fa fa-github"></span>View on GitHub</a></p></div></div><div class="row"><div class="col-xs-6"><p>Website built with <a href="https://47deg.github.io/sbt-microsites/" target="_blank">Sbt-microsites</a> - © 2016 <a href="https://www.47deg.com/" target="_blank">47 Degrees</a></p></div></div></div></footer></body></html>

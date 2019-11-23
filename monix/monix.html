@@ -15,47 +15,50 @@ continue composing the Async typeclass of your choice.</p>
 
 <p>You can do something like this.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-
-<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-
-<span class="k">import</span> <span class="nn">cats.effect._</span>
-
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">cats.effect._</span>
 <span class="k">import</span> <span class="nn">monix.catnap.CircuitBreaker</span>
 
 <span class="k">import</span> <span class="nn">talos.circuitbreakers._</span>
 
 <span class="k">import</span> <span class="nn">talos.circuitbreakers.monix._</span>
 
+<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
 
-<span class="k">def</span> <span class="n">usage</span><span class="o">[</span><span class="kt">F</span><span class="o">[</span><span class="k">_</span><span class="o">]](</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">,</span> <span class="n">F</span><span class="k">:</span> <span class="kt">Concurrent</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span>, <span class="kt">F</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
-    <span class="k">implicit</span> <span class="k">val</span> <span class="n">effectClock</span> <span class="k">=</span> <span class="nc">Clock</span><span class="o">.</span><span class="n">create</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span>
+<span class="k">def</span> <span class="nf">usage</span><span class="o">[</span><span class="kt">F</span><span class="o">[</span><span class="k">_</span><span class="o">]](</span><span class="k">implicit</span> <span class="n">F</span><span class="k">:</span> <span class="kt">Concurrent</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span><span class="k">:</span> <span class="kt">MonixCircuitBreaker.Instance</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">implicit</span> <span class="k">def</span> <span class="nf">contextShift</span><span class="k">:</span> <span class="kt">ContextShift</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
+    <span class="k">def</span> <span class="nf">circuitBreaker</span><span class="k">:</span> <span class="kt">CircuitBreaker</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
 
-    <span class="k">val</span> <span class="n">circuitBreaker</span><span class="k">:</span> <span class="kt">CircuitBreaker</span><span class="o">[</span><span class="kt">F</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CircuitBreaker</span><span class="o">.</span><span class="n">unsafe</span><span class="o">[</span><span class="kt">F</span><span class="o">](</span><span class="mi">5</span><span class="o">,</span> <span class="mi">5</span> <span class="n">seconds</span><span class="o">)</span>
-
-    <span class="nc">MonixCircuitBreaker</span><span class="o">(</span><span class="s">"testCircuitBreaker"</span><span class="o">,</span> <span class="n">circuitBreaker</span><span class="o">,</span> <span class="n">callTimeout</span> <span class="k">=</span> <span class="mi">2</span> <span class="n">seconds</span><span class="o">)</span>
-<span class="o">}</span>
+    <span class="nc">MonixCircuitBreaker</span><span class="o">(</span>
+      <span class="s">"testCircuitBreaker"</span><span class="o">,</span>
+      <span class="n">circuitBreaker</span><span class="o">,</span>
+      <span class="mi">4</span> <span class="n">seconds</span>
+    <span class="o">)</span>
+  <span class="o">}</span>
 </code></pre></div></div>
 <p>E.g. for IO you can then do</p>
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.concurrent.Executors</span>
 
 <span class="k">import</span> <span class="nn">scala.concurrent.ExecutionContext</span>
+<span class="k">import</span> <span class="nn">cats.effect._</span>
 
-<span class="k">def</span> <span class="n">usageWithIO</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
-    <span class="k">implicit</span> <span class="k">val</span> <span class="n">timeoutContextShift</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">.</span><span class="n">contextShift</span><span class="o">(</span>
-        <span class="nc">ExecutionContext</span><span class="o">.</span><span class="n">fromExecutor</span><span class="o">(</span><span class="nc">Executors</span><span class="o">.</span><span class="n">newSingleThreadExecutor</span><span class="o">())</span>
+<span class="k">def</span> <span class="nf">usageWithIO</span><span class="o">()</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">implicit</span> <span class="k">val</span> <span class="nv">contextShift</span> <span class="k">=</span> <span class="nv">IO</span><span class="o">.</span><span class="py">contextShift</span><span class="o">(</span><span class="nv">ExecutionContext</span><span class="o">.</span><span class="py">global</span><span class="o">)</span>
+
+    <span class="k">implicit</span> <span class="k">val</span> <span class="nv">effectClock</span> <span class="k">=</span> <span class="nv">Clock</span><span class="o">.</span><span class="py">create</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
+
+    <span class="k">val</span> <span class="nv">circuitBreaker</span><span class="k">:</span> <span class="kt">CircuitBreaker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span> <span class="k">=</span>
+        <span class="nv">CircuitBreaker</span><span class="o">.</span><span class="py">of</span><span class="o">[</span><span class="kt">IO</span><span class="o">](</span><span class="mi">5</span><span class="o">,</span> <span class="n">resetTimeout</span> <span class="k">=</span> <span class="mi">30</span> <span class="n">seconds</span><span class="o">).</span><span class="py">unsafeRunSync</span><span class="o">()</span>
+
+    <span class="k">val</span> <span class="nv">unprotectedTask</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">(</span><span class="nf">println</span><span class="o">(</span><span class="s">"I'm running in the circuit breaker"</span><span class="o">))</span>
+    <span class="k">val</span> <span class="nv">ioCircuitBreaker</span> <span class="k">=</span> <span class="nc">MonixCircuitBreaker</span><span class="o">(</span>
+         <span class="s">"testCircuitBreaker"</span><span class="o">,</span>
+         <span class="n">circuitBreaker</span><span class="o">,</span>
+         <span class="mi">4</span> <span class="n">seconds</span>
     <span class="o">)</span>
 
-    <span class="k">val</span> <span class="n">unprotectedTask</span><span class="k">:</span> <span class="kt">IO</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="s">"I'm running in the circuit breaker"</span><span class="o">))</span>
-    <span class="k">val</span> <span class="n">ioCircuitBreaker</span> <span class="k">=</span> <span class="n">usage</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
-    <span class="n">ioCircuitBreaker</span><span class="o">.</span><span class="n">protect</span><span class="o">(</span><span class="n">unprotectedTask</span><span class="o">)</span>
+    <span class="nv">ioCircuitBreaker</span><span class="o">.</span><span class="py">protect</span><span class="o">(</span><span class="n">unprotectedTask</span><span class="o">)</span>
 <span class="o">}</span>
 </code></pre></div></div>
-
-<p>Unfortunately you still depend on the actor system as the events are fired to the akka event stream which is the point of
-connection with other modules.</p>
-
-<p>Decoupling the event stream is being explored.</p>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/talos/highlight/highlight.pack.js"></script><script>hljs.configure({languages:['scala','java','bash']});
 hljs.initHighlighting();
               </script><script>((window.gitter = {}).chat = {}).options = {

@@ -4,38 +4,47 @@
 
 <h2 id="dependencies">Dependencies</h2>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span>
-          <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloscore"</span> <span class="o">%</span> <span class="s">"0.6.0"</span><span class="o">,</span>
-          <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"talosakkasupport"</span> <span class="o">%</span> <span class="s">"0.6.0"</span>
-<span class="o">)</span>
-</code></pre></div></div>
+<pre><code class="language-sbt">libraryDependencies ++= Seq(
+          "org.vaslabs.talos" %% "taloscore" % "0.6.0",
+          "org.vaslabs.talos" %% "talosakkasupport" % "0.6.0"
+)
+</code></pre>
 <h2 id="usage-example">Usage example</h2>
 
 <p>This library provides a way to stream events on what’s happening in the circuit breakers. You can do:</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.actor.typed.</span><span class="o">{</span><span class="nc">ActorSystem</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">akka.actor.typed.scaladsl.adapter._</span>
 <span class="k">import</span> <span class="nn">akka.pattern.CircuitBreaker</span>
 <span class="k">import</span> <span class="nn">cats.effect.IO</span>
 <span class="k">import</span> <span class="nn">talos.circuitbreakers.TalosCircuitBreaker</span>
-
+<span class="k">import</span> <span class="nn">talos.http.CircuitBreakerEventsSource.CircuitBreakerStats</span>
 <span class="k">import</span> <span class="nn">talos.circuitbreakers.akka._</span>
 
 <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-  <span class="k">def</span> <span class="n">circuitBreaker</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span>, <span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+
+
+<span class="k">def</span> <span class="nf">createCircuitBreaker</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"testCircuitBreaker"</span><span class="o">)</span>
+                      <span class="o">(</span><span class="k">implicit</span> <span class="n">system</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">[</span><span class="k">_</span><span class="o">])</span><span class="k">:</span> <span class="kt">AkkaCircuitBreaker.Instance</span> <span class="o">=</span> <span class="o">{</span>
     <span class="nc">AkkaCircuitBreaker</span><span class="o">(</span>
-      <span class="s">"testCircuitBreaker"</span><span class="o">,</span>
-      <span class="mi">5</span><span class="o">,</span>
-      <span class="mi">5</span> <span class="n">seconds</span><span class="o">,</span>
-      <span class="mi">10</span> <span class="n">seconds</span>
+      <span class="n">name</span><span class="o">,</span>
+      <span class="nc">CircuitBreaker</span><span class="o">(</span>
+        <span class="nv">system</span><span class="o">.</span><span class="py">scheduler</span><span class="o">.</span><span class="py">toClassic</span><span class="o">,</span>
+        <span class="mi">5</span><span class="o">,</span>
+        <span class="mi">2</span> <span class="n">seconds</span><span class="o">,</span>
+        <span class="mi">5</span> <span class="n">seconds</span>
+      <span class="o">)</span>
     <span class="o">)</span>
-  <span class="o">}</span>
+<span class="o">}</span>
+
 </code></pre></div></div>
 
 <p>Now you can use the circuit breaker via the TalosCircuitBreaker type class.</p>
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="n">circuitBreakerUsage</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">myCircuitBreaker</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span>, <span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="n">circuitBreaker</span>
-    <span class="k">val</span> <span class="n">unsafeCall</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="s">"I'm running inside the circuit breaker"</span><span class="o">))</span>
-    <span class="n">myCircuitBreaker</span><span class="o">.</span><span class="n">protect</span><span class="o">(</span><span class="n">unsafeCall</span><span class="o">).</span><span class="n">unsafeRunSync</span><span class="o">()</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">talos.events.TalosEvents.model.CircuitBreakerEvent</span>
+<span class="k">def</span> <span class="nf">circuitBreakerUsage</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">[</span><span class="k">_</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="nv">myCircuitBreaker</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span>, <span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span>, <span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="nf">createCircuitBreaker</span><span class="o">()</span>
+    <span class="k">val</span> <span class="nv">unsafeCall</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">(</span><span class="nf">println</span><span class="o">(</span><span class="s">"I'm running inside the circuit breaker"</span><span class="o">))</span>
+    <span class="nv">myCircuitBreaker</span><span class="o">.</span><span class="py">protect</span><span class="o">(</span><span class="n">unsafeCall</span><span class="o">).</span><span class="py">unsafeRunSync</span><span class="o">()</span>
 <span class="o">}</span>
 </code></pre></div></div>
 
@@ -43,10 +52,10 @@
 
 <h3 id="legacy-support">Legacy support</h3>
 <p>If you are working on a legacy code and you don’t want to change every method call you can extract the underlying circuit breaker like this</p>
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">def</span> <span class="n">legacyUsage</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
-        <span class="k">val</span> <span class="n">myCircuitBreaker</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span>, <span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="n">circuitBreaker</span>
-        <span class="k">val</span> <span class="n">akkaCircuitBreaker</span><span class="k">:</span> <span class="kt">akka.pattern.CircuitBreaker</span> <span class="o">=</span> <span class="n">myCircuitBreaker</span><span class="o">.</span><span class="n">circuitBreaker</span><span class="o">.</span><span class="n">unsafeRunSync</span><span class="o">()</span>
-        <span class="n">akkaCircuitBreaker</span><span class="o">.</span><span class="n">callWithSyncCircuitBreaker</span><span class="o">(()</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">"I'm running inside the circuit breaker"</span><span class="o">))</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">def</span> <span class="nf">legacyUsage</span><span class="o">(</span><span class="k">implicit</span> <span class="n">actorSystem</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">[</span><span class="k">_</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+        <span class="k">val</span> <span class="nv">myCircuitBreaker</span><span class="k">:</span> <span class="kt">TalosCircuitBreaker</span><span class="o">[</span><span class="kt">CircuitBreaker</span>, <span class="kt">ActorRef</span><span class="o">[</span><span class="kt">CircuitBreakerEvent</span><span class="o">]</span>, <span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="nf">createCircuitBreaker</span><span class="o">()</span>
+        <span class="k">val</span> <span class="nv">akkaCircuitBreaker</span><span class="k">:</span> <span class="kt">akka.pattern.CircuitBreaker</span> <span class="o">=</span> <span class="nv">myCircuitBreaker</span><span class="o">.</span><span class="py">circuitBreaker</span><span class="o">.</span><span class="py">unsafeRunSync</span><span class="o">()</span>
+        <span class="nv">akkaCircuitBreaker</span><span class="o">.</span><span class="py">callWithSyncCircuitBreaker</span><span class="o">(()</span> <span class="k">=&gt;</span> <span class="nf">println</span><span class="o">(</span><span class="s">"I'm running inside the circuit breaker"</span><span class="o">))</span>
     <span class="o">}</span>
 </code></pre></div></div>
 <p>And you still get the events through the akka event stream.</p>
