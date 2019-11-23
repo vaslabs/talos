@@ -3,12 +3,11 @@ package talos.circuitbreakers.akka
 import akka.actor.typed.ActorSystem
 
 import scala.concurrent.duration._
-import scala.reflect.ClassTag
 class SyntaxSpec {
 
-  def implicitResolution[T](implicit classTag: ClassTag[T]): AkkaCircuitBreaker.Instance[T] = {
+  def implicitResolution: AkkaCircuitBreaker.Instance = {
     implicit def ctx: ActorSystem[_] = ???
-    AkkaCircuitBreaker[T](
+    AkkaCircuitBreaker(
       "testCircuitBreaker",
       5,
       5 seconds,

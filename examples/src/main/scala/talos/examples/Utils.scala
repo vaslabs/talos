@@ -39,7 +39,7 @@ object Utils {
   import scala.concurrent.duration._
 
   def createCircuitBreaker(name: String = "testCircuitBreaker")
-                          (implicit system: ActorSystem[_]): AkkaCircuitBreaker.Instance[CircuitBreakerStats] = {
+                          (implicit system: ActorSystem[_]): AkkaCircuitBreaker.Instance = {
     AkkaCircuitBreaker(
       name,
       CircuitBreaker(

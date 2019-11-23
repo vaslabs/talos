@@ -31,8 +31,8 @@ package object akka {
   }
 
 
-  class AkkaCircuitBreaker[T] private (val name: String, cbInstance: AkkaCB)
-         (implicit val eventBus: EventBus[ActorRef[T]]) extends TalosCircuitBreaker[AkkaCB, ActorRef[T], IO] {
+  class AkkaCircuitBreaker private (val name: String, cbInstance: AkkaCB)
+         (implicit val eventBus: EventBus[ActorRef[CircuitBreakerEvent]]) extends TalosCircuitBreaker[AkkaCB, ActorRef[CircuitBreakerEvent], IO] {
 
 
     private[AkkaCircuitBreaker] implicit val timer = IO.timer(AkkaCircuitBreaker.fallbackTimeoutExecutionContext)
@@ -94,20 +94,20 @@ package object akka {
   }
 
   object AkkaCircuitBreaker {
-    type Instance[T] = TalosCircuitBreaker[AkkaCB, ActorRef[T], IO]
+    type Instance = TalosCircuitBreaker[AkkaCB, ActorRef[CircuitBreakerEvent], IO]
 
-    def apply[T](
+    def apply(
        name: String,
        maxFailures: Int,
        callTimeout: FiniteDuration,
        resetTimeout: FiniteDuration
-     )(implicit actorSystem: ActorSystem[_], classTag: ClassTag[T]): Instance[T] = {
+     )(implicit actorSystem: ActorSystem[_]): Instance = {
       apply(name, AkkaCB(actorSystem.scheduler.toClassic, maxFailures, callTimeout, resetTimeout))
     }
 
-    def apply[T](name: String, circuitBreaker: AkkaCB)(implicit actorSystem: ActorSystem[_], classTag: ClassTag[T]): Instance[T] = {
-      implicit val eventBus: EventBus[ActorRef[T]] = new AkkaEventBus[T]()
-      implicit val akkaCircuitBreaker: AkkaCircuitBreaker[T] =
+    def apply(name: String, circuitBreaker: AkkaCB)(implicit actorSystem: ActorSystem[_]): Instance = {
+      implicit val eventBus: EventBus[ActorRef[CircuitBreakerEvent]] = new AkkaEventBus[CircuitBreakerEvent]()
+      implicit val akkaCircuitBreaker: AkkaCircuitBreaker =
         new AkkaCircuitBreaker(name, circuitBreaker)
       Talos.circuitBreaker
     }
@@ -118,7 +118,7 @@ package object akka {
   }
 
   final implicit class AkkaCircuitBreakerSyntax(val circuitBreaker: AkkaCB) extends AnyVal {
-    def withEventReporting[T](name: String)(implicit actorSystem: ActorSystem[_], classTag: ClassTag[T]): Instance[T] = {
+    def withEventReporting(name: String)(implicit actorSystem: ActorSystem[_]): Instance = {
       AkkaCircuitBreaker(name, circuitBreaker)
     }
   }

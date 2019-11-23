@@ -29,7 +29,7 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreak
     testKit.shutdownTestKit()
   }
 
-  override val talosCircuitBreaker: AkkaCircuitBreaker.Instance[CircuitBreakerEvent] =  AkkaCircuitBreaker[CircuitBreakerEvent](
+  override val talosCircuitBreaker: AkkaCircuitBreaker.Instance =  AkkaCircuitBreaker(
     circuitBreakerName,
     maxFailures = 5,
     callTimeout = callTimeout,

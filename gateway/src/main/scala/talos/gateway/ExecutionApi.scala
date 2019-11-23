@@ -15,7 +15,6 @@ import talos.gateway.Gateway.{HttpCall, ServiceCall}
 import talos.gateway.config.{GatewayConfig, ServiceConfig}
 
 import scala.concurrent.{Future, Promise}
-import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
 
@@ -26,11 +25,10 @@ trait ExecutionApi[F[_]] {
 
 class ServiceExecutionApi[T] private[gateway](
                           gatewayConfig: GatewayConfig, httpExecution: ServiceCall => IO[HttpResponse])(implicit
-                          actorSystem: ActorSystem[_],
-                          classTag: ClassTag[T]) extends ExecutionApi[Future] {
+                          actorSystem: ActorSystem[_]) extends ExecutionApi[Future] {
 
 
-  lazy val circuitBreakers: Map[String, AkkaCircuitBreaker.Instance[T]] = {
+  lazy val circuitBreakers: Map[String, AkkaCircuitBreaker.Instance] = {
     gatewayConfig.services.map {
       serviceConfig =>
         val circuitBreaker = CircuitBreaker(
@@ -39,7 +37,7 @@ class ServiceExecutionApi[T] private[gateway](
           serviceConfig.callTimeout,
           serviceConfig.importance.resetTimeout
         )
-        ExecutionApi.resolveServiceName(serviceConfig) -> AkkaCircuitBreaker[T](serviceConfig.host, circuitBreaker)
+        ExecutionApi.resolveServiceName(serviceConfig) -> AkkaCircuitBreaker(serviceConfig.host, circuitBreaker)
     }.toMap
   }
 
