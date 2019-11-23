@@ -107,7 +107,7 @@ object ExecutionApi {
       fromServices.toMap
     }
 
-    def resolvePromise(request: HttpRequest, promise: Promise[HttpResponse], queueOfferResult: QueueOfferResult) = {
+    def resolvePromise(promise: Promise[HttpResponse], queueOfferResult: QueueOfferResult) = {
       queueOfferResult match {
         case QueueOfferResult.Enqueued => promise.future
         case QueueOfferResult.Dropped =>
@@ -122,7 +122,7 @@ object ExecutionApi {
 
     def queueRequest(request: HttpRequest, queue: QUEUE): Future[HttpResponse] = {
       val responsePromise = Promise[HttpResponse]()
-      queue.offer(request -> responsePromise).flatMap(resolvePromise(request, responsePromise, _))(actorSystem.executionContext)
+      queue.offer(request -> responsePromise).flatMap(resolvePromise(responsePromise, _))(actorSystem.executionContext)
     }
 
     apply(
