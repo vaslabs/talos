@@ -23,7 +23,7 @@ package object circuitbreakers {
   }
 
   trait EventBus[S] {
-    def subscribe[T](subscriber: S, topic: Class[T]): Option[S]
+    def subscribe(subscriber: S): Option[S]
 
     def unsubsribe(a: S): Unit
 

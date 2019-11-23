@@ -16,7 +16,7 @@ object config {
     def load: Either[ConfigReaderFailures, GatewayConfig] = {
       import pureconfigExt._
       import pureconfig.generic.auto._
-      loadConfig[GatewayConfig]("talos.gateway")
+      ConfigSource.default.at("talos.gateway").load[GatewayConfig]
     }
   }
 

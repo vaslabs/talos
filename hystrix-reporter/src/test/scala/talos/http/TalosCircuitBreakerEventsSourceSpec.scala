@@ -1,33 +1,42 @@
 package talos.http
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
+import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
-import akka.testkit.{TestKit, TestProbe}
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
+import kamon.Kamon
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import talos.http.CircuitBreakerEventsSource.StreamControl
 
 class TalosCircuitBreakerEventsSourceSpec
-      extends TestKit(ActorSystem("CircuitBreakerEventsSourceSpec"))
-      with FlatSpecLike
+      extends FlatSpec
       with Matchers
       with BeforeAndAfterAll{
 
+  val testKit = ActorTestKit()
+
   override def afterAll(): Unit = {
-    system.terminate()
-    ()
+    Kamon.stopAllReporters()
+    testKit.shutdownTestKit()
   }
 
+  sealed trait IgnoreProtocol
   "events source" should "periodically send events for streaming data" in {
-    val metricsReporterActor = TestProbe("MetricsReporter")
+    val metricsReporterActor = testKit.createTestProbe[StreamControl]("MetricsReporter")
+    val mockBehaviour: Behavior[IgnoreProtocol] = Behaviors.setup {
+      ctx =>
+        implicit val actorContext = ctx
+        val circuitBreakerEventsSource =
+          new CircuitBreakerEventsSource(metricsReporterActor.ref)
 
-    val circuitBreakerEventsSource =
-      new CircuitBreakerEventsSource(metricsReporterActor.ref)
+        implicit val actorMaterializer = Materializer(ctx)
+        circuitBreakerEventsSource.main.runWith(Sink.ignore)
+        Behaviors.ignore
+    }
+    testKit.spawn(mockBehaviour)
 
-    implicit val actorMaterializer = ActorMaterializer()
-    circuitBreakerEventsSource.main.runWith(Sink.ignore)
-
-    metricsReporterActor.expectMsgType[CircuitBreakerEventsSource.Start]
-
+    metricsReporterActor.expectMessageType[CircuitBreakerEventsSource.Start]
 
   }
 

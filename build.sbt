@@ -30,7 +30,7 @@ val publishSettings = Seq(
   startYear := Some(2018)
 )
 
-scalaVersion := "2.12.7"
+scalaVersion := "2.12.10"
 
 lazy val compilerSettings = {
   scalacOptions ++= Seq(
@@ -94,7 +94,8 @@ lazy val talosAkkaSupport = (project in file("akka"))
 
 lazy val talosKamon =
   (project in file("kamon")).settings(
-    libraryDependencies ++= libraries.Kamon.all ++ libraries.ScalaTest.all ++ libraries.Akka.all :+
+    libraryDependencies ++= libraries.Kamon.all ++ libraries.Log4j.required.map(_ % Test) ++
+      libraries.ScalaTest.all ++ libraries.Akka.all :+
       libraries.Cats.effect
   ).settings(compilerSettings)
     .settings(publishSettings)

@@ -1,28 +1,38 @@
 package talos.gateway
 
-import akka.actor.ActorSystem
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.adapter._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
-import akka.testkit.TestKit
-import cats.effect.IO
-import cats.implicits._
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits._
+class GatewayServerSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
 
-class GatewayServerSpec extends TestKit(ActorSystem("GatewayServerSpec")) with FlatSpecLike with Matchers with BeforeAndAfterAll {
-
+  val testKit = ActorTestKit()
 
   val port = 9000
   val wireMockServer = new WireMockServer(wireMockConfig().port(port))
-  val gatewayServer = GatewayServer()
+  sealed trait Ignore
+
+  val gatewayGuardian: Behavior[Ignore] = Behaviors.setup {
+    ctx =>
+      implicit val actorContext = ctx
+      GatewayServer()
+      Behaviors.ignore
+  }
+
+  implicit val system = testKit.system.toClassic
+
 
   override def beforeAll(): Unit = {
+    testKit.spawn(gatewayGuardian, "GatewayGuardian")
+
     wireMockServer.start()
     WireMock.configureFor("localhost", port)
     val path = "/animals/dogs/"
@@ -34,24 +44,28 @@ class GatewayServerSpec extends TestKit(ActorSystem("GatewayServerSpec")) with F
     stubFor(get(urlEqualTo("/animals/cat/1"))
         .willReturn(aResponse().withStatus(200))
     )
+    ()
   }
 
   override def afterAll(): Unit = {
     wireMockServer.stop()
-    val termination = IO(gatewayServer.map(_.terminate(5 seconds))) *> IO(system.terminate())
-    (IO.fromFuture(termination) *> IO.unit).unsafeRunSync()
+    testKit.shutdownTestKit()
   }
 
   "gateway server" can "accept requests" in {
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/dogs"))).map(
-      _.status shouldBe StatusCodes.OK
-    )
+    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/dogs"))).map {
+      r =>
+        r.discardEntityBytes()
+        r.status shouldBe StatusCodes.OK
+    }
   }
 
   "gateway server" can "forward wild card remaining paths" in {
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/cat/1"))).map(
-      _.status shouldBe StatusCodes.OK
-    )
+    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:8080/cat/1"))).map {
+      r =>
+        r.discardEntityBytes()
+        r.status shouldBe StatusCodes.OK
+    }
   }
 
 }

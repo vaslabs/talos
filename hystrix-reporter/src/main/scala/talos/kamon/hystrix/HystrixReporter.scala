@@ -2,19 +2,19 @@ package talos.kamon.hystrix
 
 import java.time.{Clock, ZonedDateTime}
 
-import akka.actor.ActorRef
+import akka.actor.typed.ActorRef
 import cats.implicits._
 import cats.kernel.Semigroup
 import com.typesafe.config.Config
 import kamon.MetricReporter
 import kamon.metric.{MetricDistribution, MetricValue, Percentile, PeriodSnapshot}
-import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
+import talos.http.CircuitBreakerEventsSource.{CircuitBreakerStats, StreamControl}
 import talos.kamon.StatsAggregator
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
-class HystrixReporter(statsGatherer: ActorRef)(implicit clock: Clock) extends MetricReporter{
+class HystrixReporter(statsGatherer: ActorRef[StreamControl])(implicit clock: Clock) extends MetricReporter{
 
 
   private def findCountersMetricsOfCircuitBreaker(counters: Seq[MetricValue]) =

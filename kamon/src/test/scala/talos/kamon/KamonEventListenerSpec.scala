@@ -1,8 +1,9 @@
 package talos.kamon
 
-import akka.actor.ActorSystem
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import akka.actor.typed.scaladsl.adapter._
+import akka.actor.typed.eventstream.EventStream
+import akka.actor.typed.{Behavior, PostStop}
+import akka.actor.typed.scaladsl.Behaviors
 import com.typesafe.config.Config
 import kamon.metric.{MetricValue, PeriodSnapshot}
 import kamon.{Kamon, MetricReporter}
@@ -16,8 +17,30 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
   val testKit = ActorTestKit()
 
+  sealed trait Ignore
+
   override def afterAll() = {
+    Kamon.stopAllReporters()
     testKit.shutdownTestKit()
+  }
+
+  def guardian: Behavior[Ignore] = Behaviors.setup[Ignore] {
+    ctx =>
+      implicit val actorContext = ctx
+      val stopKamon = StatsAggregator.kamon()
+
+      Behaviors.receive[Ignore] {
+        case _ => Behaviors.ignore
+      }.receiveSignal {
+        case (_, PostStop) =>
+          stopKamon.unsafeRunSync()
+          Behaviors.stopped
+      }
+  }
+
+  override def beforeAll(): Unit = {
+    testKit.spawn(guardian, "KamonEventGuardian")
+    super.beforeAll()
   }
 
   Kamon.addReporter(new MetricReporter {
@@ -39,26 +62,21 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
   "circuit breaker" should "integrate with kamon" in {
 
-
-    implicit val untypedActorSystem: ActorSystem = testKit.system.toUntyped
-
     val circuitBreakerName = "myCircuitBreaker"
+    Thread.sleep(1500)
 
-    val cancellableStatsAggregation = StatsAggregator.kamon()
+    for (i <- 1 to 10) yield testKit.system.eventStream ! EventStream.Publish(SuccessfulCall(circuitBreakerName, i seconds))
 
+    for (_ <- 1 to 5) yield testKit.system.eventStream ! EventStream.Publish(CallFailure(circuitBreakerName, 5 seconds))
+    testKit.system.eventStream ! EventStream.Publish(CircuitOpen(circuitBreakerName))
 
-    for (i <- 1 to 10) yield untypedActorSystem.eventStream.publish(SuccessfulCall(circuitBreakerName, i seconds))
+    for (_ <- 1 to 5) yield testKit.system.eventStream ! EventStream.Publish(ShortCircuitedCall(circuitBreakerName))
 
-    for (_ <- 1 to 5) yield untypedActorSystem.eventStream.publish(CallFailure(circuitBreakerName, 5 seconds))
-    untypedActorSystem.eventStream.publish(CircuitOpen(circuitBreakerName))
+    testKit.system.eventStream ! EventStream.Publish(FallbackSuccess(circuitBreakerName))
+    testKit.system.eventStream ! EventStream.Publish(FallbackFailure(circuitBreakerName))
+    testKit.system.eventStream ! EventStream.Publish(FallbackRejected(circuitBreakerName))
 
-    for (_ <- 1 to 5) yield untypedActorSystem.eventStream.publish(ShortCircuitedCall(circuitBreakerName))
-
-    untypedActorSystem.eventStream.publish(FallbackSuccess(circuitBreakerName))
-    untypedActorSystem.eventStream.publish(FallbackFailure(circuitBreakerName))
-    untypedActorSystem.eventStream.publish(FallbackRejected(circuitBreakerName))
-
-    Thread.sleep(2000)
+    Thread.sleep(1500)
 
     gatheringValues shouldBe Map(
       "circuit-breaker-myCircuitBreaker-success-call" -> 10,
@@ -70,7 +88,6 @@ class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterA
       "circuit-breaker-myCircuitBreaker-fallback-rejected" -> 1
     )
 
-    cancellableStatsAggregation.unsafeRunSync()
 
   }
 

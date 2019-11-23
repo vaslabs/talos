@@ -1,51 +1,52 @@
 package talos.http
 
-import akka.actor.ActorSystem
-import akka.actor.Status.Success
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import kamon.Kamon
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import talos.http.CircuitBreakerEventsSource.{CircuitBreakerStats, ExposedEvent, StreamEnded}
 
 import scala.concurrent.duration._
 
 class TalosCircuitBreakerStatsActorSpec
-      extends TestKit(ActorSystem("HystrixReporterSpec"))
-      with WordSpecLike
+      extends WordSpec
       with Matchers
-      with ImplicitSender
       with BeforeAndAfterAll{
 
-  override def afterAll(): Unit = {
-    system.terminate()
-    ()
-  }
+  val testKit = ActorTestKit()
+  val eventListener = testKit.createTestProbe[ExposedEvent]()
 
+  override def afterAll(): Unit = {
+    Kamon.stopAllReporters()
+    testKit.shutdownTestKit()
+  }
 
   import Utils.{statsSample => sample}
 
 
   "hystrix reporter" can {
-    val hystrixReporter = TestActorRef(CircuitBreakerStatsActor.props)
-    hystrixReporter ! CircuitBreakerEventsSource.Start(self)
-    val statsSample: CircuitBreakerStatsActor.CircuitBreakerStats = sample
-    val anotherStreamActor = TestProbe()
+    val hystrixReporter = testKit.spawn(CircuitBreakerStatsActor.behaviour)
+    hystrixReporter ! CircuitBreakerEventsSource.Start(eventListener.ref)
+    val statsSample: CircuitBreakerStats = sample
+    val anotherStreamActor = testKit.createTestProbe[ExposedEvent]()
 
     "push stats to stream actor" in {
-      hystrixReporter !  CircuitBreakerEventsSource.Start(self)
+      hystrixReporter !  CircuitBreakerEventsSource.Start(eventListener.ref)
       hystrixReporter ! statsSample
-      expectMsg(statsSample)
+      eventListener.expectMessage(statsSample)
     }
     "push stats to multiple streams" in {
       hystrixReporter !  CircuitBreakerEventsSource.Start(anotherStreamActor.ref)
       hystrixReporter ! statsSample
-      expectMsg(statsSample)
-      anotherStreamActor.expectMsg(statsSample)
+      eventListener.expectMessage(statsSample)
+      anotherStreamActor.expectMessage(statsSample)
     }
 
     "stop streaming to an actor when stream is done" in {
       hystrixReporter ! CircuitBreakerEventsSource.Done(anotherStreamActor.ref)
-      anotherStreamActor.expectMsg(Success)
+      anotherStreamActor.expectMessage(StreamEnded)
       hystrixReporter ! statsSample
-      expectMsg(statsSample)
+      eventListener.expectMessage(statsSample)
       anotherStreamActor.expectNoMessage(10 millis)
     }
 

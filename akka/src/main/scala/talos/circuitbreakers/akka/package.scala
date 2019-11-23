@@ -2,43 +2,46 @@ package talos.circuitbreakers
 
 import java.util.concurrent.Executors
 
-import _root_.akka.actor.{ActorRef, ActorSystem}
 import _root_.akka.pattern.{CircuitBreaker => AkkaCB}
+import _root_.akka.actor.typed.ActorSystem
+import _root_.akka.actor.typed.scaladsl.adapter._
+import _root_.akka.actor.typed.eventstream.EventStream
+import _root_.akka.actor.typed.ActorRef
 import cats.effect.IO
 import talos.circuitbreakers.akka.AkkaCircuitBreaker.Instance
 import talos.events.TalosEvents.model._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, TimeoutException}
+import scala.reflect.ClassTag
 
 package object akka {
 
 
-  class AkkaEventBus(implicit actorSystem: ActorSystem) extends EventBus[ActorRef]{
+  class AkkaEventBus[T](implicit system: ActorSystem[_], classTag: ClassTag[T]) extends EventBus[ActorRef[T]]{
 
-    override def subscribe[T](subscriber: ActorRef, topic: Class[T]): Option[ActorRef] =
-      if (actorSystem.eventStream.subscribe(subscriber, topic))
-        Some(subscriber)
-      else
-        None
+    override def subscribe(subscriber: ActorRef[T]): Option[ActorRef[T]] = {
+      system.eventStream ! EventStream.Subscribe(subscriber)
+      Some(subscriber)
+    }
 
-    override def unsubsribe(a: ActorRef): Unit = actorSystem.eventStream.unsubscribe(a)
+    override def unsubsribe(a: ActorRef[T]): Unit = system.eventStream ! EventStream.Unsubscribe(a)
 
-    override def publish[A <: AnyRef](a: A): Unit = actorSystem.eventStream.publish(a)
+    override def publish[MSG](msg: MSG): Unit = system.eventStream ! EventStream.Publish(msg)
   }
 
 
-  class AkkaCircuitBreaker private (val name: String, cbInstance: AkkaCB)
-         (implicit val eventBus: EventBus[ActorRef]) extends TalosCircuitBreaker[AkkaCB, ActorRef, IO] {
+  class AkkaCircuitBreaker[T] private (val name: String, cbInstance: AkkaCB)
+         (implicit val eventBus: EventBus[ActorRef[T]]) extends TalosCircuitBreaker[AkkaCB, ActorRef[T], IO] {
 
+
+    private[AkkaCircuitBreaker] implicit val timer = IO.timer(AkkaCircuitBreaker.fallbackTimeoutExecutionContext)
+    private[AkkaCircuitBreaker] implicit val contextShift = IO.contextShift(AkkaCircuitBreaker.forkIOExecutionContext)
 
     override def protect[A](task: IO[A]): IO[A] =
       IO.fromFuture {
         IO(protectUnsafe(task))
-      }
-
-    private[AkkaCircuitBreaker] implicit val timer = IO.timer(AkkaCircuitBreaker.fallbackTimeoutExecutionContext)
-    private[AkkaCircuitBreaker] implicit val contextShift = IO.contextShift(AkkaCircuitBreaker.forkIOExecutionContext)
+      }(contextShift)
 
     override def protectWithFallback[A, E](task: IO[A], fallback: IO[E]): IO[Either[E, A]] = {
       protect(task).map[Either[E, A]](Right(_)).handleErrorWith {
@@ -91,20 +94,20 @@ package object akka {
   }
 
   object AkkaCircuitBreaker {
-    type Instance = TalosCircuitBreaker[AkkaCB, ActorRef, IO]
+    type Instance[T] = TalosCircuitBreaker[AkkaCB, ActorRef[T], IO]
 
-    def apply(
+    def apply[T](
        name: String,
        maxFailures: Int,
        callTimeout: FiniteDuration,
        resetTimeout: FiniteDuration
-     )(implicit actorSystem: ActorSystem): TalosCircuitBreaker[AkkaCB, ActorRef, IO] = {
-      apply(name, AkkaCB(actorSystem.scheduler, maxFailures, callTimeout, resetTimeout))
+     )(implicit actorSystem: ActorSystem[_], classTag: ClassTag[T]): Instance[T] = {
+      apply(name, AkkaCB(actorSystem.scheduler.toClassic, maxFailures, callTimeout, resetTimeout))
     }
 
-    def apply(name: String, circuitBreaker: AkkaCB)(implicit actorSystem: ActorSystem): Instance = {
-      implicit val eventBus: EventBus[ActorRef] = new AkkaEventBus()
-      implicit val akkaCircuitBreaker: AkkaCircuitBreaker =
+    def apply[T](name: String, circuitBreaker: AkkaCB)(implicit actorSystem: ActorSystem[_], classTag: ClassTag[T]): Instance[T] = {
+      implicit val eventBus: EventBus[ActorRef[T]] = new AkkaEventBus[T]()
+      implicit val akkaCircuitBreaker: AkkaCircuitBreaker[T] =
         new AkkaCircuitBreaker(name, circuitBreaker)
       Talos.circuitBreaker
     }
@@ -115,7 +118,7 @@ package object akka {
   }
 
   final implicit class AkkaCircuitBreakerSyntax(val circuitBreaker: AkkaCB) extends AnyVal {
-    def withEventReporting(name: String)(implicit actorSystem: ActorSystem): Instance = {
+    def withEventReporting[T](name: String)(implicit actorSystem: ActorSystem[_], classTag: ClassTag[T]): Instance[T] = {
       AkkaCircuitBreaker(name, circuitBreaker)
     }
   }

@@ -1,29 +1,26 @@
 package talos.gateway
 
-import akka.actor.ActorSystem
+import akka.actor.typed.{ActorSystem, Behavior}
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.adapter._
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, Uri}
-import akka.testkit.TestKit
-import cats.effect.IO
+import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
+import akka.http.scaladsl.settings.ConnectionPoolSettings
+import akka.stream.Materializer
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlEqualTo}
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import pureconfig.ConfigSource
+import talos.gateway.config.GatewayConfig
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
 import pureconfig.generic.auto._
 import config.pureconfigExt._
-
-import cats.implicits._
-
-import talos.gateway.config.GatewayConfig
-
-class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
-  with FlatSpecLike
+import kamon.Kamon
+class BulkheadingSpec extends FlatSpec
   with BeforeAndAfterAll
   with Matchers {
 
@@ -40,7 +37,12 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
       |            gateway-path: "/animals/dogs",
       |            methods: [GET],
       |            target-path: "/dogs/"
-      |          }
+      |          },
+      |          {
+      |            gateway-path: "/give/404",
+      |            methods: [GET],
+      |            target-path: "/unmatched/"
+      |           }
       |        ],
       |        max-inflight-requests: 1,
       |        call-timeout: 5 seconds,
@@ -67,11 +69,19 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
       |}
     """.stripMargin
 
-  val gatewayServer = GatewayServer(pureconfig.loadConfigOrThrow[GatewayConfig]
-    (ConfigFactory.parseString(configString)))
+  sealed trait GuardianProtocol
+  val guardian: Behavior[GuardianProtocol] = Behaviors.setup {
+    ctx =>
+      implicit val actorContext = ctx
+      val config = ConfigSource.string(configString).loadOrThrow[GatewayConfig]
+      GatewayServer(config)
+      Behaviors.ignore
+  }
+
 
   val dogsWireMockServer = new WireMockServer(wireMockConfig().port(9002))
   val vehiclesWireMockServer = new WireMockServer(wireMockConfig().port(9003))
+
 
   def initialiseMockServer(port: Int, path: String, mockServer: WireMockServer, delay: FiniteDuration) = {
     mockServer.start()
@@ -85,39 +95,45 @@ class BulkheadingSpec extends TestKit(ActorSystem("BulkheadingSpec"))
     )
     WireMock.configureFor("localhost", port)
   }
+
+
+  val actorSystem = ActorSystem(guardian, "GuardianBulkheadSpec")
+
   override def beforeAll(): Unit = {
     initialiseMockServer(9002, "/dogs/", dogsWireMockServer, 5 seconds)
-    initialiseMockServer(9003, "/bikes/", vehiclesWireMockServer, 100 millis)
+    initialiseMockServer(9003, "/bikes/", vehiclesWireMockServer, 10 milli)
   }
-
 
   override def afterAll(): Unit = {
-    import scala.concurrent.ExecutionContext.Implicits._
     dogsWireMockServer.stop()
     vehiclesWireMockServer.stop()
-    val termination = IO(gatewayServer.map(_.terminate(5 seconds))) *> IO(system.terminate()) *>
-      IO.unit
-    termination.unsafeRunSync()
+    Kamon.stopAllReporters()
+    actorSystem.terminate()
   }
 
-  "services" must "be isolated" in {
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
-    Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
-    val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/vehicles/bikes")))
-
-    println(Await.result(awaitableResult, 2 seconds))
-  }
+  implicit val system = actorSystem.toClassic
+  implicit val materializer = Materializer(system)
+  implicit val executionContext = actorSystem.executionContext
 
   "overflowing one queue" must "not affect another" in {
-    for (_ <- 1 to 32) {
-      Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")))
+    for (_ <- 1 to 16) {
+        Http().singleRequest(
+          HttpRequest(uri = Uri("http://localhost:18080/animals/dogs")),
+          settings = ConnectionPoolSettings.default.withMaxConnections(32)
+      ).map(_.discardEntityBytes())
     }
-    val awaitableResult = Http().singleRequest(HttpRequest(uri = Uri("http://localhost:18080/vehicles/bikes")))
 
-    println(Await.result(awaitableResult, 3 seconds))
+    val awaitableResult =
+      Http().singleRequest(
+        HttpRequest(uri = Uri("http://localhost:18080/vehicles/bikes")),
+        settings = ConnectionPoolSettings.default.withMaxConnections(32)
+      )
+
+    val result = Await.result(awaitableResult, 2 seconds)
+    result.discardEntityBytes()
+    result.status shouldBe StatusCodes.OK
   }
+
 
 
 }

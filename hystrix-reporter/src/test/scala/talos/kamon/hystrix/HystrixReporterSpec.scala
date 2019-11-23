@@ -2,16 +2,15 @@ package talos.kamon.hystrix
 
 import java.time.{Clock, Instant, ZoneOffset, ZonedDateTime}
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.testkit.{ImplicitSender, TestKit, TestProbe}
-import akka.util.Timeout
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import akka.actor.typed.{ActorRef, ActorSystem}
+import akka.actor.typed.eventstream.EventStream
 import kamon.{Kamon, MetricReporter}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 import talos.events.TalosEvents.model._
-import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
+import talos.http.CircuitBreakerEventsSource.{CircuitBreakerStats, StreamControl}
 import talos.kamon.StatsAggregator
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
@@ -20,41 +19,34 @@ object HystrixReporterSpec {
   implicit val testClock: Clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
 
-  def fireSuccessful(times: Int, circuitBreaker: String)(implicit actorSystem: ActorSystem) =
-    for (i <- 1 to times) yield actorSystem.eventStream.publish(SuccessfulCall(circuitBreaker, i seconds))
+  def fireSuccessful(times: Int, circuitBreaker: String)(implicit actorSystem: ActorSystem[_]) =
+    for (i <- 1 to times) yield actorSystem.eventStream ! EventStream.Publish(SuccessfulCall(circuitBreaker, i seconds))
 
-  def fireFailures(times: Int, circuitBreaker: String)(implicit actorSystem: ActorSystem) =
+  def fireFailures(times: Int, circuitBreaker: String)(implicit actorSystem: ActorSystem[_]) =
     for(_ <- 1 to times) yield Try(
-      actorSystem.eventStream.publish(CallFailure(circuitBreaker, 5 seconds))
+      actorSystem.eventStream ! EventStream.Publish(CallFailure(circuitBreaker, 5 seconds))
     )
 }
 
-class HystrixReporterSpec
-      extends TestKit(ActorSystem("HystrixReporterSpec"))
+class HystrixReporterSpec extends WordSpec
       with Matchers
-      with WordSpecLike
       with BeforeAndAfterAll
-      with ImplicitSender
 {
 
   import HystrixReporterSpec._
 
+  val testKit = ActorTestKit()
+  implicit val system = testKit.system
+
   override def afterAll(): Unit = {
     Kamon.stopAllReporters()
-    system.terminate()
-    ()
+    testKit.shutdownTestKit()
   }
 
 
-  val statsAggregator: ActorRef = {
-    import akka.actor.typed.scaladsl.adapter._
-    implicit val timeout: Timeout = Timeout(2 seconds)
-    val typedActor =
-      Await.result(system.toTyped.systemActorOf[CircuitBreakerEvent](StatsAggregator.behavior(), "statsAggregator"), 2 seconds)
-    typedActor.toUntyped
-  }
+  val statsAggregator: ActorRef[CircuitBreakerEvent] = testKit.spawn(StatsAggregator.behavior(), "statsAggregator")
 
-  val statsGatherer: TestProbe = TestProbe()
+  val statsGatherer = testKit.createTestProbe[StreamControl]()
 
   val hystrixReporter: MetricReporter = new HystrixReporter(statsGatherer.ref)
   Kamon.addReporter(hystrixReporter)
@@ -65,7 +57,7 @@ class HystrixReporterSpec
 
     "group successful metrics into one single snapshot event" in {
       fireSuccessful(10, circuitBreaker)
-      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+      val statsMessage = statsGatherer.expectMessageType[CircuitBreakerStats]
 
       statsMessage should matchPattern {
         case CircuitBreakerStats(
@@ -92,7 +84,7 @@ class HystrixReporterSpec
     "ignores unrelated metrics" in {
       Kamon.counter("random-counter").increment()
       Try(fireSuccessful(10, circuitBreaker))
-      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+      val statsMessage = statsGatherer.expectMessageType[CircuitBreakerStats]
 
       statsMessage should matchPattern {
         case CircuitBreakerStats(
@@ -107,7 +99,7 @@ class HystrixReporterSpec
       fireSuccessful(8, circuitBreaker)
       fireFailures(2, circuitBreaker)
 
-      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+      val statsMessage = statsGatherer.expectMessageType[CircuitBreakerStats]
 
       statsMessage should matchPattern {
         case CircuitBreakerStats(
@@ -124,8 +116,8 @@ class HystrixReporterSpec
 
     "count open circuits" in {
       fireFailures(3, circuitBreaker)
-      system.eventStream.publish(CircuitOpen(circuitBreaker))
-      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+      system.eventStream ! EventStream.Publish(CircuitOpen(circuitBreaker))
+      val statsMessage = statsGatherer.expectMessageType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 3L, _, true,
@@ -136,8 +128,8 @@ class HystrixReporterSpec
     }
 
     "count short circuits" in {
-      system.eventStream.publish(ShortCircuitedCall(circuitBreaker))
-      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+      system.eventStream ! EventStream.Publish(ShortCircuitedCall(circuitBreaker))
+      val statsMessage = statsGatherer.expectMessageType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 1L, _, true,
@@ -148,11 +140,11 @@ class HystrixReporterSpec
     }
 
     "count fallback events" in {
-      system.eventStream.publish(CallFailure(circuitBreaker, 3 seconds))
-      system.eventStream.publish(FallbackSuccess(circuitBreaker))
-      system.eventStream.publish(FallbackFailure(circuitBreaker))
-      system.eventStream.publish(FallbackRejected(circuitBreaker))
-      val statsMessage = statsGatherer.expectMsgType[CircuitBreakerStats]
+      system.eventStream ! EventStream.Publish(CallFailure(circuitBreaker, 3 seconds))
+      system.eventStream ! EventStream.Publish(FallbackSuccess(circuitBreaker))
+      system.eventStream ! EventStream.Publish(FallbackFailure(circuitBreaker))
+      system.eventStream ! EventStream.Publish(FallbackRejected(circuitBreaker))
+      val statsMessage = statsGatherer.expectMessageType[CircuitBreakerStats]
       statsMessage should matchPattern {
         case CircuitBreakerStats(
         "testCircuitBreaker", 1L, _, false,
@@ -172,9 +164,9 @@ class HystrixReporterSpec
       fireFailures(3, circuitBreakerFoo)
       fireSuccessful(4, circuitBreakerBar)
       fireFailures(1, circuitBreakerBar)
-      val first = statsGatherer.expectMsgType[CircuitBreakerStats]
+      val first = statsGatherer.expectMessageType[CircuitBreakerStats]
       println(first)
-      val second = statsGatherer.expectMsgType[CircuitBreakerStats]
+      val second = statsGatherer.expectMessageType[CircuitBreakerStats]
       val barStats = if (first.name == "bar") first else second
       val fooStats = if (second.name == "foo") second else first
 

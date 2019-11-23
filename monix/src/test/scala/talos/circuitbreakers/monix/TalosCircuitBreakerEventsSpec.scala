@@ -36,14 +36,12 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreak
     override def onComplete(): Unit = println("completed")
   }
 
-  override def beforeAll(): Unit = {
-    talosCircuitBreaker.eventBus.subscribe(eventListener, classOf[CircuitBreakerEvent])
-    ()
-  }
+  override def beforeAll(): Unit =
+    talosCircuitBreaker.eventBus.subscribe(eventListener).fold(())(_ => ())
 
-  override def afterAll(): Unit = {
-    talosCircuitBreaker.eventBus.unsubsribe(eventListener)
-  }
+
+  override def afterAll(): Unit = talosCircuitBreaker.eventBus.unsubsribe(eventListener)
+
 
   val circuitBreakerName = "testCircuitBreaker"
 

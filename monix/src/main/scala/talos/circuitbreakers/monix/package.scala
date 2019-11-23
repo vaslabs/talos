@@ -21,7 +21,7 @@ package object monix {
 
     private[this] final val subscriptions: ConcurrentMap[EventSubscriber, EventSubscriber] = new ConcurrentHashMap
 
-    override def subscribe[T](subscriber: EventSubscriber, topic: Class[T]): Option[EventSubscriber] = {
+    override def subscribe(subscriber: EventSubscriber): Option[EventSubscriber] = {
       subscriptions.putIfAbsent(subscriber, BufferedSubscriber(subscriber, OverflowStrategy.DropOld(100000)))
       Some(subscriber)
     }
