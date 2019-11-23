@@ -32,5 +32,5 @@ More or less you can do
       override def eventBus: EventBus[Unit] = ???
     }
 
-  val circuitBreaker: TalosCircuitBreaker[Unit, Unit, Id] = Talos.circuitBreaker[Unit, Unit, Id]
+    val circuitBreaker: TalosCircuitBreaker[Unit, Unit, Id] = Talos.circuitBreaker[Unit, Unit, Id]
 ```

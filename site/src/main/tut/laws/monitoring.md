@@ -18,8 +18,9 @@ Every successful call generates a success event with the elapsed time that it to
 Subscription to such events can be done via the provided event bus.
 
 ```tut:silent
-import akka.actor.ActorSystem
+import akka.actor.typed.{ActorSystem, ActorRef}
 import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter._
 import akka.util.Timeout
@@ -33,55 +34,44 @@ import talos.events.TalosEvents.model._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Await
 
-implicit val actorSystem: ActorSystem = ActorSystem("ConsoleTest")
-
 val eventListenerBehavior: Behavior[CircuitBreakerEvent] = Behaviors.receiveMessage {
   event =>
     println(event)
     Behaviors.same
 }
 
-val eventListener =
-  Await.result(
-    actorSystem.toTyped.systemActorOf(eventListenerBehavior, "eventListener")(Timeout(3 seconds)),
-    3 seconds
-)
+def eventListener(actorContext: ActorContext[_]): ActorRef[CircuitBreakerEvent] =
+  actorContext.spawn(eventListenerBehavior, "eventListener")
 
-val circuitBreaker = AkkaCircuitBreaker("my_circuit_breaker", 5, 2 seconds, 5 seconds)
+def circuitBreaker(implicit actorSystem: ActorSystem[_]) = 
+    AkkaCircuitBreaker("my_circuit_breaker", 5, 2 seconds, 5 seconds)
 
-implicit val akkaEventBus = new AkkaEventBus()
 
-circuitBreaker.eventBus.subscribe(eventListener.toUntyped, classOf[CircuitBreakerEvent])
-
-implicit val timerIO = IO.timer(ExecutionContext.global)
-val timingOut = IO.unit
+def subscribe(eventListener: ActorRef[CircuitBreakerEvent])(implicit actorSystem: ActorSystem[_]) = {
+    implicit val akkaEventBus = new AkkaEventBus()
+    
+    circuitBreaker.eventBus.subscribe(eventListener)
+}
 ```
 
-```tut:silent
-val protectedCall: IO[Unit] = circuitBreaker.protect(timingOut)
-protectedCall.unsafeRunSync()
-
-actorSystem.terminate()
-
-```
 
 The events that expose the circuit breaker activity and state changes are the following:
 
 ```tut:silent
 sealed trait CircuitBreakerEvent {
-      val circuitBreakerName: String
-    }
+  val circuitBreakerName: String
+}
 
-    case class SuccessfulCall(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
-    case class CallFailure(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
-    case class CallTimeout(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
-    case class CircuitOpen(circuitBreakerName: String) extends CircuitBreakerEvent
-    case class CircuitHalfOpen(circuitBreakerName: String) extends CircuitBreakerEvent
-    case class CircuitClosed(circuitBreakerName: String) extends CircuitBreakerEvent
-    case class ShortCircuitedCall(circuitBreakerName: String) extends CircuitBreakerEvent
+case class SuccessfulCall(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
+case class CallFailure(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
+case class CallTimeout(circuitBreakerName: String, elapsedTime: FiniteDuration) extends CircuitBreakerEvent
+case class CircuitOpen(circuitBreakerName: String) extends CircuitBreakerEvent
+case class CircuitHalfOpen(circuitBreakerName: String) extends CircuitBreakerEvent
+case class CircuitClosed(circuitBreakerName: String) extends CircuitBreakerEvent
+case class ShortCircuitedCall(circuitBreakerName: String) extends CircuitBreakerEvent
 
-    case class FallbackSuccess(circuitBreakerName: String) extends CircuitBreakerEvent
-    case class FallbackFailure(circuitBreakerName: String) extends CircuitBreakerEvent
-    case class FallbackRejected(circuitBreakerName: String) extends CircuitBreakerEvent
+case class FallbackSuccess(circuitBreakerName: String) extends CircuitBreakerEvent
+case class FallbackFailure(circuitBreakerName: String) extends CircuitBreakerEvent
+case class FallbackRejected(circuitBreakerName: String) extends CircuitBreakerEvent
 ```
 

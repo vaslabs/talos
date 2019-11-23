@@ -13,7 +13,7 @@ deliver fine grained visualisations.
 
 ### Usage
 
-```scala
+```sbt
 libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.6.0"
 ```
 
@@ -22,12 +22,12 @@ Get an akka directive
 ```tut:silent
 import java.time.Clock
 
+import akka.actor.typed.scaladsl.ActorContext
 import akka.http.scaladsl.server.Route
-import akka.actor.ActorSystem
 
 import talos.http.HystrixReporterDirective
 
-def hystrixReporterDirective(implicit actorSystem: ActorSystem, clock: Clock): Route  =
+def hystrixReporterDirective(implicit actorContext: ActorContext[_], clock: Clock): Route  =
     new HystrixReporterDirective().hystrixStreamHttpRoute
 ```
 

@@ -10,7 +10,8 @@ number: 2
 A timeout is enforced for every instance implementation of a TalosCircuitBreaker.
 
 ```tut
-import akka.actor.ActorSystem
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.Behaviors
 import cats.effect._
 
 import scala.util.Try
@@ -20,15 +21,15 @@ import scala.concurrent.ExecutionContext
 import talos.circuitbreakers.akka._
 
 
-implicit val actorSystem: ActorSystem = ActorSystem("ConsoleTest")
+implicit lazy val actorSystem: ActorSystem[_] = ActorSystem(Behaviors.ignore, "ConsoleTest")
 
-val circuitBreaker = AkkaCircuitBreaker("my_circuit_breaker", 5, resetTimeout = 2 seconds, callTimeout = 5 seconds)
+lazy val circuitBreaker = AkkaCircuitBreaker(
+    "my_circuit_breaker", 5, resetTimeout = 2 seconds, callTimeout = 5 seconds
+)
 
-implicit val timerIO = IO.timer(ExecutionContext.global)
-val timingOut = IO.sleep(6 seconds)
+implicit lazy val timerIO = IO.timer(ExecutionContext.global)
+lazy val timingOut = IO.sleep(6 seconds)
 
-val protectedCall: IO[Unit] = circuitBreaker.protect(timingOut)
-Try(protectedCall.unsafeRunSync())
+lazy val protectedCall: IO[Unit] = circuitBreaker.protect(timingOut)
 
-actorSystem.terminate()
 ```
