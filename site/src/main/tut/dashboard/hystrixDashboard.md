@@ -14,7 +14,7 @@ deliver fine grained visualisations.
 ### Usage
 
 ```sbt
-libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.6.0"
+libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "1.0.0"
 ```
 
 Get an akka directive
