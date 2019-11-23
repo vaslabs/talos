@@ -8,7 +8,7 @@ import scala.concurrent.{ExecutionContext, TimeoutException}
 import scala.concurrent.duration._
 import scala.util.{Failure, Try}
 
-trait MeasurementLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C, F] {
+trait MeasurementLaws[C, S, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C, S, F] {
   implicit val timer = IO.timer(ExecutionContext.global)
 
 

@@ -1,16 +1,12 @@
 package talos.circuitbreakers.akka
 
-import akka.actor.ActorSystem
-import akka.pattern.CircuitBreaker
-import cats.effect.IO
-import talos.circuitbreakers.TalosCircuitBreaker
+import akka.actor.typed.ActorSystem
 
 import scala.concurrent.duration._
 class SyntaxSpec {
 
-  def implicitResolution: TalosCircuitBreaker[CircuitBreaker, IO] = {
-    implicit def actorSystem: ActorSystem = ???
-
+  def implicitResolution: AkkaCircuitBreaker.Instance = {
+    implicit def ctx: ActorSystem[_] = ???
     AkkaCircuitBreaker(
       "testCircuitBreaker",
       5,

@@ -1,7 +1,6 @@
 package talos.gateway
 
 import akka.http.scaladsl.model.HttpMethods
-import com.typesafe.config.ConfigFactory
 import org.scalatest.{FlatSpec, Matchers}
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, ConvertFailure}
@@ -80,7 +79,7 @@ class ConfigSpec extends FlatSpec with Matchers {
         }
       """.stripMargin
 
-    loadConfig[Adhoc](ConfigFactory.parseString(valid)) should matchPattern {
+    ConfigSource.string(valid).load[Adhoc] should matchPattern {
       case Right(_) =>
     }
   }
@@ -94,7 +93,7 @@ class ConfigSpec extends FlatSpec with Matchers {
         |}
       """.stripMargin
 
-    loadConfig[Adhoc](ConfigFactory.parseString(invalidConfig)) should matchPattern {
+    ConfigSource.string(invalidConfig).load[Adhoc] should matchPattern {
       case Left(ConfigReaderFailures(ConvertFailure(CannotConvert("WOW", "ServiceImportance", _), _, _), _)) =>
     }
   }
@@ -109,7 +108,7 @@ class ConfigSpec extends FlatSpec with Matchers {
       }
       """.stripMargin
 
-    loadConfig[Mapping](ConfigFactory.parseString(configString)) should matchPattern {
+    ConfigSource.string(configString).load[Mapping] should matchPattern {
       case Left(ConfigReaderFailures(ConvertFailure(CannotConvert("WHAT", "HttpMethod", _), _, _), _)) =>
     }
   }
@@ -124,7 +123,7 @@ class ConfigSpec extends FlatSpec with Matchers {
       }
       """.stripMargin
 
-    loadConfig[Mapping](ConfigFactory.parseString(configString)) should matchPattern {
+    ConfigSource.string(configString).load[Mapping] should matchPattern {
       case Left(ConfigReaderFailures(ConvertFailure(CannotConvert("s/*/a", "GatewayPath", _), _, _), _)) =>
     }
 
@@ -137,7 +136,7 @@ class ConfigSpec extends FlatSpec with Matchers {
       }
       """.stripMargin
 
-    loadConfig[Mapping](ConfigFactory.parseString(validConfigString)) should matchPattern {
+    ConfigSource.string(validConfigString).load[Mapping] should matchPattern {
       case Right(_) =>
     }
   }

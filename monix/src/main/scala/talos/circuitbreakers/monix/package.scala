@@ -1,40 +1,51 @@
 package talos.circuitbreakers
 
-import java.util.concurrent.{Executors, TimeUnit, TimeoutException}
+import java.util.concurrent._
 
-import _root_.akka.actor.{ActorRef, ActorSystem}
 import _root_.monix.catnap.CircuitBreaker
 import _root_.monix.execution.exceptions.ExecutionRejectedException
+import _root_.monix.reactive.OverflowStrategy
+import _root_.monix.reactive.observers.{BufferedSubscriber, Subscriber}
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
+import talos.circuitbreakers.monix.MonixCircuitBreaker.EventSubscriber
 import talos.events.TalosEvents.model._
 
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-
-
 package object monix {
 
-  class AkkaEventBus(implicit actorSystem: ActorSystem) extends EventBus[ActorRef]{
+  class MonixEventBus extends EventBus[EventSubscriber] {
 
-    override def subscribe[T](subscriber: ActorRef, topic: Class[T]): Option[ActorRef] =
-      if (actorSystem.eventStream.subscribe(subscriber, topic))
-        Some(subscriber)
-      else
-        None
+    private[this] final val subscriptions: ConcurrentMap[EventSubscriber, EventSubscriber] = new ConcurrentHashMap
 
-    override def unsubsribe(a: ActorRef): Unit = actorSystem.eventStream.unsubscribe(a)
+    override def subscribe(subscriber: EventSubscriber): Option[EventSubscriber] = {
+      subscriptions.putIfAbsent(subscriber, BufferedSubscriber(subscriber, OverflowStrategy.DropOld(100000)))
+      Some(subscriber)
+    }
 
-    override def publish[A <: AnyRef](a: A): Unit = actorSystem.eventStream.publish(a)
+    override def unsubsribe(subscriber: EventSubscriber): Unit = {
+      val cancelable = subscriptions.remove(subscriber)
+      cancelable.onComplete()
+    }
+
+    override def publish[A <: AnyRef](a: A): Unit = a match {
+      case cbe: CircuitBreakerEvent =>
+        subscriptions.asScala.values.foreach(_.onNext(cbe))
+        ()
+      case _ =>
+    }
   }
+
 
   class MonixCircuitBreaker[F[_]] private (
       val name: String,
       internalCircuitBreaker: CircuitBreaker[F],
       callTimeout: FiniteDuration
-  )(implicit eventBus: AkkaEventBus, F: Concurrent[F])
-    extends TalosCircuitBreaker[CircuitBreaker[F], F] {
+  )(implicit val eventBus: EventBus[EventSubscriber], F: Concurrent[F])
+    extends TalosCircuitBreaker[CircuitBreaker[F], EventSubscriber, F] {
 
     private[this] val fClock: Clock[F] = Clock.create[F]
 
@@ -80,15 +91,15 @@ package object monix {
         ended <- fClock.monotonic(TimeUnit.NANOSECONDS)
         elapsedTime = (ended - started) nanos
 
-        errorEvent = throwable match {
+        publishAction = throwable match {
           case _: TimeoutException =>
-            CallTimeout(name, elapsedTime)
+            eventBus.publish(CallTimeout(name, elapsedTime))
           case _: ExecutionRejectedException =>
-            ShortCircuitedCall(name)
+            ()
           case _ =>
-            CallFailure(name, elapsedTime)
+            eventBus.publish(CallFailure(name, elapsedTime))
         }
-      } yield eventBus.publish(errorEvent)
+      } yield publishAction
 
     }
 
@@ -97,9 +108,11 @@ package object monix {
       eventBus.publish(SuccessfulCall(name, elapsedTime))
 
 
-    private val internalCb = internalCircuitBreaker.doOnClosed(F.delay(eventBus.publish(CircuitClosed(name))))
+    private val internalCb = internalCircuitBreaker
+      .doOnClosed(F.delay(eventBus.publish(CircuitClosed(name))))
       .doOnHalfOpen(F.delay(eventBus.publish(CircuitHalfOpen(name))))
       .doOnOpen(F.delay(eventBus.publish(CircuitOpen(name))))
+      .doOnRejectedTask(F.delay(eventBus.publish(ShortCircuitedCall(name))))
 
     override val circuitBreaker: F[CircuitBreaker[F]] = F.pure {
       internalCb
@@ -108,14 +121,19 @@ package object monix {
   }
 
   object MonixCircuitBreaker {
+    type Instance[F[_]] = TalosCircuitBreaker[CircuitBreaker[F], EventSubscriber, F]
+
+    type EventSubscriber = Subscriber[CircuitBreakerEvent]
+
     def apply[F[_]](
         name: String,
         circuitBreaker: CircuitBreaker[F],
         callTimeout: FiniteDuration
-    )(implicit actorSystem: ActorSystem, async: Concurrent[F]
-    ): TalosCircuitBreaker[CircuitBreaker[F], F] = {
+    )(implicit async: Concurrent[F]): Instance[F] = {
 
-      implicit val eventBus = new AkkaEventBus()
+
+      implicit val eventBus: EventBus[Subscriber[CircuitBreakerEvent]] = new MonixEventBus()
+
       implicit val monixCircuitBreaker = new MonixCircuitBreaker(name, circuitBreaker, callTimeout)
       Talos.circuitBreaker
     }

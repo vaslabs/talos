@@ -14,7 +14,3 @@ script:
 - sbt coverage test
 - sbt reportTestCov
 - sbt talosMicrosite/tut
-- snyk test
-
-after_success:
-  - snyk monitor --project-name=vaslabs/talos

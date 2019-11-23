@@ -1,6 +1,6 @@
 package talos.gateway
 
-import akka.actor.ActorSystem
+import akka.actor.typed.scaladsl.ActorContext
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -9,7 +9,6 @@ import talos.gateway.Gateway.ServiceCall
 import talos.gateway.config.GatewayConfig
 
 import scala.concurrent.Future
-import scala.util._
 
 class Gateway private
 (gatewayConfig: GatewayConfig, executionApi: ExecutionApi[Future]) {
@@ -18,17 +17,12 @@ class Gateway private
     complete(HttpResponse(status = StatusCodes.InternalServerError, entity = error))
   }
 
-
-
   val route: Route = gatewayConfig.services.map(EndpointResolver.resolve).map {
     _.map {
       _ {
         hitEndpoint =>
           extractRequest { httpRequest =>
-            onComplete(executionApi.executeCall(ServiceCall(hitEndpoint, httpRequest))) {
-              case Success(value) => complete(value)
-              case Failure(_) => complete(StatusCodes.InternalServerError)
-            }
+            complete(executionApi.executeCall(ServiceCall(hitEndpoint, httpRequest)))
           }
       }
     }.left.map(invalidRoute).merge
@@ -37,8 +31,8 @@ class Gateway private
 }
 
 object Gateway {
-  def apply(gatewayConfig: GatewayConfig)(implicit actorSystem: ActorSystem): Gateway =
-    apply(gatewayConfig, ExecutionApi.http(gatewayConfig))
+  def apply(gatewayConfig: GatewayConfig)(implicit actorContext: ActorContext[_]): Gateway =
+    apply(gatewayConfig, ExecutionApi.http(gatewayConfig)(actorContext.system))
 
   private[gateway] def apply(gatewayConfig: GatewayConfig, executionApi: ExecutionApi[Future]): Gateway =
     new Gateway(gatewayConfig, executionApi)

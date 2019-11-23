@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Try
 
-trait FallbackLaws[S, C, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C, F] with Matchers {
+trait FallbackLaws[C, S, F[_]] extends EventBusLaws[S] with CircuitBreakerSpec[C, S, F] with Matchers {
 
   private[laws] def fallbackActivatedOnError(implicit F: Effect[F]) = {
     val error = Gen.alphaNumStr

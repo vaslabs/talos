@@ -3,7 +3,7 @@ package talos.http
 import java.time.ZonedDateTime
 
 import io.circe.{Encoder, Json}
-import talos.http.CircuitBreakerStatsActor.CircuitBreakerStats
+import talos.http.CircuitBreakerEventsSource.{CircuitBreakerStats, ExposedEvent, StreamEnded, StreamFailed}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -53,6 +53,12 @@ object json_adapters {
   implicit val circuitBreakerStatsEncoder: Encoder[CircuitBreakerStats] = deriveEncoder[CircuitBreakerStats].mapJson(
     json => json.deepMerge(unsetValues)
   )
+
+  implicit val exposedEventEncoder: Encoder[ExposedEvent] = Encoder.instance {
+    case o: CircuitBreakerStats => circuitBreakerStatsEncoder(o)
+    case StreamEnded => Json.obj("result" -> "success")
+    case StreamFailed(_) => Json.obj("result" -> "failure")
+  }
 
 
 }

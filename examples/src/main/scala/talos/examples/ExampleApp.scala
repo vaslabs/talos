@@ -3,37 +3,50 @@ package talos.examples
 import java.time.Clock
 import java.util.concurrent.Executors
 
-import akka.actor.ActorSystem
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.{ActorSystem, Behavior, PostStop}
 import cats.effect.IO
 import talos.http._
 
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Random, Try}
+
 object ExampleApp extends App {
 
-    implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
-
-    implicit val TestClock: Clock = Clock.systemUTC()
-
-
-    import actorSystem.dispatcher
-
-
+  sealed trait GuardianProtocol
+  def guardianBehaviour: Behavior[GuardianProtocol] = Behaviors.setup {
+    ctx =>
+    implicit val actorContext = ctx
     val hystrixReporterDirective = new HystrixReporterDirective().hystrixStreamHttpRoute
     val server = new StartServer("0.0.0.0", 8080)
 
     val startingServer = server.startHttpServer.run(hystrixReporterDirective)
 
+      startCircuitBreakerActivity()
+
+      Behaviors.receive[GuardianProtocol] {
+      case _ => Behaviors.ignore
+    }.receiveSignal {
+      case (ctx, PostStop) =>
+        startingServer.flatMap(_.terminate(30 seconds))(ctx.executionContext)
+        Behaviors.stopped
+    }
+  }
+
+    implicit val actorSystem: ActorSystem[_] = ActorSystem(guardianBehaviour, "TalosExample")
+
+    implicit val TestClock: Clock = Clock.systemUTC()
+
+
 
     sys.addShutdownHook {
       actorSystem.terminate()
-      startingServer.map(_.unbind())
-      ()
     }
-    val activity = startCircuitBreakerActivity()
 
 
-    def startCircuitBreakerActivity()(implicit actorSystem: ActorSystem): Future[Unit] = {
+
+    def startCircuitBreakerActivity()(implicit actorContext: ActorContext[_]): Future[Unit] = {
       val foo = Utils.createCircuitBreaker("foo")
       val bar = Utils.createCircuitBreaker("bar")
       val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))

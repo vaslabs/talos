@@ -1,32 +1,27 @@
 package talos.kamon
 
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.scaladsl.adapter._
-import akka.actor.typed.{Behavior, PostStop, PreRestart, ActorRef => TypedActorRef}
-import akka.actor.{ActorSystem, TypedActor}
-import akka.util.Timeout
+import akka.actor.typed.eventstream.EventStream
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.{ActorRef, Behavior, PostStop, PreRestart}
 import cats.effect.{CancelToken, IO}
 import kamon.Kamon
 import kamon.metric.{Counter, Histogram}
 import talos.events.TalosEvents.model._
 
-import scala.concurrent.duration._
-
 object StatsAggregator {
-  def kamon()(implicit actorSystem: ActorSystem): CancelToken[IO] = IO.fromFuture {
-    IO
-    {
-      actorSystem.toTyped.systemActorOf(behavior(), "TalosStatsAggregator")(Timeout(3 seconds))
-    }
-  }.unsafeRunCancelable(stop)
+  def kamon()(implicit actorContext: ActorContext[_]): CancelToken[IO] = IO.suspend {
+      actorContext.spawn(behavior(), "TalosStatsAggregator")
+      IO.never
+  }.runCancelable(stop).unsafeRunSync()
 
-  private def stop(cancellationState: Either[Throwable, TypedActorRef[CircuitBreakerEvent]])(implicit actorSystem: ActorSystem) =
-    cancellationState match {
-      case Right(typedActorRef) =>
-        TypedActor(actorSystem).stop(typedActorRef)
-        ()
-      case Left(throwable) =>
-        actorSystem.log.error(throwable, "Can't cancel kamon monitoring for circuit breakers")
+  private def stop(cancellationState: Either[Throwable, ActorRef[CircuitBreakerEvent]])(implicit actorContext: ActorContext[_]) =
+    IO {
+      cancellationState match {
+        case Right(eventListener) =>
+          actorContext.stop(eventListener)
+        case Left(throwable) =>
+          actorContext.log.error("Can't cancel kamon monitoring for circuit breakers", throwable)
+      }
     }
 
 
@@ -82,34 +77,36 @@ object StatsAggregator {
     histogram.refine(refinedTag)
   }
 
-  private[kamon] def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.setup {
+  private[kamon] def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.setup[CircuitBreakerEvent] {
     ctx => {
-      ctx.system.toUntyped.eventStream.subscribe(ctx.self.toUntyped, classOf[CircuitBreakerEvent])
-      Behaviors.receive[CircuitBreakerEvent] {
-        (_, msg) =>
-          msg match {
-            case sc@SuccessfulCall(_, elapsedTime) =>
-              kamonCounter(sc).increment()
-              kamonHistogram(sc).record(elapsedTime.toNanos)
-            case cf@CallFailure(_, elapsedTime) =>
-              kamonCounter(cf).increment()
-              kamonHistogram(cf).record(elapsedTime.toNanos)
-            case ct@CallTimeout(_, elapsedTime) =>
-              kamonCounter(ct)
-              kamonHistogram(ct).record(elapsedTime.toNanos)
-            case eventsWithoutElapsedTime: CircuitBreakerEvent =>
-              kamonCounter(eventsWithoutElapsedTime).increment()
-          }
-          Behaviors.same
-      }
+      ctx.system.eventStream ! EventStream.Subscribe[CircuitBreakerEvent](ctx.self)
+      postSubscribeBehaviour()
+    }
+  }
+
+  private def postSubscribeBehaviour(): Behavior[CircuitBreakerEvent] =
+    Behaviors.receive[CircuitBreakerEvent] {
+      (_, msg) =>
+        msg match {
+          case sc@SuccessfulCall(_, elapsedTime) =>
+            kamonCounter(sc).increment()
+            kamonHistogram(sc).record(elapsedTime.toNanos)
+          case cf@CallFailure(_, elapsedTime) =>
+            kamonCounter(cf).increment()
+            kamonHistogram(cf).record(elapsedTime.toNanos)
+          case ct@CallTimeout(_, elapsedTime) =>
+            kamonCounter(ct)
+            kamonHistogram(ct).record(elapsedTime.toNanos)
+          case eventsWithoutElapsedTime: CircuitBreakerEvent =>
+            kamonCounter(eventsWithoutElapsedTime).increment()
+        }
+        Behaviors.same
     }.receiveSignal {
       case (ctx, PostStop) =>
-        ctx.system.toUntyped.eventStream.unsubscribe(ctx.self.toUntyped)
-        Behaviors.same
+      ctx.system.eventStream ! EventStream.Unsubscribe(ctx.self)
+      Behaviors.same
       case (ctx, PreRestart) =>
-        ctx.system.toUntyped.eventStream.subscribe(ctx.self.toUntyped, classOf[CircuitBreakerEvent])
-        Behaviors.same
+      ctx.system.eventStream ! EventStream.Subscribe(ctx.self)
+      Behaviors.same
     }
-
-  }
 }

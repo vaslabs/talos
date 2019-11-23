@@ -1,31 +1,47 @@
 package talos.circuitbreakers.monix
 
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.testkit.{TestKit, TestProbe}
+import java.util.concurrent.{ArrayBlockingQueue, TimeUnit, TimeoutException}
+
 import cats.effect._
 import monix.catnap.CircuitBreaker
+import monix.execution.Ack.Continue
+import monix.execution.{Ack, Scheduler}
+import monix.reactive.observers.Subscriber
 import org.scalatest.{BeforeAndAfterAll, Matchers}
 import talos.circuitbreakers
+import talos.circuitbreakers.monix.MonixCircuitBreaker.EventSubscriber
 import talos.events.TalosEvents.model._
 import talos.laws.TalosCircuitBreakerLaws
 
-class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, CircuitBreaker[IO], IO]
+import scala.concurrent.{ExecutionContext, Future}
+
+class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreaker[IO], EventSubscriber, IO]
   with Matchers with BeforeAndAfterAll {
 
-  val testKit = new TestKit(ActorSystem("TalosCircuitBreakerEventsSpec"))
-  import testKit._
+  implicit val _scheduler = Scheduler(ExecutionContext.global)
 
-  private val eventListener = TestProbe("talosMonixEventsListener")
-  system.eventStream.subscribe(eventListener.ref, classOf[CircuitBreakerEvent])
+  val nextMessage = new ArrayBlockingQueue[CircuitBreakerEvent](100000)
 
-  import testKit._
+  private val eventListener = new Subscriber[CircuitBreakerEvent] {
+    override implicit def scheduler: Scheduler = _scheduler
 
-  override def afterAll(): Unit = {
-    system.eventStream.unsubscribe(eventListener.ref)
-    system.terminate()
-    ()
+    override def onNext(elem: CircuitBreakerEvent): Future[Ack] = {
+      nextMessage.add(elem)
+      Future.successful(Continue)
+    }
+
+    override def onError(ex: Throwable): Unit = ()
+
+    override def onComplete(): Unit = println("completed")
   }
+
+  override def beforeAll(): Unit =
+    talosCircuitBreaker.eventBus.subscribe(eventListener).fold(())(_ => ())
+
+
+  override def afterAll(): Unit = talosCircuitBreaker.eventBus.unsubsribe(eventListener)
+
 
   val circuitBreakerName = "testCircuitBreaker"
 
@@ -34,16 +50,27 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[ActorRef, Ci
   val circuitBreaker: CircuitBreaker[IO] =
     CircuitBreaker.of[IO](5, resetTimeout).unsafeRunSync()
 
-  override def acceptMsg: CircuitBreakerEvent = eventListener.expectMsgType[CircuitBreakerEvent]
 
-  override implicit val eventBus: circuitbreakers.EventBus[ActorRef] = new AkkaEventBus()
+  implicit val contextShift = IO.contextShift(ExecutionContext.global)
 
-  implicit val contextShift = IO.contextShift(system.dispatcher)
 
-  override val talosCircuitBreaker: circuitbreakers.TalosCircuitBreaker[CircuitBreaker[IO], IO] =
+  override def acceptMsg: CircuitBreakerEvent = {
+    val res = nextMessage.poll(3, TimeUnit.SECONDS)
+    if (res == null)
+      throw new TimeoutException()
+    else
+      res
+  }
+
+
+
+  override val talosCircuitBreaker: MonixCircuitBreaker.Instance[IO] =
     MonixCircuitBreaker(
       circuitBreakerName,
       circuitBreaker,
       callTimeout
     )
+
+  override implicit val eventBus: circuitbreakers.EventBus[MonixCircuitBreaker.EventSubscriber] = talosCircuitBreaker.eventBus
+
 }

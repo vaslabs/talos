@@ -18,21 +18,28 @@ libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "0.6.0"
 ```
 The events library provides a way to stream events on what's happening in the circuit breakers. E.g. combining with the talosakkasupport you can do:
 ```scala
-
+import akka.actor.typed.{ActorSystem, ActorRef}
+import akka.actor.typed.scaladsl.adapter._
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
-import talos.circuitbreakers.akka.AkkaCircuitBreaker
+import talos.circuitbreakers.akka._
 
-val talosCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, IO] = AkkaCircuitBreaker(
-  name,
-  CircuitBreaker(
-    actorSystem.scheduler,
-    5,
-    2 seconds,
-    5 seconds
-  )
-)
+import scala.concurrent.duration._
+
+def createCircuitBreaker(name: String = "testCircuitBreaker")
+                      (implicit system: ActorSystem[_]): AkkaCircuitBreaker.Instance = {
+    AkkaCircuitBreaker(
+      name,
+      CircuitBreaker(
+        system.scheduler.toClassic,
+        5,
+        2 seconds,
+        5 seconds
+      )
+    )
+}
+
 
 ```
 
@@ -59,28 +66,6 @@ import akka.http.scaladsl.server.Route
 val hystrixReporterDirective: Route  = new HystrixReporterDirective().hystrixStreamHttpRoute.run(Clock.systemUTC())
 ```
 And you can mix the Akka directive with the rest of your application.
-
-The example below shows a complete server start 
-```scala
-import java.time.Clock
-import akka.actor.ActorSystem
-
-import talos.http._
-
-implicit val TestClock: Clock = Clock.systemUTC()
-
-implicit val actorSystem: ActorSystem = ActorSystem("TalosExample")
-
-
-
-val hystrixReporterDirective = new HystrixReporterDirective().hystrixStreamHttpRoute
-
-val server = new StartServer("0.0.0.0", 8080)
-
-val startingServer = server.startHttpServer.run(hystrixReporterDirective)
-
-```
-Now you can consume the hystrix stream from http://localhost:8080/hystrix.stream and point the hystrix dashboard to it.
 
 ### Complete usage example
 
@@ -115,6 +100,6 @@ You should see this
 
 ## Architecture
 
-![alt text](https://docs.google.com/drawings/d/e/2PACX-1vRKebbVROyBITii1GHHigPvGbFt0QdEIzk5oT1mZa16VN30MYH4wvhqd14Qllp_1SIz3wcqDdAP5Kx6/pub?w=1440&h=1080)
+![alt text](https://docs.google.com/drawings/d/e/2PACX-1vRKebbVROyBITii1GHHigPvGbFt0QdEIzk5oT1mZa16VN30MYH4wvhqd14Qllp_1SIz3wcqDdAP5Kx6/pub?w=960&h=720)
 
 

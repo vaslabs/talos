@@ -3,22 +3,22 @@ import sbt._
 object Dependencies {
 
   object versions {
-    val scalacheckshapeless: String = "1.2.0"
+    val scalacheckshapeless: String = "1.2.3"
 
-    val scalcheck: String = "1.14.0"
+    val scalacheck: String = "1.14.1"
 
-    val pureconfig: String = "0.10.0"
+    val pureconfig: String = "0.12.1"
 
-    val catsEffect: String = "1.1.0"
+    val catsEffect: String = "2.0.0"
 
-    val akka = "2.5.19"
-    val circe = "0.10.0"
+    val akka = "2.6.0"
+    val circe = "0.12.3"
     val kamon = "1.1.0"
-    val scalatest = "3.0.5"
-    val akkaHttp = "10.1.7"
-    val monix = "3.0.0-RC2"
+    val scalatest = "3.0.8"
+    val akkaHttp = "10.1.10"
+    val monix = "3.1.0"
     val gatling = "3.0.0"
-    val wiremock = "1.33"
+    val wiremock = "2.25.1"
     val log4j = "2.10.0"
     val scalalogging = "3.9.0"
   }
@@ -27,13 +27,14 @@ object Dependencies {
 
     object Akka {
       val actorTyped = "com.typesafe.akka" %% "akka-actor-typed" % versions.akka
+      val streams = "com.typesafe.akka" %% "akka-stream-typed" % versions.akka
       val actorTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % versions.akka % Test
       val http = "com.typesafe.akka" %% "akka-http" % versions.akkaHttp
       val httpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % versions.akkaHttp
       val streamTestKit = "com.typesafe.akka" %% "akka-stream-testkit" % versions.akka
       val stream = "com.typesafe.akka" %% "akka-stream" % versions.akka
       val all = Seq(actorTyped, actorTestkitTyped)
-      val allHttp = all ++ Seq(stream, http, httpTestkit, streamTestKit)
+      val allHttp = all ++ Seq(stream, http, httpTestkit, streamTestKit, streams)
     }
 
     object Monix {
@@ -57,8 +58,7 @@ object Dependencies {
       val all = Seq(
         "io.circe" %% "circe-core",
         "io.circe" %% "circe-generic",
-        "io.circe" %% "circe-parser",
-        "io.circe" %% "circe-java8"
+        "io.circe" %% "circe-parser"
       ).map(_ % versions.circe)
     }
 
@@ -72,7 +72,7 @@ object Dependencies {
     }
 
     object ScalaCheck {
-      val scalacheck = "org.scalacheck" %% "scalacheck" % versions.scalcheck
+      val scalacheck = "org.scalacheck" %% "scalacheck" % versions.scalacheck
       val scalacheckshapeless = "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % versions.scalacheckshapeless
       val all = Seq(scalacheck, scalacheckshapeless, ScalaTest.scalatest)
     }
