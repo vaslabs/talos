@@ -7,9 +7,6 @@ cache:
   - $HOME/.sbt/launchers
   - $HOME/.ivy2
 
-before_script:
-  npm install -g snyk
-
 script:
 - sbt coverage test
 - sbt reportTestCov
