@@ -5,7 +5,7 @@ object Dependencies {
   object versions {
     val scalacheckshapeless: String = "1.2.3"
 
-    val scalacheck: String = "1.14.1"
+    val scalacheck: String = "1.14.2"
 
     val pureconfig: String = "0.12.1"
 
@@ -13,14 +13,14 @@ object Dependencies {
 
     val akka = "2.6.0"
     val circe = "0.12.3"
-    val kamon = "1.1.0"
+    val kamon = "1.1.6"
     val scalatest = "3.0.8"
     val akkaHttp = "10.1.10"
     val monix = "3.1.0"
-    val gatling = "3.0.0"
+    val gatling = "3.0.3"
     val wiremock = "2.25.1"
     val log4j = "2.10.0"
-    val scalalogging = "3.9.0"
+    val scalalogging = "3.9.2"
   }
 
   object libraries {
