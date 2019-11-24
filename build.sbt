@@ -108,6 +108,9 @@ lazy val hystrixReporter =
         ++ libraries.Log4j.required.map(_ % Test)
   ).settings(compilerSettings)
     .settings(publishSettings)
+  .settings(
+    Test / fork := true
+  )
   .dependsOn(talosKamon)
 
 lazy val dockerCommonSettings = Seq(
