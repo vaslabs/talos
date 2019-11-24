@@ -1,3 +1,4 @@
+addSbtPlugin("com.47deg"  % "sbt-microsites" % "0.9.7")
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.25")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.6")
 addSbtPlugin("com.47deg"  % "sbt-microsites" % "0.8.0")
