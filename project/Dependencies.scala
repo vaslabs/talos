@@ -13,7 +13,7 @@ object Dependencies {
 
     val akka = "2.6.0"
     val circe = "0.12.3"
-    val kamon = "1.1.0"
+    val kamon = "1.1.6"
     val scalatest = "3.0.8"
     val akkaHttp = "10.1.10"
     val monix = "3.1.0"
