@@ -1,6 +1,6 @@
 addSbtPlugin("com.47deg"  % "sbt-microsites" % "0.9.7")
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.25")
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.6")
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.8.1")
 addSbtPlugin("com.47deg"  % "sbt-microsites" % "0.8.0")
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.17")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
