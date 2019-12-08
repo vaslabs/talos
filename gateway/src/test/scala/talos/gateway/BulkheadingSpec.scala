@@ -11,7 +11,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlEqualTo}
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfterAll
 import pureconfig.ConfigSource
 import talos.gateway.config.GatewayConfig
 
@@ -20,7 +20,9 @@ import scala.concurrent.duration._
 import pureconfig.generic.auto._
 import config.pureconfigExt._
 import kamon.Kamon
-class BulkheadingSpec extends FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+class BulkheadingSpec extends AnyFlatSpec
   with BeforeAndAfterAll
   with Matchers {
 

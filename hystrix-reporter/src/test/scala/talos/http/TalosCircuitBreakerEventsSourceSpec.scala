@@ -6,11 +6,13 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import kamon.Kamon
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfterAll
 import talos.http.CircuitBreakerEventsSource.StreamControl
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 class TalosCircuitBreakerEventsSourceSpec
-      extends FlatSpec
+      extends AnyFlatSpec
       with Matchers
       with BeforeAndAfterAll{
 

@@ -1,10 +1,10 @@
 package talos.laws
 
 import cats.effect.Effect
-import org.scalatest.WordSpecLike
+import org.scalatest.wordspec.AnyWordSpecLike
 
 abstract class TalosCircuitBreakerLaws[C, S, F[_]](implicit F: Effect[F]) extends
-  WordSpecLike with MeasurementLaws[C, S, F] with StateLaws[C, S, F] with FallbackLaws[C, S, F] {
+  AnyWordSpecLike with MeasurementLaws[C, S, F] with StateLaws[C, S, F] with FallbackLaws[C, S, F] {
 
   "a talos circuit breaker" must {
     "send events to the subscribers" in {

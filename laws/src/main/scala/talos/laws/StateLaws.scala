@@ -1,11 +1,11 @@
 package talos.laws
 
 import cats.effect.{Effect, IO}
-import org.scalatest.Matchers
 import talos.events.TalosEvents.model._
 
 import scala.concurrent.TimeoutException
 import scala.util.Try
+import org.scalatest.matchers.should.Matchers
 
 trait StateLaws[C, S, F[_]] extends CircuitBreakerSpec[C, S, F] with EventBusLaws[S] with Matchers {
 

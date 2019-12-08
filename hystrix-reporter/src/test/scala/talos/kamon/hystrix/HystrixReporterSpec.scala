@@ -6,13 +6,15 @@ import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.actor.typed.eventstream.EventStream
 import kamon.{Kamon, MetricReporter}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.BeforeAndAfterAll
 import talos.events.TalosEvents.model._
 import talos.http.CircuitBreakerEventsSource.{CircuitBreakerStats, StreamControl}
 import talos.kamon.StatsAggregator
 
 import scala.concurrent.duration._
 import scala.util.Try
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 object HystrixReporterSpec {
 
@@ -28,7 +30,7 @@ object HystrixReporterSpec {
     )
 }
 
-class HystrixReporterSpec extends WordSpec
+class HystrixReporterSpec extends AnyWordSpec
       with Matchers
       with BeforeAndAfterAll
 {

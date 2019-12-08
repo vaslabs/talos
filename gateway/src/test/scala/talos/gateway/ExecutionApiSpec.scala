@@ -3,13 +3,15 @@ package talos.gateway
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, StatusCodes, Uri}
 import cats.effect.IO
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.BeforeAndAfterAll
 import talos.gateway.EndpointResolver.HitEndpoint
 import talos.gateway.Gateway.ServiceCall
 import talos.gateway.config.GatewayConfig
 
 import scala.concurrent.ExecutionContext
-class ExecutionApiSpec extends WordSpec with BeforeAndAfterAll with Matchers{
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+class ExecutionApiSpec extends AnyWordSpec with BeforeAndAfterAll with Matchers{
 
   val testKit = ActorTestKit()
   implicit val system = testKit.system
