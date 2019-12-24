@@ -67,14 +67,12 @@ object StatsAggregator {
 
   private def kamonCounter(circuitBreakerEvent: CircuitBreakerEvent): Counter = {
     val counter = Kamon.counter(s"${Keys.CounterPrefix}${circuitBreakerEvent.circuitBreakerName}")
-    val refinedTag = "eventType" -> Keys.extractName(circuitBreakerEvent)
-    counter.refine(refinedTag)
+    counter.withTag("eventType", Keys.extractName(circuitBreakerEvent))
   }
 
   private def kamonHistogram(circuitBreakerEvent: CircuitBreakerEvent): Histogram = {
     val histogram = Kamon.histogram(s"${Keys.HistrogramPrefix}${circuitBreakerEvent.circuitBreakerName}")
-    val refinedTag = "eventType" -> Keys.extractName(circuitBreakerEvent)
-    histogram.refine(refinedTag)
+    histogram.withTag("eventType", Keys.extractName(circuitBreakerEvent))
   }
 
   private[kamon] def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.setup[CircuitBreakerEvent] {

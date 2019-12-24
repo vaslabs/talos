@@ -6,8 +6,9 @@ import akka.actor.typed.ActorRef
 import cats.implicits._
 import cats.kernel.Semigroup
 import com.typesafe.config.Config
-import kamon.MetricReporter
-import kamon.metric.{MetricDistribution, MetricValue, Percentile, PeriodSnapshot}
+import kamon.metric.Distribution.Percentile
+import kamon.metric.MetricSnapshot
+import kamon.module.MetricReporter
 import talos.http.CircuitBreakerEventsSource.{CircuitBreakerStats, StreamControl}
 import talos.kamon.StatsAggregator
 
@@ -17,13 +18,13 @@ import scala.util.{Failure, Success, Try}
 class HystrixReporter(statsGatherer: ActorRef[StreamControl])(implicit clock: Clock) extends MetricReporter{
 
 
-  private def findCountersMetricsOfCircuitBreaker(counters: Seq[MetricValue]) =
-    counters.foldRight(Map.empty[String, Long])(
-      (metricValue, counters) =>
-        metricValue.tags.get("eventType").map(
-          tagName => Map(tagName -> metricValue.value) |+| counters
-        ).getOrElse(Map.empty)
-    )
+  private def findCountersMetricsOfCircuitBreaker(counters: MetricSnapshot.Values[Long]): Map[String, Long] =
+    Map(
+      counters.instruments.flatMap {
+        snapshot =>
+          snapshot.tags.all().find(_.key == "eventType").map(_.key -> snapshot.value)
+      }: _*
+  )
 
   private implicit val circuitBreakerStatsSemigroup: Semigroup[CircuitBreakerStats] =
     (x: CircuitBreakerStats, y: CircuitBreakerStats) => {
@@ -54,9 +55,9 @@ class HystrixReporter(statsGatherer: ActorRef[StreamControl])(implicit clock: Cl
 
   private implicit val percentileSemigroup: Semigroup[Percentile] =
     (x: Percentile, y: Percentile) => {
-      if (x.quantile > y.quantile)
+      if (x.rank > y.rank)
         y
-      else if (x.countUnderQuantile > y.quantile)
+      else if (x.countAtRank > y.rank)
         x
       else
         y
@@ -99,8 +100,8 @@ class HystrixReporter(statsGatherer: ActorRef[StreamControl])(implicit clock: Cl
   }
 
 
-  private def findCountersMetrics(counters: Seq[MetricValue]): Map[String, CircuitBreakerStats] =
-    counters.filter(_.name.startsWith(StatsAggregator.Keys.CounterPrefix))
+  private def findCountersMetrics(counters: MetricSnapshot.Values[Long]): Map[String, CircuitBreakerStats] =
+    if (counters.name.startsWith(StatsAggregator.Keys.CounterPrefix))
       .groupBy(_.name.substring(StatsAggregator.Keys.CounterPrefix.length()))
       .mapValues(findCountersMetricsOfCircuitBreaker(_))
     .map {
@@ -108,13 +109,13 @@ class HystrixReporter(statsGatherer: ActorRef[StreamControl])(implicit clock: Cl
     }
 
   def normalize(p: Double, percentile: Percentile): Percentile = {
-    if (p != percentile.quantile)
+    if (p != percentile.rank)
       new Percentile {
-        override val quantile: Double = p
+        override val rank: Double = p
 
         override val value: Long = percentile.value
 
-        override val countUnderQuantile: Long = percentile.countUnderQuantile
+        override val countAtRank: Long = percentile.countAtRank
       }
     else
       percentile
