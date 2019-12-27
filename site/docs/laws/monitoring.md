@@ -17,7 +17,7 @@ Every successful call generates a success event with the elapsed time that it to
 
 Subscription to such events can be done via the provided event bus.
 
-```tut:silent
+```scala mdoc:silent
 import akka.actor.typed.{ActorSystem, ActorRef}
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.ActorContext
@@ -57,7 +57,7 @@ def subscribe(eventListener: ActorRef[CircuitBreakerEvent])(implicit actorSystem
 
 The events that expose the circuit breaker activity and state changes are the following:
 
-```tut:silent
+```scala
 sealed trait CircuitBreakerEvent {
   val circuitBreakerName: String
 }

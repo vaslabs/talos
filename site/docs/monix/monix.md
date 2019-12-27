@@ -22,7 +22,7 @@ continue composing the Async typeclass of your choice.
 
 You can do something like this.
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect._
 import monix.catnap.CircuitBreaker
 
@@ -44,7 +44,7 @@ def usage[F[_]](implicit F: Concurrent[F]): MonixCircuitBreaker.Instance[F] = {
   }
 ```
 E.g. for IO you can then do
-```tut:silent
+```scala mdoc:silent
 import java.util.concurrent.Executors
 
 import scala.concurrent.ExecutionContext

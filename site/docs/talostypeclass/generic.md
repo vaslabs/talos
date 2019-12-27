@@ -11,7 +11,7 @@ TalosCircuitBreaker definition.
 
 More or less you can do
 
-```tut:silent
+```scala mdoc:silent
     import talos.events.TalosEvents
     import talos.circuitbreakers._
 

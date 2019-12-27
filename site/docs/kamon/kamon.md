@@ -13,7 +13,7 @@ number: 2
 libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "1.0.0"
 ```
 
-```tut:silent
+```scala mdoc:silent
   import akka.actor.typed.scaladsl.ActorContext
 
   import talos.kamon.StatsAggregator

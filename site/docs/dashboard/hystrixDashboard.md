@@ -19,7 +19,7 @@ libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "1.0.0"
 
 Get an akka directive
 
-```tut:silent
+```scala mdoc:silent
 import java.time.Clock
 
 import akka.actor.typed.scaladsl.ActorContext
