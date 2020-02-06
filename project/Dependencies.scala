@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   object versions {
-    val scalacheckshapeless: String = "1.2.3"
+    val scalacheckshapeless: String = "1.2.4"
 
     val scalacheck: String = "1.14.3"
 
