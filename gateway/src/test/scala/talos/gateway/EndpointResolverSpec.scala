@@ -2,13 +2,14 @@ package talos.gateway
 
 import akka.http.scaladsl.model.Uri.{Host, Path}
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, StatusCodes, Uri}
-import org.scalatest.{Matchers, WordSpec}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import talos.gateway.EndpointResolver.HitEndpoint
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class EndpointResolverSpec extends WordSpec with Matchers with ScalatestRouteTest{
+class EndpointResolverSpec extends AnyWordSpec with Matchers with ScalatestRouteTest{
 
   "endpoint resolver" can {
 

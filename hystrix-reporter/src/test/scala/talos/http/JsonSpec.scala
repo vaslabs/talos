@@ -1,9 +1,10 @@
 package talos.http
 
 import io.circe.Json
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class JsonSpec extends FlatSpec with Matchers{
+class JsonSpec extends AnyFlatSpec with Matchers{
 
   def assertNotNull(json: Json, key: String) = {
     println(s"Testing $key")

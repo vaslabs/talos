@@ -7,11 +7,13 @@ import akka.actor.typed.scaladsl.Behaviors
 import com.typesafe.config.Config
 import kamon.metric.{MetricValue, PeriodSnapshot}
 import kamon.{Kamon, MetricReporter}
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfterAll
 import talos.events.TalosEvents.model._
 
 import scala.concurrent.duration._
-class KamonEventListenerSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+class KamonEventListenerSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   var gatheringValues = Map.empty[String, Long]
 

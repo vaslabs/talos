@@ -3,13 +3,15 @@ package talos.http
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import kamon.Kamon
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.BeforeAndAfterAll
 import talos.http.CircuitBreakerEventsSource.{CircuitBreakerStats, ExposedEvent, StreamEnded}
 
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 class TalosCircuitBreakerStatsActorSpec
-      extends WordSpec
+      extends AnyWordSpec
       with Matchers
       with BeforeAndAfterAll{
 
