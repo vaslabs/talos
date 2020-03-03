@@ -3,11 +3,11 @@ import sbt._
 object Dependencies {
 
   object versions {
-    val scalacheckshapeless: String = "1.2.4"
+    val scalacheckshapeless: String = "1.2.5"
 
     val scalacheck: String = "1.14.3"
 
-    val pureconfig: String = "0.12.2"
+    val pureconfig: String = "0.12.3"
 
     val catsEffect: String = "2.1.1"
 
@@ -17,8 +17,8 @@ object Dependencies {
     val scalatest = "3.0.8"
     val akkaHttp = "10.1.11"
     val monix = "3.1.0"
-    val gatling = "3.3.1"
-    val wiremock = "2.26.1"
+    val gatling = "3.0.3"
+    val wiremock = "2.26.2"
     val log4j = "2.10.0"
     val scalalogging = "3.9.2"
   }
