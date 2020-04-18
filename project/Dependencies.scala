@@ -9,7 +9,7 @@ object Dependencies {
 
     val pureconfig: String = "0.12.3"
 
-    val catsEffect: String = "2.1.2"
+    val catsEffect: String = "2.1.3"
 
     val akka = "2.6.4"
     val circe = "0.13.0"
