@@ -17,7 +17,7 @@ object Dependencies {
     val scalatest = "3.0.8"
     val akkaHttp = "10.1.11"
     val monix = "3.2.1"
-    val gatling = "3.0.3"
+    val gatling = "3.3.1"
     val wiremock = "2.26.3"
     val log4j = "2.10.0"
     val scalalogging = "3.9.2"
