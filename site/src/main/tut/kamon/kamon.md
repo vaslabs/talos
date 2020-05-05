@@ -14,11 +14,13 @@ libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "1.0.0"
 ```
 
 ```tut:silent
+  import cats.effect.IO
   import akka.actor.typed.scaladsl.ActorContext
 
   import talos.kamon.StatsAggregator
   
-  def recordKamonMetrics(implicit actorContext: ActorContext[_]) = StatsAggregator.kamon()
+  def recordKamonMetrics(implicit actorContext: ActorContext[_]): IO[Unit] = 
+    StatsAggregator.kamon()
 ```
 
 ## Metrics format

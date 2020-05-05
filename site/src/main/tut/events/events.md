@@ -27,7 +27,6 @@ import akka.actor.typed.scaladsl.adapter._
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
-import talos.http.CircuitBreakerEventsSource.CircuitBreakerStats
 import talos.circuitbreakers.akka._
 
 import scala.concurrent.duration._
