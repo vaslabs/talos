@@ -94,24 +94,13 @@ lazy val talosAkkaSupport = (project in file("akka"))
 
 lazy val talosKamon =
   (project in file("kamon")).settings(
-    libraryDependencies ++= libraries.Kamon.all ++ libraries.Log4j.required.map(_ % Test) ++
+    libraryDependencies ++= Seq(libraries.Kamon.core) ++ libraries.Log4j.required.map(_ % Test) ++
       libraries.ScalaTest.all ++ libraries.Akka.all :+
       libraries.Cats.effect
   ).settings(compilerSettings)
     .settings(publishSettings)
   .dependsOn(talosCore)
 
-lazy val hystrixReporter =
-  (project in file("hystrix-reporter")).settings(
-    libraryDependencies ++=
-      libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
-        ++ libraries.Log4j.required.map(_ % Test)
-  ).settings(compilerSettings)
-    .settings(publishSettings)
-  .settings(
-    Test / fork := true
-  )
-  .dependsOn(talosKamon)
 
 lazy val dockerCommonSettings = Seq(
   version in Docker := version.value,
@@ -133,12 +122,12 @@ lazy val talosExamples =
   )
   .settings(
     libraryDependencies ++=
-      libraries.Akka.allHttp ++ libraries.Kamon.all ++ libraries.Circe.all ++ libraries.ScalaTest.all
+      libraries.Akka.allHttp ++ Seq(libraries.Kamon.bundle, libraries.Kamon.prometheus) ++ libraries.Circe.all ++ libraries.ScalaTest.all
   ).settings(noPublishSettings)
   .settings(
     coverageExcludedPackages := ".*"
   )
-  .dependsOn(hystrixReporter, talosAkkaSupport)
+  .dependsOn(talosAkkaSupport)
 
 lazy val noPublishSettings = Seq(
   publish := {},
@@ -185,7 +174,7 @@ lazy val talosMicrosite = (project in file("site"))
   .settings(
     coverageExcludedPackages := ".*"
   )
-  .dependsOn(talosCore, talosKamon, hystrixReporter, talosAkkaSupport, talosMonixSupport)
+  .dependsOn(talosCore, talosKamon, talosAkkaSupport, talosMonixSupport)
 
 lazy val talosGateway =
   (project in file("gateway"))
@@ -193,7 +182,7 @@ lazy val talosGateway =
   .enablePlugins(GatlingPlugin)
   .settings(
     libraryDependencies ++=
-      libraries.Akka.allHttp ++ libraries.ScalaTest.all ++
+      libraries.Akka.allHttp ++ libraries.ScalaTest.all ++ Seq(libraries.Kamon.bundle, libraries.Kamon.prometheus) ++
         libraries.Gatling.all ++ libraries.Wiremock.all ++ libraries.Log4j.required :+ libraries.PureConf.core
   )
   .settings(
@@ -207,7 +196,7 @@ lazy val talosGateway =
   ).settings(
     dockerCommonSettings
   ).dependsOn(
-    hystrixReporter, talosKamon, talosAkkaSupport, talosCore
+    talosKamon, talosAkkaSupport, talosCore
   )
 
 lazy val talos =
@@ -216,7 +205,6 @@ lazy val talos =
   .aggregate(
     talosCore, talosKamon,
     talosAkkaSupport, talosMonixSupport, talosLaws,
-    hystrixReporter,
     talosGateway,
     talosExamples
   )
