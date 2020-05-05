@@ -122,12 +122,15 @@ lazy val talosExamples =
   )
   .settings(
     libraryDependencies ++=
-      libraries.Akka.allHttp ++ Seq(libraries.Kamon.bundle, libraries.Kamon.prometheus) ++ libraries.Circe.all ++ libraries.ScalaTest.all
+        libraries.Akka.allHttp ++
+        Seq(libraries.Kamon.bundle, libraries.Kamon.prometheus) ++
+        libraries.Circe.all ++ libraries.ScalaTest.all ++
+        libraries.Log4j.required
   ).settings(noPublishSettings)
   .settings(
     coverageExcludedPackages := ".*"
   )
-  .dependsOn(talosAkkaSupport)
+  .dependsOn(talosAkkaSupport, talosKamon)
 
 lazy val noPublishSettings = Seq(
   publish := {},

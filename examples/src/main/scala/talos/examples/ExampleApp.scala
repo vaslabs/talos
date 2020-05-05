@@ -7,8 +7,8 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorSystem, Behavior, PostStop}
 import cats.effect.IO
 import kamon.Kamon
+import talos.kamon.StatsAggregator
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Random, Try}
 
@@ -22,10 +22,13 @@ object ExampleApp extends App {
 
       startCircuitBreakerActivity()
 
+      StatsAggregator.kamon().unsafeToFuture()
+
       Behaviors.receive[GuardianProtocol] {
       case _ => Behaviors.ignore
     }.receiveSignal {
       case (_, PostStop) =>
+        Kamon.stopModules()
         Behaviors.stopped
     }
   }

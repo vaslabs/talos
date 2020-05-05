@@ -55,7 +55,7 @@ class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreak
 
 
   override def acceptMsg: CircuitBreakerEvent = {
-    val res = nextMessage.poll(3, TimeUnit.SECONDS)
+    val res = nextMessage.poll(5, TimeUnit.SECONDS)
     if (res == null)
       throw new TimeoutException()
     else
