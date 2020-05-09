@@ -1,4 +1,5 @@
 import Dependencies._
+import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import microsites.ExtraMdFileConfig
 import sbt.url
 
@@ -78,7 +79,11 @@ lazy val dockerCommonSettings = Seq(
   version in Docker := version.value,
   maintainer in Docker := "Vasilis Nicolaou",
   dockerBaseImage := "openjdk:8-alpine",
-  dockerExposedPorts := Seq(8080),
+  dockerCommands += Cmd("USER", "root"),
+    dockerCommands ++= Seq(
+    ExecCmd("RUN", "apk", "add", "eudev-dev")
+  ),
+  dockerExposedPorts := Seq(8080, 9095, 5266),
   maintainer := "vaslabsco@gmail.com",
   dockerUsername := Some("vaslabs"),
 )

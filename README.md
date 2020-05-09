@@ -14,7 +14,6 @@ Talos is modularised. You can twist it and pick the dependencies that fit your n
 libraryDependencies += "org.vaslabs.talos" %% "taloscore" % "1.0.0"
 libraryDependencies += "org.vaslabs.talos" %% "talosakkasupport" % "1.0.0"
 libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "1.0.0"
-libraryDependencies += "org.vaslabs.talos" %% "hystrixreporter" % "1.0.0"
 ```
 The events library provides a way to stream events on what's happening in the circuit breakers. E.g. combining with the talosakkasupport you can do:
 ```scala
@@ -57,15 +56,6 @@ Otherwise you can use the TalosCircuitBreaker typeclass directly
 
 Talos also supports the CircuitBreaker from [monix](https://vaslabs.github.io/talos/monix/monix.html)
 
-### Shipping circuit breaker events with hystrix reporter
-
-Get an akka directive
-```scala
-import akka.http.scaladsl.server.Route
-
-val hystrixReporterDirective: Route  = new HystrixReporterDirective().hystrixStreamHttpRoute.run(Clock.systemUTC())
-```
-And you can mix the Akka directive with the rest of your application.
 
 ### Complete usage example
 
@@ -88,18 +78,12 @@ cd examples
 docker-compose up
 ```
 
-- Then go to a browser and navigate to (http://localhost:7979/hystrix-dashboard/)
-You should see this
-![alt_text](https://user-images.githubusercontent.com/3875429/47372906-a4c30f80-d6e2-11e8-8219-0a01a464ba11.png)
-
-- The address of the stream is http://talos-demo:8080/hystrix.stream
-
-- Click add stream and then monitor stream.
-
-![alt text](https://user-images.githubusercontent.com/3875429/47429624-dc879100-d78e-11e8-856a-15ca3855a2eb.gif)
+You can see the kamon status [here](http://localhost:5266) and the prometheus metrics are exposed 
+[here](http://localhost:9095) .
 
 ## Architecture
 
+
 ![alt text](https://docs.google.com/drawings/d/e/2PACX-1vRKebbVROyBITii1GHHigPvGbFt0QdEIzk5oT1mZa16VN30MYH4wvhqd14Qllp_1SIz3wcqDdAP5Kx6/pub?w=960&h=720)
 
-
+Note: The hystrix reporter is no longer supported (last supported version 1.0.0)
