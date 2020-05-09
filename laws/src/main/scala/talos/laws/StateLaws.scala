@@ -6,7 +6,7 @@ import talos.events.TalosEvents.model._
 
 import scala.concurrent.TimeoutException
 import scala.util.Try
-
+import talos.internal.crosscompat.streams._
 trait StateLaws[C, S, F[_]] extends CircuitBreakerSpec[C, S, F] with EventBusLaws[S] with Matchers {
 
   def callsAreShortCircuitedFromNowOn(implicit F: Effect[F]) = {
@@ -23,7 +23,7 @@ trait StateLaws[C, S, F[_]] extends CircuitBreakerSpec[C, S, F] with EventBusLaw
       }
     }
 
-    val event = Stream.iterate(failure)(identity).map(
+    val event = LazyList.iterate(failure)(identity).map(
       unsafeCall => Try(run(unsafeCall))
     ).map(_ => acceptMsg)
       .dropWhile{ event =>
@@ -69,7 +69,7 @@ trait StateLaws[C, S, F[_]] extends CircuitBreakerSpec[C, S, F] with EventBusLaw
     Try(run(success))
     acceptMsg shouldBe ShortCircuitedCall(talosCircuitBreaker.name)
 
-    val eventualSuccess = Stream.iterate(success)(identity).map(
+    val eventualSuccess = LazyList.iterate(success)(identity).map(
       unsafeCall => Try(run(unsafeCall))
     ).dropWhile(_.isFailure)
       .map(_ => acceptMsg)

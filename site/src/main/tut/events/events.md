@@ -11,7 +11,7 @@ This is the basic documentation for exposing the Akka circuit breaker events. Fo
 
 ## Dependencies
 
-```sbt
+```scala
 libraryDependencies ++= Seq(
           "org.vaslabs.talos" %% "taloscore" % "1.0.0",
           "org.vaslabs.talos" %% "talosakkasupport" % "1.0.0"
@@ -27,14 +27,13 @@ import akka.actor.typed.scaladsl.adapter._
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
 import talos.circuitbreakers.TalosCircuitBreaker
-import talos.http.CircuitBreakerEventsSource.CircuitBreakerStats
 import talos.circuitbreakers.akka._
 
 import scala.concurrent.duration._
 
 
-def createCircuitBreaker(name: String = "testCircuitBreaker")
-                      (implicit system: ActorSystem[_]): AkkaCircuitBreaker.Instance = {
+def createCircuitBreaker(name: String = "testCircuitBreaker")(implicit system: ActorSystem[_]):
+ AkkaCircuitBreaker.Instance = {
     AkkaCircuitBreaker(
       name,
       CircuitBreaker(

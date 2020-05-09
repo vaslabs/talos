@@ -9,7 +9,7 @@ number: 2
 
 A timeout is enforced for every instance implementation of a TalosCircuitBreaker.
 
-```tut
+```tut:silent
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import cats.effect._

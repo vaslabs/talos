@@ -1,18 +1,11 @@
 version: '3'
 
 services:
-  hystrix-dasboard:
-    image: kennedyoliveira/hystrix-dashboard:1.5.6
-    ports:
-    - "7979:7979"
-    depends_on:
-      - talos-demo
-    stdin_open: true
-    entrypoint: ["java", "-Dvertx.disableDnsResolver=true", "-jar", "/opt/standalone-hystrix-dashboard/standalone-hystrix-dashboard-1.5.6-all.jar"]
-
   talos-demo:
-    image:  vaslabs/talos-demo
+    image:  vaslabs/talos-demo:SNAPSHOT
     hostname: talos
     container_name: "talos-demo"
     ports:
       - "8080:8080"
+      - "5266:5266" # Kamon status
+      - "9095:9095" # Prometheus metrics

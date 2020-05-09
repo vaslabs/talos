@@ -19,7 +19,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import pureconfig.generic.auto._
 import config.pureconfigExt._
-import kamon.Kamon
+
 class BulkheadingSpec extends FlatSpec
   with BeforeAndAfterAll
   with Matchers {
@@ -107,7 +107,6 @@ class BulkheadingSpec extends FlatSpec
   override def afterAll(): Unit = {
     dogsWireMockServer.stop()
     vehiclesWireMockServer.stop()
-    Kamon.stopAllReporters()
     actorSystem.terminate()
   }
 

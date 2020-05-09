@@ -41,13 +41,17 @@ def usage[F[_]](implicit F: Concurrent[F]): MonixCircuitBreaker.Instance[F] = {
       circuitBreaker,
       4 seconds
     )
-  }
+}
 ```
 E.g. for IO you can then do
 ```tut:silent
+import talos.circuitbreakers.monix.MonixCircuitBreaker
+import _root_.monix.catnap.CircuitBreaker
+
 import java.util.concurrent.Executors
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 import cats.effect._
 
 def usageWithIO(): IO[Unit] = {

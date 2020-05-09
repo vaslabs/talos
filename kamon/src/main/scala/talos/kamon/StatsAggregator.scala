@@ -2,28 +2,17 @@ package talos.kamon
 
 import akka.actor.typed.eventstream.EventStream
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import akka.actor.typed.{ActorRef, Behavior, PostStop, PreRestart}
-import cats.effect.{CancelToken, IO}
+import akka.actor.typed.{Behavior, PostStop, PreRestart}
+import cats.effect.IO
 import kamon.Kamon
 import kamon.metric.{Counter, Histogram}
 import talos.events.TalosEvents.model._
 
 object StatsAggregator {
-  def kamon()(implicit actorContext: ActorContext[_]): CancelToken[IO] = IO.suspend {
+  def kamon()(implicit actorContext: ActorContext[_]): IO[Unit] = IO.delay {
       actorContext.spawn(behavior(), "TalosStatsAggregator")
-      IO.never
-  }.runCancelable(stop).unsafeRunSync()
-
-  private def stop(cancellationState: Either[Throwable, ActorRef[CircuitBreakerEvent]])(implicit actorContext: ActorContext[_]) =
-    IO {
-      cancellationState match {
-        case Right(eventListener) =>
-          actorContext.stop(eventListener)
-        case Left(throwable) =>
-          actorContext.log.error("Can't cancel kamon monitoring for circuit breakers", throwable)
-      }
-    }
-
+      ()
+  }
 
   object Keys {
     val CounterPrefix = "circuit-breaker-"
@@ -67,14 +56,12 @@ object StatsAggregator {
 
   private def kamonCounter(circuitBreakerEvent: CircuitBreakerEvent): Counter = {
     val counter = Kamon.counter(s"${Keys.CounterPrefix}${circuitBreakerEvent.circuitBreakerName}")
-    val refinedTag = "eventType" -> Keys.extractName(circuitBreakerEvent)
-    counter.refine(refinedTag)
+    counter.withTag("eventType", Keys.extractName(circuitBreakerEvent))
   }
 
   private def kamonHistogram(circuitBreakerEvent: CircuitBreakerEvent): Histogram = {
     val histogram = Kamon.histogram(s"${Keys.HistrogramPrefix}${circuitBreakerEvent.circuitBreakerName}")
-    val refinedTag = "eventType" -> Keys.extractName(circuitBreakerEvent)
-    histogram.refine(refinedTag)
+    histogram.withTag("eventType", Keys.extractName(circuitBreakerEvent))
   }
 
   private[kamon] def behavior(): Behavior[CircuitBreakerEvent] = Behaviors.setup[CircuitBreakerEvent] {
