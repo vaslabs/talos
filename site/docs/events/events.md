@@ -13,8 +13,8 @@ This is the basic documentation for exposing the Akka circuit breaker events. Fo
 
 ```scala
 libraryDependencies ++= Seq(
-          "org.vaslabs.talos" %% "taloscore" % "1.0.0",
-          "org.vaslabs.talos" %% "talosakkasupport" % "1.0.0"
+          "org.vaslabs.talos" %% "taloscore" % "2.0.1",
+          "org.vaslabs.talos" %% "talosakkasupport" % "2.0.1"
 )
 ```
 ## Usage example

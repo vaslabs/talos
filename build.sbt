@@ -108,6 +108,7 @@ lazy val talosExamples =
   .settings(
     coverageExcludedPackages := ".*"
   )
+  .settings(compilerSettings)
   .dependsOn(talosAkkaSupport, talosKamon)
 
 lazy val noPublishSettings = Seq(
