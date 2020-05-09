@@ -11,7 +11,7 @@ This is the basic documentation for exposing the Akka circuit breaker events. Fo
 
 ## Dependencies
 
-```sbt
+```scala
 libraryDependencies ++= Seq(
           "org.vaslabs.talos" %% "taloscore" % "1.0.0",
           "org.vaslabs.talos" %% "talosakkasupport" % "1.0.0"

@@ -223,7 +223,7 @@ lazy val publishSettings = Seq(
 )
 
 lazy val compilerSettings = Seq(
-  scalacOptions in ThisBuild ++= {
+  scalacOptions ++= {
     if (scalaVersion.value.startsWith("2.13"))
       sharedFlags
     else
