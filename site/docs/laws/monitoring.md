@@ -57,7 +57,7 @@ def subscribe(eventListener: ActorRef[CircuitBreakerEvent])(implicit actorSystem
 
 The events that expose the circuit breaker activity and state changes are the following:
 
-```scala mdoc:silent
+```scala
 sealed trait CircuitBreakerEvent {
   val circuitBreakerName: String
 }
