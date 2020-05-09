@@ -22,7 +22,7 @@ continue composing the Async typeclass of your choice.
 
 You can do something like this.
 
-```scala
+```tut:silent
 import cats.effect._
 import monix.catnap.CircuitBreaker
 
@@ -44,9 +44,9 @@ def usage[F[_]](implicit F: Concurrent[F]): MonixCircuitBreaker.Instance[F] = {
 }
 ```
 E.g. for IO you can then do
-```scala
+```tut:silent
 import talos.circuitbreakers.monix.MonixCircuitBreaker
-import monix.catnap.CircuitBreaker
+import _root_.monix.catnap.CircuitBreaker
 
 import java.util.concurrent.Executors
 
