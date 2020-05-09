@@ -65,7 +65,7 @@ https://github.com/vaslabs/talos/blob/master/examples/src/main/scala/talos/examp
 ### Laws
 If you wish to implement your own TalosCircuitBreaker typeclasses you can test them against the laws library:
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "taloslaws" % "1.0.0" % Test
+libraryDependencies += "org.vaslabs.talos" %% "taloslaws" % "2.0.0-RC1" % Test
 ```
 
 
@@ -81,8 +81,13 @@ docker-compose up
 You can see the kamon status [here](http://localhost:5266) and the prometheus metrics are exposed 
 [here](http://localhost:9095) .
 
-## Architecture
+### How Tos
+1. Setup docker to work with Kamon: Look at build.sbt, find dockerCommonSettings
+2. Setup logging: Look in the example module in the resources for the logback.xml file.
 
+
+
+## Architecture
 
 ![alt text](https://docs.google.com/drawings/d/e/2PACX-1vRKebbVROyBITii1GHHigPvGbFt0QdEIzk5oT1mZa16VN30MYH4wvhqd14Qllp_1SIz3wcqDdAP5Kx6/pub?w=960&h=720)
 

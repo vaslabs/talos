@@ -32,8 +32,8 @@ import talos.circuitbreakers.akka._
 import scala.concurrent.duration._
 
 
-def createCircuitBreaker(name: String = "testCircuitBreaker")
-                      (implicit system: ActorSystem[_]): AkkaCircuitBreaker.Instance = {
+def createCircuitBreaker(name: String = "testCircuitBreaker")(implicit system: ActorSystem[_]):
+ AkkaCircuitBreaker.Instance = {
     AkkaCircuitBreaker(
       name,
       CircuitBreaker(
