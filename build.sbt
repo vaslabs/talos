@@ -133,7 +133,7 @@ lazy val micrositeSettings = Seq(
       Map("section" -> "home", "position" -> "0")
     )
   ),
-  fork in tut := true,
+  fork in mdoc := true,
   micrositePalette := Map(
     "brand-primary" -> "#E05236",
     "brand-secondary" -> "#3F3242",

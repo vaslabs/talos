@@ -13,7 +13,7 @@ number: 2
 libraryDependencies += "org.vaslabs.talos" %% "taloskamon" % "2.0.0-RC1"
 ```
 
-```tut:silent
+```scala mdoc:silent
   import cats.effect.IO
   import akka.actor.typed.scaladsl.ActorContext
 

@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
 
 This library provides a way to stream events on what's happening in the circuit breakers. You can do:
 
-```tut:silent
+```scala mdoc:silent
 import akka.actor.typed.{ActorSystem, ActorRef}
 import akka.actor.typed.scaladsl.adapter._
 import akka.pattern.CircuitBreaker
@@ -48,7 +48,7 @@ def createCircuitBreaker(name: String = "testCircuitBreaker")(implicit system: A
 ```
 
 Now you can use the circuit breaker via the TalosCircuitBreaker type class.
-```tut:silent
+```scala mdoc:silent
 import talos.events.TalosEvents.model.CircuitBreakerEvent
 def circuitBreakerUsage(implicit actorSystem: ActorSystem[_]): Unit = {
     val myCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, ActorRef[CircuitBreakerEvent], IO] = createCircuitBreaker()
@@ -61,7 +61,7 @@ Now circuit breaker events arrive in the akka event stream.
 
 ### Legacy support
 If you are working on a legacy code and you don't want to change every method call you can extract the underlying circuit breaker like this
-```tut:silent
+```scala mdoc:silent
     def legacyUsage(implicit actorSystem: ActorSystem[_]): Unit = {
         val myCircuitBreaker: TalosCircuitBreaker[CircuitBreaker, ActorRef[CircuitBreakerEvent], IO] = createCircuitBreaker()
         val akkaCircuitBreaker: akka.pattern.CircuitBreaker = myCircuitBreaker.circuitBreaker.unsafeRunSync()
@@ -72,7 +72,7 @@ And you still get the events through the akka event stream.
 
 ADT of the events under:
 
-```tut:silent
+```scala mdoc:silent
 import talos.events.TalosEvents.model._
 ```
 
