@@ -65,7 +65,7 @@ https://github.com/vaslabs/talos/blob/master/examples/src/main/scala/talos/examp
 ### Laws
 If you wish to implement your own TalosCircuitBreaker typeclasses you can test them against the laws library:
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "taloslaws" % "2.0.0-RC1" % Test
+libraryDependencies += "org.vaslabs.talos" %% "taloslaws" % "2.0.0" % Test
 ```
 
 
