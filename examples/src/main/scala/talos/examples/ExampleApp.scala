@@ -3,7 +3,7 @@ package talos.examples
 import java.time.Clock
 import java.util.concurrent.Executors
 
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorSystem, Behavior, PostStop}
 import cats.effect.IO
 import kamon.Kamon
@@ -20,7 +20,7 @@ object ExampleApp extends App {
     ctx =>
     implicit val actorContext = ctx
 
-      startCircuitBreakerActivity()
+      startCircuitBreakerActivity
 
       StatsAggregator.kamon().unsafeToFuture()
 
@@ -44,7 +44,7 @@ object ExampleApp extends App {
 
 
 
-    def startCircuitBreakerActivity()(implicit actorContext: ActorContext[_]): Future[Unit] = {
+    def startCircuitBreakerActivity: Future[Unit] = {
       val foo = Utils.createCircuitBreaker("foo")
       val bar = Utils.createCircuitBreaker("bar")
       val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
@@ -62,9 +62,9 @@ object ExampleApp extends App {
         while (true) {
           Thread.sleep(20000)
           if (Random.nextDouble() < 0.5) {
-              for (i <- 1 to 10) yield Try(bar.protect(IO(throw new RuntimeException)).unsafeRunSync())
+              for (_ <- 1 to 10) yield Try(bar.protect(IO(throw new RuntimeException)).unsafeRunSync())
           } else {
-              for (i <- 1 to 10) yield Try(foo.protect(IO(throw new RuntimeException)).unsafeRunSync())
+              for (_ <- 1 to 10) yield Try(foo.protect(IO(throw new RuntimeException)).unsafeRunSync())
           }
         }
       }(executionContext)

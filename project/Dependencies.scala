@@ -17,10 +17,9 @@ object Dependencies {
     val scalatest = "3.0.8"
     val akkaHttp = "10.1.11"
     val monix = "3.2.1"
-    val gatling = "3.0.3"
+    val gatling = "3.1.0"
     val wiremock = "2.26.3"
     val log4j = "2.10.0"
-    val scalalogging = "3.9.2"
   }
 
   object libraries {
@@ -32,9 +31,8 @@ object Dependencies {
       val http = "com.typesafe.akka" %% "akka-http" % versions.akkaHttp
       val httpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % versions.akkaHttp
       val streamTestKit = "com.typesafe.akka" %% "akka-stream-testkit" % versions.akka
-      val stream = "com.typesafe.akka" %% "akka-stream" % versions.akka
       val all = Seq(actorTyped, actorTestkitTyped)
-      val allHttp = all ++ Seq(stream, http, httpTestkit, streamTestKit, streams)
+      val allHttp = all ++ Seq(streams, http, httpTestkit, streamTestKit)
     }
 
     object Monix {
@@ -45,8 +43,7 @@ object Dependencies {
 
     object Log4j {
       private val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
-      private val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % versions.scalalogging
-      val required = Seq(logback, scalaLogging)
+      val required = Seq(logback)
     }
 
     object Kamon {
@@ -83,10 +80,9 @@ object Dependencies {
     }
 
     object Wiremock {
-      val dispatch = "net.databinder.dispatch" %% "dispatch-core" % "0.13.4"
       val wiremock = "com.github.tomakehurst" % "wiremock" % versions.wiremock
 
-      val all = Seq(wiremock % Test, dispatch % Test)
+      val all = Seq(wiremock % Test)
     }
 
     object Gatling {

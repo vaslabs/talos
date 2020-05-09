@@ -12,14 +12,14 @@ import cats.implicits._
 import talos.circuitbreakers.monix.MonixCircuitBreaker.EventSubscriber
 import talos.events.TalosEvents.model._
 
-import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 package object monix {
 
   class MonixEventBus extends EventBus[EventSubscriber] {
 
-    private[this] final val subscriptions: ConcurrentMap[EventSubscriber, EventSubscriber] = new ConcurrentHashMap
+    private[this] final val subscriptions: TrieMap[EventSubscriber, EventSubscriber] = TrieMap.empty
 
     override def subscribe(subscriber: EventSubscriber): Option[EventSubscriber] = {
       subscriptions.putIfAbsent(subscriber, BufferedSubscriber(subscriber, OverflowStrategy.DropOld(100000)))
@@ -28,12 +28,12 @@ package object monix {
 
     override def unsubsribe(subscriber: EventSubscriber): Unit = {
       val cancelable = subscriptions.remove(subscriber)
-      cancelable.onComplete()
+      cancelable.foreach(_.onComplete())
     }
 
     override def publish[A <: AnyRef](a: A): Unit = a match {
       case cbe: CircuitBreakerEvent =>
-        subscriptions.asScala.values.foreach(_.onNext(cbe))
+        subscriptions.values.foreach(_.onNext(cbe))
         ()
       case _ =>
     }
