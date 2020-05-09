@@ -20,12 +20,14 @@ object Dependencies {
     val gatling = "3.1.0"
     val wiremock = "2.26.3"
     val log4j = "2.10.0"
+    val scalalogging = "3.9.2"
   }
 
   object libraries {
 
     object Akka {
       val actorTyped = "com.typesafe.akka" %% "akka-actor-typed" % versions.akka
+      val slf4j = "com.typesafe.akka" %% "akka-slf4j" % versions.akka
       val streams = "com.typesafe.akka" %% "akka-stream-typed" % versions.akka
       val actorTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % versions.akka % Test
       val http = "com.typesafe.akka" %% "akka-http" % versions.akkaHttp
@@ -43,7 +45,8 @@ object Dependencies {
 
     object Log4j {
       private val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
-      val required = Seq(logback)
+      private val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % versions.scalalogging
+      val required = Seq(logback, scalaLogging, Akka.slf4j)
     }
 
     object Kamon {
