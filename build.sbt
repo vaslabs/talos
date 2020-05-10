@@ -125,25 +125,21 @@ lazy val micrositeSettings = Seq(
   micrositeTwitterCreator := "@vaslabs",
   micrositeGithubOwner := "vaslabs",
   micrositeGithubRepo := "talos",
-  micrositeBaseUrl := "/talos",
-  micrositeDocumentationUrl := "/talos/events/events.html",
+  micrositeUrl := "https://sbt-kubeyml.vaslabs.org",
+  micrositeDocumentationUrl := "/events/events.html",
   micrositeExtraMdFiles := Map(
     file("README.md") -> ExtraMdFileConfig(
       "index.md",
       "home",
-      Map("section" -> "home", "position" -> "0")
+      Map("section" -> "home", "position" -> "0", "permalink" -> "/")
     )
   ),
   fork in mdoc := true,
-  micrositePalette := Map(
-    "brand-primary" -> "#E05236",
-    "brand-secondary" -> "#3F3242",
-    "brand-tertiary" -> "#2D232F",
-    "gray-dark" -> "#453E46",
-    "gray" -> "#837F84",
-    "gray-light" -> "#E3E2E3",
-    "gray-lighter" -> "#F4F3F4",
-    "white-color" -> "#FFFFFF")
+  micrositeTheme := "pattern",
+    excludeFilter in ghpagesCleanSite :=
+    new FileFilter{
+      def accept(f: File) = (ghpagesRepository.value / "CNAME").getCanonicalPath == f.getCanonicalPath
+    } || "versions.html"
 )
 
 lazy val talosMicrosite = (project in file("site"))
