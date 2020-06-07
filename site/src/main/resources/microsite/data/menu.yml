@@ -7,10 +7,6 @@ options:
   url: kamon/kamon.html
   section: kamon
 
-- title: Dashboard
-  url: dashboard/hystrixDashboard.html
-  section: dashboard
-
 - title: API Gateway
   url: gateway/
   menu_section: gateway
