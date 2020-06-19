@@ -1,10 +1,10 @@
 package talos.laws
 
 import org.scalacheck._
-import org.scalatest.Matchers
 import talos.circuitbreakers.EventBus
 import talos.events.TalosEvents.model.CircuitBreakerEvent
 import org.scalacheck.ScalacheckShapeless._
+import org.scalatest.matchers.should.Matchers
 
 trait EventBusLaws[S] extends Matchers{
   def acceptMsg: CircuitBreakerEvent
