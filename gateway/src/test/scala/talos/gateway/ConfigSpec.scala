@@ -1,7 +1,6 @@
 package talos.gateway
 
 import akka.http.scaladsl.model.HttpMethods
-import org.scalatest.{FlatSpec, Matchers}
 import pureconfig._
 import talos.gateway.config._
 
@@ -9,7 +8,9 @@ import scala.concurrent.duration._
 
 import config.pureconfigExt._
 import pureconfig.generic.auto._
-class ConfigSpec extends FlatSpec with Matchers {
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+class ConfigSpec extends AnyFlatSpec with Matchers {
 
   "basic configuration with multiple services" should "be deserialised" in {
 
