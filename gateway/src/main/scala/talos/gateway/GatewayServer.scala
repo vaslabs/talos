@@ -21,7 +21,7 @@ class GatewayServer private(gatewayConfig: GatewayConfig)(implicit actorContext:
     implicit val actorSystem = actorContext.system.toClassic
 
     for {
-      serverBinding <- Http().bindAndHandle(gateway.route, gatewayConfig.interface, gatewayConfig.port)
+      serverBinding <- Http().newServerAt(gatewayConfig.interface, gatewayConfig.port).bind(gateway.route)
     } yield serverBinding
   }
 
