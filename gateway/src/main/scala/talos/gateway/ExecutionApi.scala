@@ -66,7 +66,7 @@ object ExecutionApi {
 
 
   private def hostConnectionPoolConfig(maxInflightRequests: Int)(implicit actorSystem: ActorSystem[_]): ConnectionPoolSettings =
-    ConnectionPoolSettings.default(actorSystem.toClassic)
+    ConnectionPoolSettings.default(actorSystem)
       .withMinConnections(1 + maxInflightRequests / 4)
       .withMaxConnections(maxInflightRequests)
       .withMaxOpenRequests(maxInflightRequests * 4)
@@ -89,8 +89,6 @@ object ExecutionApi {
     val queuesPerService: Map[String, QUEUE] = {
       val fromServices = gatewayConfig.services.map {
         service =>
-
-          implicit val classicSystem = actorSystem.toClassic
 
           val poolClientFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
             service.host,
