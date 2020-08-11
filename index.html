@@ -9,9 +9,9 @@
 <h2 id="usage">Usage</h2>
 <p>Talos is modularised. You can twist it and pick the dependencies that fit your need. But let’s go step by step.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloscore"</span> <span class="o">%</span> <span class="s">"2.0.1"</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"talosakkasupport"</span> <span class="o">%</span> <span class="s">"2.0.1"</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloskamon"</span> <span class="o">%</span> <span class="s">"2.0.1"</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloscore"</span> <span class="o">%</span> <span class="s">"2.1.0"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"talosakkasupport"</span> <span class="o">%</span> <span class="s">"2.1.0"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloskamon"</span> <span class="o">%</span> <span class="s">"2.1.0"</span>
 </code></pre></div></div>
 <p>The events library provides a way to stream events on what’s happening in the circuit breakers. E.g. combining with the talosakkasupport you can do:</p>
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">akka.actor.typed.</span><span class="o">{</span><span class="nc">ActorSystem</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">}</span>
@@ -57,7 +57,7 @@ https://github.com/vaslabs/talos/blob/master/examples/src/main/scala/talos/examp
 
 <h3 id="laws">Laws</h3>
 <p>If you wish to implement your own TalosCircuitBreaker typeclasses you can test them against the laws library:</p>
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloslaws"</span> <span class="o">%</span> <span class="s">"2.0.1"</span> <span class="o">%</span> <span class="nc">Test</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.vaslabs.talos"</span> <span class="o">%%</span> <span class="s">"taloslaws"</span> <span class="o">%</span> <span class="s">"2.1.0"</span> <span class="o">%</span> <span class="nc">Test</span>
 </code></pre></div></div>
 
 <h2 id="run-the-demo">Run the demo</h2>
