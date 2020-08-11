@@ -2,11 +2,12 @@ package talos.gateway
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import org.scalatest.{Matchers, WordSpec}
 import talos.gateway.Gateway.ServiceCall
 
 import scala.concurrent.Future
-class GatewaySpec extends WordSpec with Matchers with ScalatestRouteTest{
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+class GatewaySpec extends AnyWordSpec with Matchers with ScalatestRouteTest{
 
 
   "talos gateway" can {
