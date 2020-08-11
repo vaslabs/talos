@@ -28,7 +28,7 @@ A laws library is provided to be able to:
 
 
 ```scala
-libraryDependencies += "org.vaslabs.talos" %% "taloslaws" % "2.0.1"
+libraryDependencies += "org.vaslabs.talos" %% "taloslaws" % "2.1.0"
 ```
 
 Navigate the laws section to find more.
