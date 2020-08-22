@@ -5,10 +5,11 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.eventstream.EventStream
 import akka.pattern.CircuitBreaker
 import cats.effect.IO
-import org.scalatest.{BeforeAndAfterAll, Matchers}
+import org.scalatest.BeforeAndAfterAll
 import talos.circuitbreakers
 import talos.events.TalosEvents.model._
 import talos.laws.TalosCircuitBreakerLaws
+import org.scalatest.matchers.should.Matchers
 
 class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreaker, ActorRef[CircuitBreakerEvent], IO]
       with Matchers
