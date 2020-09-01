@@ -8,13 +8,14 @@ import monix.catnap.CircuitBreaker
 import monix.execution.Ack.Continue
 import monix.execution.{Ack, Scheduler}
 import monix.reactive.observers.Subscriber
-import org.scalatest.{BeforeAndAfterAll, Matchers}
+import org.scalatest.BeforeAndAfterAll
 import talos.circuitbreakers
 import talos.circuitbreakers.monix.MonixCircuitBreaker.EventSubscriber
 import talos.events.TalosEvents.model._
 import talos.laws.TalosCircuitBreakerLaws
 
 import scala.concurrent.{ExecutionContext, Future}
+import org.scalatest.matchers.should.Matchers
 
 class TalosCircuitBreakerEventsSpec extends TalosCircuitBreakerLaws[CircuitBreaker[IO], EventSubscriber, IO]
   with Matchers with BeforeAndAfterAll {
