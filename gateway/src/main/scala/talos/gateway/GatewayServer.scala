@@ -1,9 +1,7 @@
 package talos.gateway
 
 import akka.actor.typed.scaladsl.ActorContext
-import akka.actor.typed.scaladsl.adapter._
 import akka.http.scaladsl.Http
-import akka.stream.Materializer
 import kamon.Kamon
 import talos.gateway.config.GatewayConfig
 
@@ -15,13 +13,12 @@ class GatewayServer private(gatewayConfig: GatewayConfig)(implicit actorContext:
 
   private[gateway] val start: Future[Http.ServerBinding] = {
     val gateway = Gateway(gatewayConfig)(actorContext)
-    implicit val materializer = Materializer(actorContext)
     import scala.concurrent.ExecutionContext.Implicits._
 
-    implicit val actorSystem = actorContext.system.toClassic
+    implicit val actorSystem = actorContext.system
 
     for {
-      serverBinding <- Http().bindAndHandle(gateway.route, gatewayConfig.interface, gatewayConfig.port)
+      serverBinding <- Http().newServerAt(gatewayConfig.interface, gatewayConfig.port).bind(gateway.route)
     } yield serverBinding
   }
 

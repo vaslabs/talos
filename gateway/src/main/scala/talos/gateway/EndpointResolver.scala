@@ -11,7 +11,7 @@ object EndpointResolver {
 
   def transformRequest(request: HttpRequest, hitEndpoint: HitEndpoint): IO[HttpRequest] = IO {
     request
-      .copy(uri = request.uri.withHost(hitEndpoint.service).withPath(Path(hitEndpoint.targetPath))
+      .withUri(uri = request.uri.withHost(hitEndpoint.service).withPath(Path(hitEndpoint.targetPath))
         .withPort(hitEndpoint.port)).withHeaders(request.headers.filterNot(_.name == "Timeout-Access"))
   }
 

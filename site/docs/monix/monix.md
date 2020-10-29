@@ -12,8 +12,8 @@ To use monix declare the talos monix support dependency.
 
 ```scala
 libraryDependencies ++= Seq(
-          "org.vaslabs.talos" %% "taloscore" % "2.0.1",
-          "org.vaslabs.talos" %% "talosmonixsupport" % "2.0.1"
+          "org.vaslabs.talos" %% "taloscore" % "2.1.0",
+          "org.vaslabs.talos" %% "talosmonixsupport" % "2.1.0"
 )
 ```
 
