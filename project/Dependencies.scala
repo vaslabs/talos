@@ -5,7 +5,7 @@ object Dependencies {
   object versions {
     val scalacheckshapeless: String = "1.2.5"
 
-    val scalacheck: String = "1.14.3"
+    val scalacheck: String = "1.15.1"
 
     val pureconfig: String = "0.14.0"
 
