@@ -16,7 +16,7 @@ object Dependencies {
     val kamon = "2.1.8"
     val scalatest = "3.0.8"
     val akkaHttp = "10.2.2"
-    val monix = "3.2.2"
+    val monix = "3.3.0"
     val gatling = "3.1.0"
     val wiremock = "2.27.2"
     val log4j = "2.10.0"
