@@ -5,17 +5,17 @@ object Dependencies {
   object versions {
     val scalacheckshapeless: String = "1.2.5"
 
-    val scalacheck: String = "1.15.1"
+    val scalacheck: String = "1.15.2"
 
     val pureconfig: String = "0.14.0"
 
     val catsEffect: String = "2.3.0"
 
-    val akka = "2.6.10"
+    val akka = "2.6.11"
     val circe = "0.13.0"
     val kamon = "2.1.9"
-    val scalatest = "3.0.9"
-    val akkaHttp = "10.2.2"
+    val scalatest = "3.0.8"
+    val akkaHttp = "10.2.3"
     val monix = "3.3.0"
     val gatling = "3.1.0"
     val wiremock = "2.27.2"
