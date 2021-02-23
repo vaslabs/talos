@@ -11,7 +11,7 @@ object Dependencies {
 
     val catsEffect: String = "2.3.3"
 
-    val akka = "2.6.12"
+    val akka = "2.6.13"
     val circe = "0.13.0"
     val kamon = "2.1.12"
     val scalatest = "3.0.8"
