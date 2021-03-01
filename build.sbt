@@ -6,7 +6,7 @@ import sbt.url
 name := "talos"
 sonatypeProfileName := "org.vaslabs"
 version in ThisBuild := sys.env.getOrElse("VASLABS_PUBLISH_VERSION", "SNAPSHOT")
-scalaVersion in ThisBuild := "2.12.12"
+scalaVersion in ThisBuild := "2.12.13"
 
 lazy val talos =
   (project in file("."))
@@ -229,8 +229,8 @@ lazy val compilerSettings = Seq(
   crossScalaVersions in ThisBuild := Seq(scala212, scala213)
 )
 
-lazy val scala212 = "2.12.12"
-lazy val scala213 = "2.13.5"
+lazy val scala212 = "2.12.13"
+lazy val scala213 = "2.13.2"
 
 lazy val scala212Flags = Seq(
   "-Ypartial-unification",
