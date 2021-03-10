@@ -6,7 +6,7 @@ import sbt.url
 name := "talos"
 sonatypeProfileName := "org.vaslabs"
 version in ThisBuild := sys.env.getOrElse("VASLABS_PUBLISH_VERSION", "SNAPSHOT")
-scalaVersion in ThisBuild := "2.12.11"
+scalaVersion in ThisBuild := "2.12.13"
 
 lazy val talos =
   (project in file("."))
@@ -86,7 +86,7 @@ lazy val dockerCommonSettings = Seq(
   dockerExposedPorts := Seq(8080, 9095, 5266),
   maintainer := "vaslabsco@gmail.com",
   dockerUsername := Some("vaslabs"),
-  javaAgents += "io.kamon" % "kanela-agent" % "1.0.7"
+  javaAgents += "io.kamon" % "kanela-agent" % "1.0.8"
 )
 
 lazy val dockerPlugins = Seq(DockerPlugin, AshScriptPlugin, JavaAppPackaging, UniversalPlugin, JavaAgent)
@@ -229,7 +229,7 @@ lazy val compilerSettings = Seq(
   crossScalaVersions in ThisBuild := Seq(scala212, scala213)
 )
 
-lazy val scala212 = "2.12.11"
+lazy val scala212 = "2.12.13"
 lazy val scala213 = "2.13.2"
 
 lazy val scala212Flags = Seq(
