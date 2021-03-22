@@ -71,7 +71,7 @@ package object monix {
     }
 
     override def protectWithFallback[A, E](task: F[A], fallback: F[E]): F[Either[E, A]] =
-      protect(task).map[Either[E, A]](Right(_)) orElse F.suspend[Either[E, A]] {
+      protect(task).map[Either[E, A]](Right(_)) orElse F.defer[Either[E, A]] {
           fallback.timeout(TalosCircuitBreaker.FAST_FALLBACK_DURATION).map { v =>
             eventBus.publish(FallbackSuccess(name))
             Left(v)
