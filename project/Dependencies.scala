@@ -7,14 +7,14 @@ object Dependencies {
 
     val scalacheck: String = "1.15.2"
 
-    val pureconfig: String = "0.14.0"
+    val pureconfig: String = "0.14.1"
 
-    val catsEffect: String = "2.3.1"
+    val catsEffect: String = "2.4.0"
 
-    val akka = "2.6.12"
+    val akka = "2.6.13"
     val circe = "0.13.0"
-    val kamon = "2.1.12"
-    val scalatest = "3.0.9"
+    val kamon = "2.1.13"
+    val scalatest = "3.0.8"
     val akkaHttp = "10.2.3"
     val monix = "3.3.0"
     val gatling = "3.1.0"
