@@ -17,7 +17,7 @@ trait StateLaws[C, S, F[_]] extends CircuitBreakerSpec[C, S, F] with EventBusLaw
   private[laws] def exposesCircuitOpenEvent(implicit F: Effect[F]) = {
     var failures = 0
     val failure = F.liftIO {
-      IO.suspend {
+      IO.defer {
         failures+=1
         IO.raiseError(new RuntimeException)
       }
