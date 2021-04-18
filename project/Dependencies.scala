@@ -7,7 +7,7 @@ object Dependencies {
 
     val scalacheck: String = "1.15.2"
 
-    val pureconfig: String = "0.14.1"
+    val pureconfig: String = "0.15.0"
 
     val catsEffect: String = "2.4.0"
 
