@@ -15,6 +15,7 @@ import talos.events.TalosEvents.model._
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import cats.effect.Temporal
 package object monix {
 
   class MonixEventBus extends EventBus[EventSubscriber] {
@@ -49,7 +50,7 @@ package object monix {
 
     private[this] val fClock: Clock[F] = Clock.create[F]
 
-    private[this] implicit val timer: Timer[F] = new Timer[F] {
+    private[this] implicit val timer: Temporal[F] = new Temporal[F] {
       private[this] val executionContext = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
       private[this] val ioTimer = IO.timer(executionContext)
       override def clock: Clock[F] = fClock

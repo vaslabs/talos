@@ -1,6 +1,6 @@
 package talos.circuitbreakers.monix
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import monix.catnap.CircuitBreaker
 
 import scala.concurrent.duration._
