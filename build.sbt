@@ -86,7 +86,7 @@ lazy val dockerCommonSettings = Seq(
   dockerExposedPorts := Seq(8080, 9095, 5266),
   maintainer := "vaslabsco@gmail.com",
   dockerUsername := Some("vaslabs"),
-  javaAgents += "io.kamon" % "kanela-agent" % "1.0.8"
+  javaAgents += "io.kamon" % "kanela-agent" % "1.0.10"
 )
 
 lazy val dockerPlugins = Seq(DockerPlugin, AshScriptPlugin, JavaAppPackaging, UniversalPlugin, JavaAgent)
