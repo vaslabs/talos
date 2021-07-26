@@ -20,7 +20,7 @@ object Dependencies {
     val gatling = "3.1.0"
     val wiremock = "2.27.2"
     val log4j = "2.10.0"
-    val scalalogging = "3.9.3"
+    val scalalogging = "3.9.4"
   }
 
   object libraries {
