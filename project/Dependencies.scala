@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   object versions {
-    val scalacheckshapeless: String = "1.2.5"
+    val scalacheckshapeless: String = "1.3.0"
 
     val scalacheck: String = "1.15.2"
 
@@ -74,7 +74,7 @@ object Dependencies {
 
     object ScalaCheck {
       val scalacheck = "org.scalacheck" %% "scalacheck" % versions.scalacheck
-      val scalacheckshapeless = "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % versions.scalacheckshapeless
+      val scalacheckshapeless = "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % versions.scalacheckshapeless
       val all = Seq(scalacheck, scalacheckshapeless, ScalaTest.scalatest)
     }
 
