@@ -44,7 +44,7 @@ object Dependencies {
     }
 
     object Log4j {
-      private val logback = "ch.qos.logback" % "logback-classic" % "1.2.4"
+      private val logback = "ch.qos.logback" % "logback-classic" % "1.2.7"
       private val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % versions.scalalogging
       val required = Seq(logback, scalaLogging, Akka.slf4j)
     }
