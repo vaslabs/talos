@@ -5,8 +5,8 @@ import sbt.url
 
 name := "talos"
 sonatypeProfileName := "org.vaslabs"
-version in ThisBuild := sys.env.getOrElse("VASLABS_PUBLISH_VERSION", "SNAPSHOT")
-scalaVersion in ThisBuild := "2.12.13"
+(ThisBuild / version) := sys.env.getOrElse("VASLABS_PUBLISH_VERSION", "SNAPSHOT")
+(ThisBuild / scalaVersion) := "2.12.13"
 
 lazy val talos =
   (project in file("."))
@@ -66,8 +66,8 @@ lazy val talosKamon =
 lazy val compat =
   (project in file("cross-compat"))
   .settings(
-    unmanagedSourceDirectories in Compile += {
-      val sharedSourceDir = (baseDirectory in ThisBuild).value / "cross-compat/src/main"
+    (Compile / unmanagedSourceDirectories) += {
+      val sharedSourceDir = (ThisBuild / baseDirectory).value / "cross-compat/src/main"
       if (scalaBinaryVersion.value.startsWith("2.13"))
         sharedSourceDir / "scala-2.13"
       else
@@ -76,8 +76,8 @@ lazy val compat =
   ).settings(noPublishSettings)
 
 lazy val dockerCommonSettings = Seq(
-  version in Docker := version.value,
-  maintainer in Docker := "Vasilis Nicolaou",
+  (Docker / version) := version.value,
+  (Docker / maintainer) := "Vasilis Nicolaou",
   dockerBaseImage := "openjdk:8-alpine",
   dockerCommands += Cmd("USER", "root"),
     dockerCommands ++= Seq(
@@ -96,7 +96,7 @@ lazy val talosExamples =
   .enablePlugins(dockerPlugins: _*)
   .settings(dockerCommonSettings)
   .settings(
-    packageName in Docker := "talos-demo",
+    (Docker / packageName) := "talos-demo",
   )
   .settings(
     libraryDependencies ++=
@@ -113,9 +113,9 @@ lazy val talosExamples =
 
 lazy val noPublishSettings = Seq(
   publish := {},
-  skip in publish := true,
+  (publish / skip) := true,
   publishLocal := {},
-  publishArtifact in Test := false
+  (Test / publishArtifact) := false
 )
 
 lazy val micrositeSettings = Seq(
@@ -134,9 +134,9 @@ lazy val micrositeSettings = Seq(
       Map("section" -> "home", "position" -> "0", "permalink" -> "/")
     )
   ),
-  fork in mdoc := true,
+  (mdoc / fork) := true,
   micrositeTheme := "pattern",
-    excludeFilter in ghpagesCleanSite :=
+    (ghpagesCleanSite / excludeFilter) :=
     new FileFilter{
       def accept(f: File) = (ghpagesRepository.value / "CNAME").getCanonicalPath == f.getCanonicalPath
     } || "versions.html"
@@ -166,7 +166,7 @@ lazy val talosGateway =
         libraries.Log4j.required :+ libraries.PureConf.core
   )
   .settings(
-    packageName in Docker := "talos-gateway",
+    (Docker / packageName) := "talos-gateway",
   )
   .settings(
     compilerSettings
@@ -185,7 +185,7 @@ lazy val talosLoadTests = (project in file("load-tests"))
     ).enablePlugins(GatlingPlugin)
     .settings(noPublishSettings)
     .settings(compilerSettings)
-    .settings(crossScalaVersions in ThisProject := Nil)
+    .settings((ThisProject / crossScalaVersions) := Nil)
 
 
 
@@ -226,7 +226,7 @@ lazy val compilerSettings = Seq(
     else
       sharedFlags ++ scala212Flags
   },
-  crossScalaVersions in ThisBuild := Seq(scala212, scala213)
+  (ThisBuild / crossScalaVersions) := Seq(scala212, scala213)
 )
 
 lazy val scala212 = "2.12.13"
